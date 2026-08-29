@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { Profile } from "./types";
@@ -6,7 +7,9 @@ import type { Profile } from "./types";
 // de dados protegidos. Se não tiver sessão válida ou perfil, redireciona
 // pro login ANTES de qualquer query rodar — nenhum dado sai do servidor
 // sem isso passar.
-export async function requireProfile(): Promise<Profile> {
+// cache() do React deduplica dentro da mesma requisição: o layout e a
+// página chamam requireProfile() cada um, mas só bate no banco 1 vez.
+export const requireProfile = cache(async function requireProfile(): Promise<Profile> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -23,7 +26,7 @@ export async function requireProfile(): Promise<Profile> {
   if (error || !profile) redirect("/login");
 
   return profile as Profile;
-}
+});
 
 export async function requireMaster(): Promise<Profile> {
   const profile = await requireProfile();
