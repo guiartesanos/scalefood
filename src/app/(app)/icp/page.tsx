@@ -1,11 +1,9 @@
 import { requireProfile } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getClientes, pctOf } from "@/lib/data";
 
 export default async function IcpPage() {
-  const profile = await requireProfile();
-  if (profile.role === "financeiro" || profile.role === "onboarding") redirect("/dashboard");
+  await requireProfile();
 
   const supabase = await createClient();
   const clientes = await getClientes();

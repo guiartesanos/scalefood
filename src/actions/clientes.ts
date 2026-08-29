@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { brl } from "@/lib/data";
 import type { ClienteStatus } from "@/lib/types";
 
 function calcTraf(rec: number): number {
@@ -65,8 +66,16 @@ export async function criarCliente(formData: FormData) {
     return { error: "Não deu pra salvar o cliente: " + error.message };
   }
 
+  await supabase.from("icp_log").insert({
+    titulo: `Novo cliente: ${nome}`,
+    detalhe: `Nicho ${nicho}, entrada de recorrência ${brl(rec)}${
+      entrada != null ? `, faturamento de entrada ${brl(entrada)}` : ""
+    }.`,
+  });
+
   revalidatePath("/dashboard");
   revalidatePath("/clientes");
+  revalidatePath("/icp");
   return { success: true };
 }
 
