@@ -1,0 +1,51 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { canAccessTab } from "@/lib/permissions";
+import type { UserRole } from "@/lib/types";
+
+const TABS = [
+  { key: "dashboard", href: "/dashboard", label: "Dashboard" },
+  { key: "financeiro", href: "/financeiro", label: "Financeiro" },
+  { key: "clientes", href: "/clientes", label: "Clientes" },
+  { key: "tarefas", href: "/tarefas", label: "Tarefas" },
+  { key: "icp", href: "/icp", label: "ICP" },
+];
+
+export function TabNav({ role }: { role: UserRole }) {
+  const pathname = usePathname();
+
+  return (
+    <nav className="flex gap-1 border-b border-line overflow-x-auto px-6 max-w-[1220px] mx-auto w-full">
+      {TABS.filter((t) => canAccessTab(role, t.key)).map((t) => {
+        const active = pathname.startsWith(t.href);
+        return (
+          <Link
+            key={t.key}
+            href={t.href}
+            className="font-display font-bold text-[15px] px-3.5 pt-2.5 pb-2 whitespace-nowrap border-b-2 transition-colors"
+            style={{
+              color: active ? "var(--accent-ink)" : "var(--muted)",
+              borderColor: active ? "var(--accent)" : "transparent",
+            }}
+          >
+            {t.label}
+          </Link>
+        );
+      })}
+      {role === "master" && (
+        <Link
+          href="/configuracoes/usuarios"
+          className="font-display font-bold text-[15px] px-3.5 pt-2.5 pb-2 whitespace-nowrap border-b-2 transition-colors ml-auto"
+          style={{
+            color: pathname.startsWith("/configuracoes") ? "var(--accent-ink)" : "var(--muted)",
+            borderColor: pathname.startsWith("/configuracoes") ? "var(--accent)" : "transparent",
+          }}
+        >
+          Configurações
+        </Link>
+      )}
+    </nav>
+  );
+}
