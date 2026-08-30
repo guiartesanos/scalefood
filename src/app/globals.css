@@ -12,9 +12,9 @@ button:disabled {
 
 :root {
   color-scheme: light;
-  --page: #f1ecdd;
-  --paper: #faf7ee;
-  --paper-2: #f4efe1;
+  --page: #ffffff;
+  --paper: #ffffff;
+  --paper-2: #f5f5f4;
   --ink: #1e1b14;
   --ink-2: #5b564a;
   --muted: #8c8676;
