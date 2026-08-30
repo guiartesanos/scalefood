@@ -41,6 +41,7 @@ export interface Cliente {
   inicio_cobranca_recorrente: string | null;
   created_at: string;
   updated_at: string;
+  asaas_customer_id: string | null;
 }
 
 export interface CustoFixo {

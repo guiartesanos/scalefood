@@ -141,7 +141,9 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
                   <td className="px-3 py-2.5 num">{c.n}</td>
                   <td className="px-3 py-2.5">
                     <div className="flex flex-col">
-                      <b className="text-[13px]">{c.nome}</b>
+                      <Link href={`/clientes/${c.id}`} className="text-[13px] font-bold hover:text-accent-ink hover:underline">
+                        {c.nome}
+                      </Link>
                       <span className="text-[11px] text-muted">{c.dono}</span>
                     </div>
                   </td>

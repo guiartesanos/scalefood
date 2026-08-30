@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { getClientes, brl, brlInt, tenureLabel, pctOf } from "@/lib/data";
 import { StatusSelect } from "@/components/StatusSelect";
@@ -54,7 +55,9 @@ export default async function ClientesPage() {
                   const growthTxt = p !== null ? `${p >= 0 ? "+" : ""}${p.toFixed(0)}%` : c.growth_note === "zero_base" ? "do zero" : "—";
                   return (
                     <div key={c.id} className="bg-paper border border-line rounded-lg p-2.5 flex flex-col gap-1" style={attn ? { borderLeft: "3px solid var(--critical)" } : undefined}>
-                      <span className="font-semibold text-[12.5px]">{c.nome}</span>
+                      <Link href={`/clientes/${c.id}`} className="font-semibold text-[12.5px] hover:text-accent-ink hover:underline self-start">
+                        {c.nome}
+                      </Link>
                       <span className="text-[11px] text-muted">{c.dono} · {c.nicho} · cliente há {tenure.text}</span>
                       <span className="text-[11px] text-ink-2 num">{brl(c.rec)}/mês · crescimento {growthTxt}</span>
                       {attn && <span className="text-[10.5px] text-critical font-semibold">⚠ {attnNote}</span>}
@@ -91,7 +94,14 @@ export default async function ClientesPage() {
                 else badge = `${(p ?? 0) >= 0 ? "+" : ""}${(p ?? 0).toFixed(1).replace(".", ",")}%`;
                 return (
                   <tr key={c.id} className="border-t border-line/50">
-                    <td className="px-3 py-2"><div className="flex flex-col"><b>{c.nome}</b><span className="text-[11px] text-muted">{c.dono}</span></div></td>
+                    <td className="px-3 py-2">
+                      <div className="flex flex-col">
+                        <Link href={`/clientes/${c.id}`} className="font-bold hover:text-accent-ink hover:underline self-start">
+                          {c.nome}
+                        </Link>
+                        <span className="text-[11px] text-muted">{c.dono}</span>
+                      </div>
+                    </td>
                     <td className="px-3 py-2"><StatusSelect clienteId={c.id} status={c.status} /></td>
                     <td className="px-3 py-2">{c.nicho}</td>
                     <td className="px-3 py-2 num">{tenure.text}</td>
