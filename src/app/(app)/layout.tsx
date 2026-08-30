@@ -1,6 +1,9 @@
 import { requireProfile } from "@/lib/auth";
+import { getClientes } from "@/lib/data";
 import { MetaBar } from "@/components/MetaBar";
 import { TabNav } from "@/components/TabNav";
+import { MobileTabNav } from "@/components/MobileTabNav";
+import { CommandPalette } from "@/components/CommandPalette";
 import { IdleLogout } from "@/components/IdleLogout";
 import { signOut } from "@/actions/auth";
 import { roleLabel } from "@/lib/permissions";
@@ -10,13 +13,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // buscado ou renderizado. Sem sessão válida, requireProfile já
   // redireciona pro /login.
   const profile = await requireProfile();
+  const clientes = await getClientes();
 
   return (
     <div className="min-h-screen flex flex-col bg-page">
       <header className="max-w-[1220px] mx-auto w-full px-6 pt-6 pb-2 flex items-center justify-between">
         <span className="brandmark text-xl">Food Scale</span>
         <div className="flex items-center gap-3 text-xs text-ink-2">
-          <span>
+          <CommandPalette role={profile.role} clientes={clientes.map((c) => ({ id: c.id, nome: c.nome }))} />
+          <span className="max-[500px]:hidden">
             {profile.nome || profile.email} · <span className="text-accent-ink font-semibold">{roleLabel(profile.role)}</span>
           </span>
           <form action={signOut}>
@@ -28,10 +33,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <TabNav role={profile.role} />
       <MetaBar role={profile.role} />
 
-      <main className="max-w-[1220px] mx-auto w-full px-6 py-7 flex flex-col gap-7 flex-1">
+      <main className="max-w-[1220px] mx-auto w-full px-6 py-7 max-[767px]:pb-20 flex flex-col gap-7 flex-1">
         {children}
       </main>
 
+      <MobileTabNav role={profile.role} />
       <IdleLogout />
     </div>
   );

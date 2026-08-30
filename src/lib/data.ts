@@ -1,13 +1,15 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { Cliente } from "./types";
 
 // SEMPRE via clientes_view (não a tabela clientes crua) — é a view que
 // esconde liq/marg de financeiro/onboarding no nível do banco.
-export async function getClientes(): Promise<Cliente[]> {
+// cache() dedupe chamadas repetidas (layout + page) dentro do mesmo request.
+export const getClientes = cache(async function getClientes(): Promise<Cliente[]> {
   const supabase = await createClient();
   const { data } = await supabase.from("clientes_view").select("*").order("n");
   return (data as Cliente[]) || [];
-}
+});
 
 export function brl(v: number | null | undefined) {
   return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

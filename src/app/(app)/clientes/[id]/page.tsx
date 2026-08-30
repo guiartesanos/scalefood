@@ -43,7 +43,7 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
 
   return (
     <>
-      <Link href="/clientes" className="text-sm text-accent-ink hover:underline self-start">
+      <Link href="/clientes" className="btn text-xs self-start">
         ← voltar pra Clientes
       </Link>
 

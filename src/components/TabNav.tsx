@@ -17,7 +17,7 @@ export function TabNav({ role }: { role: UserRole }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-1 border-b border-line overflow-x-auto px-6 max-w-[1220px] mx-auto w-full">
+    <nav className="max-[767px]:hidden flex gap-1 border-b border-line overflow-x-auto px-6 max-w-[1220px] mx-auto w-full">
       {TABS.filter((t) => canAccessTab(role, t.key)).map((t) => {
         const active = pathname.startsWith(t.href);
         return (

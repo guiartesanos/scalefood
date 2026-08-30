@@ -22,7 +22,7 @@ export function ClienteValoresForm({ cliente }: { cliente: Cliente }) {
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="btn-ghost">
+      <button onClick={() => setOpen(true)} className="btn text-xs py-1.5">
         editar valores
       </button>
     );
