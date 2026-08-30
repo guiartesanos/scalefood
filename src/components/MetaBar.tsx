@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { FaturamentoMesAtual, UserRole } from "@/lib/types";
-import { NovoClienteButton } from "./NovoClienteButton";
 import { DefinirMetaButton } from "./DefinirMetaButton";
-import { LancarConsultoriaButton } from "./LancarConsultoriaButton";
+import { NovaVendaButton } from "./NovaVendaButton";
 
 function brl(v: number | null | undefined) {
   return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -63,8 +62,7 @@ export async function MetaBar({ role }: { role: UserRole }) {
         )}
 
         <div className="ml-auto flex gap-2">
-          <LancarConsultoriaButton />
-          <NovoClienteButton />
+          <NovaVendaButton />
         </div>
       </div>
     </div>
