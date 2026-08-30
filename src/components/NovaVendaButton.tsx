@@ -120,6 +120,7 @@ function FormRecorrencia({ onVoltar, onSucesso }: { onVoltar: () => void; onSuce
       <div className="grid grid-cols-2 gap-3">
         <Field label="Nome do cliente"><input name="nome" required className="input" /></Field>
         <Field label="Dono(s)"><input name="dono" className="input" /></Field>
+        <Field label="Nicho"><input name="nicho" required className="input" /></Field>
         <Field label="Status">
           <select name="status" className="input" defaultValue="Onboarding urgente">
             {STATUS_LIST.map((s) => <option key={s} value={s}>{s}</option>)}
