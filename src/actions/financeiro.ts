@@ -103,8 +103,18 @@ export async function lancarPagamento(formData: FormData) {
     });
   }
 
+  // toda entrada gera uma tarefa pro financeiro reservar 7% de imposto
+  await supabase.from("tarefas").insert({
+    titulo: `Reservar 7% de imposto — ${cliente || "sem cliente"}`,
+    descricao: `Pagamento de ${brl(valor)} recebido (${tipo}). Reservar ${brl(valor * 0.07)} (7%) para impostos.`,
+    urgencia: "media",
+    cliente_nome: cliente,
+    coluna: "a-fazer",
+  });
+
   revalidatePath("/financeiro");
   revalidatePath("/dashboard");
+  revalidatePath("/tarefas");
   return { success: true };
 }
 
