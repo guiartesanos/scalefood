@@ -78,14 +78,21 @@ export default async function FinanceiroPage() {
   return (
     <>
       <div className="bg-paper border border-accent rounded-xl p-5 flex flex-col gap-1.5">
-        <span className="text-[11.5px] uppercase tracking-wide text-accent-ink font-semibold">Faturamento total</span>
+        <span className="text-[11.5px] uppercase tracking-wide text-accent-ink font-semibold">
+          Faturamento contratado (carteira completa)
+        </span>
         <span className="font-display font-extrabold text-[40px] num">{brl(faturamentoTotal)}</span>
         <span className="text-[13px] text-ink-2">
-          {brlInt(faturamentoRecorrente)} recorrente (Aceleração) · {brlInt(faturamentoAvulso)} consultoria
+          {brlInt(faturamentoRecorrente)} recorrência mensal de todos os clientes ativos ·{" "}
+          {brlInt(faturamentoAvulso)} em consultorias já recebidas (histórico completo)
+        </span>
+        <span className="text-[11px] text-muted">
+          Diferente do &quot;Faturamento novo do mês&quot; lá em cima, que conta só o que entrou de receita
+          neste mês.
         </span>
       </div>
 
-      <div className={`grid ${verLucro ? "grid-cols-3" : "grid-cols-2"} gap-1 bg-line border border-line rounded-xl overflow-hidden`}>
+      <div className={`grid ${verLucro ? "grid-cols-3" : "grid-cols-2"} max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-xl overflow-hidden`}>
         <Kpi label="Custos fixos" value={brlInt(custosFixosTotal)} sub={`${custosFixos?.length || 0} lançamento(s)`} color="var(--critical)" />
         <Kpi label="Custos variáveis" value={brlInt(custosVariaveis)} sub="tráfego + comissão + imposto + taxa + extras" color="var(--critical)" />
         {verLucro && <Kpi label="Lucro estimado" value={brl(lucro)} sub="faturamento − custos fixos − variáveis" color="var(--good)" />}
@@ -220,7 +227,7 @@ function Kpi({ label, value, sub, color }: { label: string; value: string; sub: 
   return (
     <div className="bg-paper px-5 py-4 flex flex-col gap-1.5">
       <span className="text-[11.5px] uppercase tracking-wide text-muted font-semibold">{label}</span>
-      <span className="font-display font-bold text-[26px] num" style={{ color }}>{value}</span>
+      <span className="font-display font-bold text-[22px] min-[400px]:text-[26px] num break-words" style={{ color }}>{value}</span>
       <span className="text-xs text-ink-2">{sub}</span>
     </div>
   );

@@ -25,7 +25,7 @@ export default async function DashboardPage() {
   return (
     <>
       {verLucro && (
-        <div className="grid grid-cols-3 gap-1 bg-line border border-line rounded-xl overflow-hidden">
+        <div className="grid grid-cols-3 max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-xl overflow-hidden">
           <Kpi label="Clientes ativos" value={String(clientes.length)} sub={`${(byStatus["Rodando - com resultado"] || []).length} rodando com resultado`} />
           <Kpi label="Líquido mensal" value={brl(totalLiq)} sub={`${margPond.toFixed(1).replace(".", ",")}% de margem ponderada`} />
           <Kpi label="Receita em risco" value={brlInt(riskRec)} sub="cancelamento + onboarding parado" color="var(--critical)" />
@@ -41,7 +41,7 @@ function Kpi({ label, value, sub, color }: { label: string; value: string; sub: 
   return (
     <div className="bg-paper px-5 py-4 flex flex-col gap-1.5">
       <span className="text-[11.5px] uppercase tracking-wide text-muted font-semibold">{label}</span>
-      <span className="font-display font-bold text-[26px] num" style={color ? { color } : undefined}>
+      <span className="font-display font-bold text-[22px] min-[400px]:text-[26px] num break-words" style={color ? { color } : undefined}>
         {value}
       </span>
       <span className="text-xs text-ink-2">{sub}</span>
