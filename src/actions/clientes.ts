@@ -15,6 +15,17 @@ export async function atualizarStatusCliente(clienteId: string, status: ClienteS
   return { success: true };
 }
 
+// mesma classificação usada nos badges de crescimento (clientes/page.tsx) —
+// recalculada toda vez que "hoje" muda, pra nunca mais ficar travada
+// no valor gravado na criação do cliente.
+function calcGrowthNote(entrada: number | null, hoje: number | null): string | null {
+  if (entrada == null) return "sem_dado";
+  if (hoje == null) return "nao_iniciado";
+  if (entrada === 0 && hoje > 0) return "zero_base";
+  if (hoje <= entrada) return "estagnado";
+  return null;
+}
+
 export async function atualizarValoresCliente(formData: FormData) {
   const profile = await requireProfile();
   if (!["master", "financeiro", "onboarding"].includes(profile.role)) {
@@ -27,10 +38,11 @@ export async function atualizarValoresCliente(formData: FormData) {
   const traf = parseFloat(String(formData.get("traf") || "0")) || 0;
   const com = parseFloat(String(formData.get("com") || "0")) || 0;
   const imp = parseFloat(String(formData.get("imp") || "0")) || 0;
+  const hojeRaw = String(formData.get("hoje") || "");
 
   const { data: cliente } = await supabase
     .from("clientes")
-    .select("rec, taxa")
+    .select("rec, taxa, entrada, hoje")
     .eq("id", clienteId)
     .single();
 
@@ -40,10 +52,12 @@ export async function atualizarValoresCliente(formData: FormData) {
   const liq = rec - traf - com - imp - taxa;
   const marg = rec ? (liq / rec) * 100 : 0;
   const recAntigo = cliente.rec;
+  const hoje = hojeRaw ? parseFloat(hojeRaw) : cliente.hoje;
+  const growthNote = calcGrowthNote(cliente.entrada, hoje);
 
   const { error } = await supabase
     .from("clientes")
-    .update({ rec, traf, com, imp, liq, marg })
+    .update({ rec, traf, com, imp, liq, marg, hoje, growth_note: growthNote })
     .eq("id", clienteId);
 
   if (error) return { error: error.message };

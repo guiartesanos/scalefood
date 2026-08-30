@@ -49,6 +49,15 @@ export function ClienteValoresForm({ cliente }: { cliente: Cliente }) {
             <Field label="Comissão (R$)"><input name="com" type="number" step="0.01" min="0" defaultValue={cliente.com} className="input" /></Field>
             <Field label="Imposto (R$)"><input name="imp" type="number" step="0.01" min="0" defaultValue={cliente.imp} className="input" /></Field>
           </div>
+          <div className="border-t border-line pt-3">
+            <Field label="Faturamento do cliente hoje (R$)">
+              <input name="hoje" type="number" step="0.01" min="0" defaultValue={cliente.hoje ?? ""} className="input" placeholder="ex: 70000" />
+            </Field>
+            <p className="text-[11px] text-muted pt-1">
+              Atualiza o % de crescimento (entrada → hoje) e o alerta de cliente estagnado. Faça isso no
+              fechamento de cada mês.
+            </p>
+          </div>
           {error && <p className="text-critical text-sm">{error}</p>}
           <div className="flex justify-end gap-2">
             <button type="button" onClick={() => setOpen(false)} className="btn">cancelar</button>
