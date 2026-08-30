@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { FaturamentoMesAtual, UserRole } from "@/lib/types";
 import { DefinirMetaButton } from "./DefinirMetaButton";
@@ -61,7 +62,10 @@ export async function MetaBar({ role }: { role: UserRole }) {
           </>
         )}
 
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex items-center gap-3">
+          <Link href="/meta" target="_blank" className="text-xs text-accent-ink font-semibold underline underline-offset-2">
+            abrir na TV ↗
+          </Link>
           <NovaVendaButton />
         </div>
       </div>
