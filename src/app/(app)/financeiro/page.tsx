@@ -68,7 +68,7 @@ export default async function FinanceiroPage() {
     <>
       <div className="bg-paper border border-accent rounded-xl p-5 flex flex-col gap-1.5">
         <span className="text-[11.5px] uppercase tracking-wide text-accent-ink font-semibold">
-          Faturamento contratado (carteira completa)
+          Faturamento total
         </span>
         <span className="font-display font-extrabold text-[40px] num">{brl(faturamentoTotal)}</span>
         <span className="text-[13px] text-ink-2">
