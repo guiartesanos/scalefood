@@ -8,8 +8,7 @@ export default async function DashboardPage() {
   const clientes = await getClientes();
 
   const totalRec = clientes.reduce((s, c) => s + c.rec, 0);
-  const totalLiq = clientes.reduce((s, c) => s + (c.liq || 0), 0);
-  const margPond = totalRec ? (totalLiq / totalRec) * 100 : 0;
+  const ticketMedio = clientes.length ? totalRec / clientes.length : 0;
 
   const byStatus: Record<string, typeof clientes> = {};
   clientes.forEach((c) => {
@@ -25,9 +24,10 @@ export default async function DashboardPage() {
   return (
     <>
       {verLucro && (
-        <div className="grid grid-cols-3 max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-xl overflow-hidden">
+        <div className="grid grid-cols-4 max-[900px]:grid-cols-2 max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-xl overflow-hidden">
+          <Kpi label="Faturamento total" value={brl(totalRec)} sub="recorrência mensal de todos os clientes ativos" />
+          <Kpi label="Ticket médio" value={brl(ticketMedio)} sub="recorrência média por cliente ativo" />
           <Kpi label="Clientes ativos" value={String(clientes.length)} sub={`${(byStatus["Rodando - com resultado"] || []).length} rodando com resultado`} />
-          <Kpi label="Líquido mensal" value={brl(totalLiq)} sub={`${margPond.toFixed(1).replace(".", ",")}% de margem ponderada`} />
           <Kpi label="Receita em risco" value={brlInt(riskRec)} sub="cancelamento + onboarding parado" color="var(--critical)" />
         </div>
       )}
