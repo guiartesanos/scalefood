@@ -2,18 +2,9 @@ import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getClientes, tenureLabel } from "@/lib/data";
 import { NovaTarefaForm } from "@/components/NovaTarefaForm";
-import { MoverTarefaButtons } from "@/components/MoverTarefaButtons";
-import { RemoverTarefaButton } from "@/components/RemoverTarefaButton";
 import { SugestaoTarefaButton } from "@/components/SugestaoTarefaButton";
 import { NovaAgendaForm } from "@/components/NovaAgendaForm";
-
-const COLS = [
-  { key: "a-fazer", label: "A fazer" },
-  { key: "em-andamento", label: "Em andamento" },
-  { key: "feito", label: "Feito" },
-] as const;
-
-const URG_CLS: Record<string, string> = { alta: "critical", media: "warning", baixa: "muted" };
+import { TarefasKanban } from "@/components/TarefasKanban";
 
 export default async function TarefasPage() {
   await requireProfile();
@@ -39,42 +30,7 @@ export default async function TarefasPage() {
             ⚠ Nenhuma agenda cadastrada ainda — cadastre abaixo quando tiver os e-mails do time.
           </p>
         )}
-        <div className="grid grid-cols-3 gap-3.5 max-[900px]:grid-cols-1">
-          {COLS.map((col) => {
-            const list = (tarefas || []).filter((t) => t.coluna === col.key);
-            return (
-              <div key={col.key} className="bg-paper-2 border border-line rounded-xl p-2.5 flex flex-col gap-2.5 min-h-[120px]">
-                <div className="flex justify-between items-center px-1">
-                  <h4 className="font-display font-bold text-sm uppercase tracking-wide text-ink-2">{col.label}</h4>
-                  <span className="text-[11px] text-muted num">{list.length}</span>
-                </div>
-                {list.map((t) => {
-                  const agenda = agendas?.find((a) => a.id === t.agenda_id);
-                  return (
-                    <div key={t.id} className="bg-paper border border-line rounded-lg p-2.5 flex flex-col gap-1.5 shadow-sm">
-                      <span className="font-semibold text-[13px]">{t.titulo}</span>
-                      {t.descricao && <span className="text-xs text-ink-2">{t.descricao}</span>}
-                      <div className="flex flex-wrap gap-1.5 items-center">
-                        <span
-                          className="text-[10.5px] font-semibold px-1.5 py-0.5 rounded-full"
-                          style={{ color: `var(--${URG_CLS[t.urgencia]})`, background: `var(--${URG_CLS[t.urgencia]}-wash, var(--paper-2))` }}
-                        >
-                          {t.urgencia}
-                        </span>
-                        {t.cliente_nome && <span className="text-[10.5px] bg-paper-2 border border-line rounded-full px-1.5 py-0.5">{t.cliente_nome}</span>}
-                      </div>
-                      <span className="text-[10.5px] text-muted num">📅 {agenda ? agenda.nome : "sem agenda definida"}</span>
-                      <div className="flex justify-between items-center">
-                        <MoverTarefaButtons tarefaId={t.id} colunaAtual={t.coluna} />
-                        <RemoverTarefaButton tarefaId={t.id} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
+        <TarefasKanban tarefas={tarefas || []} agendas={agendas || []} />
       </section>
 
       <section className="flex flex-col gap-3.5">
