@@ -2,9 +2,10 @@
 
 import { useTransition } from "react";
 import { alterarPapelUsuario, removerUsuario } from "@/actions/usuarios";
+import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 import type { Profile, UserRole } from "@/lib/types";
 
-export function UsuarioRow({ usuario, isSelf }: { usuario: Profile; isSelf: boolean }) {
+export function UsuarioRow({ usuario, isSelf, meuEmail }: { usuario: Profile; isSelf: boolean; meuEmail: string }) {
   const [pending, startTransition] = useTransition();
 
   return (
@@ -30,17 +31,12 @@ export function UsuarioRow({ usuario, isSelf }: { usuario: Profile; isSelf: bool
       </td>
       <td className="px-3 py-2">
         {!isSelf && (
-          <button
-            disabled={pending}
-            onClick={() => {
-              if (confirm(`Remover ${usuario.email} do sistema?`)) {
-                startTransition(() => { removerUsuario(usuario.id); });
-              }
-            }}
-            className="btn-ghost"
-          >
-            remover
-          </button>
+          <ConfirmarExclusao
+            itemLabel={`o usuário ${usuario.email}`}
+            acao={() => removerUsuario(usuario.id)}
+            senha
+            userEmail={meuEmail}
+          />
         )}
       </td>
     </tr>

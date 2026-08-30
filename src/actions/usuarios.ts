@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import { requireMaster } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { logExclusao } from "@/lib/auditoria";
 import type { UserRole } from "@/lib/types";
 
 // Todas as funções aqui exigem role='master' — checado no servidor
@@ -51,8 +52,18 @@ export async function removerUsuario(userId: string) {
   }
 
   const admin = createAdminClient();
+  const { data: alvo } = await admin.from("profiles").select("email, nome, role").eq("id", userId).single();
   const { error } = await admin.auth.admin.deleteUser(userId);
   if (error) return { error: error.message };
+
+  if (alvo) {
+    await logExclusao(
+      admin,
+      profile,
+      "usuario",
+      `Usuário removido: ${alvo.nome || alvo.email} (${alvo.email}, papel: ${alvo.role})`
+    );
+  }
 
   revalidatePath("/configuracoes/usuarios");
   return { success: true };

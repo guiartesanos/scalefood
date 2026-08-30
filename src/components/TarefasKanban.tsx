@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { moverTarefa, removerTarefa } from "@/actions/tarefas";
+import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 import type { Tarefa, Agenda } from "@/lib/types";
 
 const URG_CLS: Record<string, string> = { alta: "critical", media: "warning", baixa: "muted" };
@@ -76,9 +77,11 @@ export function TarefasKanban({ tarefas, agendas }: { tarefas: Tarefa[]; agendas
             {feito.map((t) => (
               <div key={t.id} className="flex items-center justify-between gap-2 text-[12px] bg-paper border border-line/50 rounded-md px-2.5 py-1.5">
                 <span className="line-through text-muted">{t.titulo}</span>
-                <button onClick={() => startTransition(() => { removerTarefa(t.id); })} className="text-[10.5px] text-muted hover:text-critical">
-                  remover
-                </button>
+                <ConfirmarExclusao
+                  itemLabel={`a tarefa "${t.titulo}"`}
+                  acao={() => removerTarefa(t.id)}
+                  className="text-[10.5px] text-muted hover:text-critical"
+                />
               </div>
             ))}
             {!feito.length && <span className="text-xs text-muted">Nada concluído ainda.</span>}

@@ -12,6 +12,7 @@ import {
   lancarPagamento,
   removerPagamento,
 } from "@/actions/financeiro";
+import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 
 export default async function FinanceiroPage() {
   const profile = await requireProfile();
@@ -59,18 +60,6 @@ export default async function FinanceiroPage() {
   async function handleLancarPagamento(fd: FormData) {
     "use server";
     await lancarPagamento(fd);
-  }
-  async function handleRemoverCustoFixo(id: string) {
-    "use server";
-    await removerCustoFixo(id);
-  }
-  async function handleRemoverCustoVariavel(id: string) {
-    "use server";
-    await removerCustoVariavel(id);
-  }
-  async function handleRemoverPagamento(id: string) {
-    "use server";
-    await removerPagamento(id);
   }
 
   const TIPO_LABEL: Record<string, string> = { recorrencia: "Aceleração", consultoria: "Consultoria", avulso: "Avulso" };
@@ -122,9 +111,12 @@ export default async function FinanceiroPage() {
                   <td className="px-3 py-2">{c.categoria || "—"}</td>
                   <td className="px-3 py-2 text-right num">{brl(c.valor)}</td>
                   <td className="px-3 py-2">
-                    <form action={handleRemoverCustoFixo.bind(null, c.id)}>
-                      <button className="btn-ghost">remover</button>
-                    </form>
+                    <ConfirmarExclusao
+                      itemLabel={`o custo fixo "${c.nome}"`}
+                      acao={removerCustoFixo.bind(null, c.id)}
+                      senha
+                      userEmail={profile.email}
+                    />
                   </td>
                 </tr>
               ))}
@@ -164,7 +156,14 @@ export default async function FinanceiroPage() {
                 <span>
                   {c.nome} {c.categoria && <span className="text-muted text-xs">· {c.categoria}</span>}
                   {c.cliente && ` (${c.cliente})`}{" "}
-                  <form action={handleRemoverCustoVariavel.bind(null, c.id)} className="inline"><button className="btn-ghost">×</button></form>
+                  <ConfirmarExclusao
+                    itemLabel={`o custo variável "${c.nome}"`}
+                    acao={removerCustoVariavel.bind(null, c.id)}
+                    senha
+                    userEmail={profile.email}
+                    trigger="×"
+                    className="btn-ghost inline"
+                  />
                 </span>
                 <span className="num font-semibold">{brl(c.valor)}</span>
               </div>
@@ -210,7 +209,12 @@ export default async function FinanceiroPage() {
                   <td className="px-3 py-2">{TIPO_LABEL[p.tipo] || p.tipo}</td>
                   <td className="px-3 py-2 text-right num">{brl(p.valor)}</td>
                   <td className="px-3 py-2">
-                    <form action={handleRemoverPagamento.bind(null, p.id)}><button className="btn-ghost">remover</button></form>
+                    <ConfirmarExclusao
+                      itemLabel={`o pagamento de ${p.cliente || "cliente não informado"}`}
+                      acao={removerPagamento.bind(null, p.id)}
+                      senha
+                      userEmail={profile.email}
+                    />
                   </td>
                 </tr>
               ))}

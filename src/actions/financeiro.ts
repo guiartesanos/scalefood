@@ -3,6 +3,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { logExclusao } from "@/lib/auditoria";
+
+function brl(v: number | null | undefined) {
+  return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 function requireFinanceiro(role: string) {
   return role === "master" || role === "financeiro" || role === "onboarding";
@@ -26,7 +31,11 @@ export async function removerCustoFixo(id: string) {
   const profile = await requireProfile();
   if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
   const supabase = await createClient();
+  const { data: custo } = await supabase.from("custos_fixos").select("nome, valor").eq("id", id).single();
   await supabase.from("custos_fixos").delete().eq("id", id);
+  if (custo) {
+    await logExclusao(supabase, profile, "custo_fixo", `Custo fixo: ${custo.nome} — ${brl(custo.valor)}`);
+  }
   revalidatePath("/financeiro");
 }
 
@@ -49,7 +58,16 @@ export async function removerCustoVariavel(id: string) {
   const profile = await requireProfile();
   if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
   const supabase = await createClient();
+  const { data: custo } = await supabase.from("custos_variaveis_extra").select("nome, valor, cliente").eq("id", id).single();
   await supabase.from("custos_variaveis_extra").delete().eq("id", id);
+  if (custo) {
+    await logExclusao(
+      supabase,
+      profile,
+      "custo_variavel",
+      `Custo variável: ${custo.nome} — ${brl(custo.valor)}${custo.cliente ? ` (${custo.cliente})` : ""}`
+    );
+  }
   revalidatePath("/financeiro");
 }
 
@@ -94,7 +112,16 @@ export async function removerPagamento(id: string) {
   const profile = await requireProfile();
   if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
   const supabase = await createClient();
+  const { data: pagamento } = await supabase.from("pagamentos").select("cliente, valor, tipo, data").eq("id", id).single();
   await supabase.from("pagamentos").delete().eq("id", id);
+  if (pagamento) {
+    await logExclusao(
+      supabase,
+      profile,
+      "pagamento",
+      `Pagamento (${pagamento.tipo}): ${pagamento.cliente || "sem cliente"} — ${brl(pagamento.valor)}${pagamento.data ? ` em ${pagamento.data}` : ""}`
+    );
+  }
   revalidatePath("/financeiro");
 }
 

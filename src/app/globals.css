@@ -192,6 +192,22 @@ body {
   opacity: 0.6;
   cursor: default;
 }
+.btn-critical {
+  appearance: none;
+  border: 1px solid var(--critical);
+  background: var(--critical);
+  color: #fff;
+  border-radius: 7px;
+  padding: 7px 13px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+.btn-critical:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
 .btn-ghost {
   appearance: none;
   border: none;
