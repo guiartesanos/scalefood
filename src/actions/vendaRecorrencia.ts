@@ -28,7 +28,7 @@ export async function criarVendaRecorrencia(formData: FormData) {
   const fechamento = String(formData.get("fechamento") || "");
   const primeiroMesGratis = formData.get("primeiroMesGratis") === "on";
   const dataPrimeiroPagamento = String(formData.get("dataPrimeiroPagamento") || "") || null;
-  const integrarAsaas = formData.get("integrarAsaas") === "on";
+  const integrarAsaas = String(formData.get("canal") || "") === "Asaas";
 
   if (!nome || !nicho || !valorRecorrencia || !fechamento) {
     return { error: "Preencha nome, nicho, valor da recorrência e data de fechamento." };

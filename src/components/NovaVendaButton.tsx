@@ -90,7 +90,8 @@ function CamposAsaas({ prefix = "" }: { prefix?: string }) {
 
 function FormRecorrencia({ onVoltar, onSucesso }: { onVoltar: () => void; onSucesso: () => void }) {
   const [primeiroMesGratis, setPrimeiroMesGratis] = useState(false);
-  const [integrarAsaas, setIntegrarAsaas] = useState(true);
+  const [canal, setCanal] = useState<"Asaas" | "PIX C6">("Asaas");
+  const integrarAsaas = canal === "Asaas";
   const [error, setError] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -150,10 +151,14 @@ function FormRecorrencia({ onVoltar, onSucesso }: { onVoltar: () => void; onSuce
         </Field>
       )}
 
-      <label className="flex items-center gap-2 text-sm border-t border-line pt-4">
-        <input type="checkbox" name="integrarAsaas" checked={integrarAsaas} onChange={(e) => setIntegrarAsaas(e.target.checked)} />
-        Cadastrar e gerar a assinatura automaticamente no Asaas
-      </label>
+      <div className="border-t border-line pt-4">
+        <Field label="Canal de cobrança da recorrência">
+          <select name="canal" className="input" value={canal} onChange={(e) => setCanal(e.target.value as "Asaas" | "PIX C6")}>
+            <option value="Asaas">Asaas — gera assinatura automática</option>
+            <option value="PIX C6">PIX C6 — cobrança manual, fora do Asaas</option>
+          </select>
+        </Field>
+      </div>
 
       {integrarAsaas && (
         <div className="flex flex-col gap-3 bg-paper-2 border border-dashed border-line rounded-lg p-4">
@@ -200,6 +205,7 @@ function CamposAsaasSemNicho() {
 
 function FormConsultoria({ onVoltar, onSucesso }: { onVoltar: () => void; onSucesso: () => void }) {
   const [vendeuRecorrencia, setVendeuRecorrencia] = useState(false);
+  const [canalRecorrencia, setCanalRecorrencia] = useState<"Asaas" | "PIX C6">("Asaas");
   const [primeiroMesGratis, setPrimeiroMesGratis] = useState(true);
   const [temas, setTemas] = useState<string[]>([""]);
   const [error, setError] = useState<string | null>(null);
@@ -228,9 +234,15 @@ function FormConsultoria({ onVoltar, onSucesso }: { onVoltar: () => void; onSuce
         ← trocar tipo de venda
       </button>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <Field label="Valor da consultoria (R$)">
           <input name="valorConsultoria" type="number" step="0.01" min="0" required className="input" />
+        </Field>
+        <Field label="Canal de recebimento">
+          <select name="canal" className="input" defaultValue="PIX C6">
+            <option value="Asaas">Asaas</option>
+            <option value="PIX C6">PIX C6</option>
+          </select>
         </Field>
         <Field label="Data da reunião de fechamento">
           <input name="dataFechamento" type="date" required className="input" />
@@ -279,12 +291,30 @@ function FormConsultoria({ onVoltar, onSucesso }: { onVoltar: () => void; onSuce
 
       {vendeuRecorrencia && (
         <div className="flex flex-col gap-3 bg-paper-2 border border-dashed border-line rounded-lg p-4">
-          <CamposAsaas />
+          <Field label="Canal de cobrança da recorrência">
+            <select
+              name="canalRecorrencia"
+              className="input"
+              value={canalRecorrencia}
+              onChange={(e) => setCanalRecorrencia(e.target.value as "Asaas" | "PIX C6")}
+            >
+              <option value="Asaas">Asaas — gera assinatura automática</option>
+              <option value="PIX C6">PIX C6 — cobrança manual, fora do Asaas</option>
+            </select>
+          </Field>
 
-          <label className="flex items-center gap-2 text-xs text-ink-2">
-            <input type="checkbox" name="emiteNota" defaultChecked />
-            Vai emitir nota fiscal (confirme sempre — é automático no Asaas ao confirmar pagamento)
-          </label>
+          {canalRecorrencia === "Asaas" ? (
+            <CamposAsaas />
+          ) : (
+            <Field label="Nicho"><input name="nicho" required className="input" /></Field>
+          )}
+
+          {canalRecorrencia === "Asaas" && (
+            <label className="flex items-center gap-2 text-xs text-ink-2">
+              <input type="checkbox" name="emiteNota" defaultChecked />
+              Vai emitir nota fiscal (confirme sempre — é automático no Asaas ao confirmar pagamento)
+            </label>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Valor da recorrência (R$)">
@@ -305,10 +335,12 @@ function FormConsultoria({ onVoltar, onSucesso }: { onVoltar: () => void; onSuce
             1º mês de Aceleração grátis (recebe só a consultoria agora)
           </label>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Juros ao mês (%)"><input name="juros" type="number" step="0.1" defaultValue={1} className="input" /></Field>
-            <Field label="Multa (%)"><input name="multa" type="number" step="0.1" defaultValue={2} className="input" /></Field>
-          </div>
+          {canalRecorrencia === "Asaas" && (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Juros ao mês (%)"><input name="juros" type="number" step="0.1" defaultValue={1} className="input" /></Field>
+              <Field label="Multa (%)"><input name="multa" type="number" step="0.1" defaultValue={2} className="input" /></Field>
+            </div>
+          )}
         </div>
       )}
 

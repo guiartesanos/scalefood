@@ -22,6 +22,7 @@ export async function lancarConsultoria(formData: FormData) {
   const dataFechamento = String(formData.get("dataFechamento") || "");
   const nomeCliente = String(formData.get("nomeCliente") || "").trim();
   const vendeuRecorrencia = formData.get("vendeuRecorrencia") === "on";
+  const canal = String(formData.get("canal") || "PIX C6");
 
   if (!valorConsultoria || !dataFechamento || !nomeCliente) {
     return { error: "Preencha valor da consultoria, data de fechamento e nome do cliente." };
@@ -45,7 +46,7 @@ export async function lancarConsultoria(formData: FormData) {
       valorRecorrencia: parseFloat(String(formData.get("valorRecorrencia") || "0")) || 0,
       primeiroMesGratis: formData.get("primeiroMesGratis") === "on",
       dataPrimeiroPagamento: String(formData.get("dataPrimeiroPagamento") || "") || null,
-      integrarAsaas: true,
+      integrarAsaas: String(formData.get("canalRecorrencia") || "") === "Asaas",
       cpfCnpj: String(formData.get("cpfCnpj") || "").trim(),
       email: String(formData.get("email") || "").trim(),
       telefone: String(formData.get("telefone") || "").trim(),
@@ -72,7 +73,7 @@ export async function lancarConsultoria(formData: FormData) {
     data: dataFechamento,
     cliente: nomeCliente,
     valor: valorConsultoria,
-    canal: "Asaas",
+    canal,
     tipo: "consultoria",
     descricao: `Consultoria — ${temas.length} reunião(ões)`,
     pendente: false,

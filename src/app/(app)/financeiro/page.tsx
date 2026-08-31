@@ -9,13 +9,13 @@ import {
   removerCustoFixo,
   criarCustoVariavel,
   removerCustoVariavel,
-  lancarPagamento,
   removerPagamento,
 } from "@/actions/financeiro";
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 import { FinanceiroTabs } from "@/components/FinanceiroTabs";
 import { VisibilidadeProvider, BotaoOcultarValores, ValorOcultavel } from "@/components/ValoresVisibilidade";
 import { CalendarioRecebiveis } from "@/components/CalendarioRecebiveis";
+import { NovaVendaButton } from "@/components/NovaVendaButton";
 
 export default async function FinanceiroPage() {
   const profile = await requireProfile();
@@ -60,11 +60,6 @@ export default async function FinanceiroPage() {
     "use server";
     await criarCustoVariavel(fd);
   }
-  async function handleLancarPagamento(fd: FormData) {
-    "use server";
-    await lancarPagamento(fd);
-  }
-
   const TIPO_LABEL: Record<string, string> = { recorrencia: "Aceleração", consultoria: "Consultoria", avulso: "Avulso" };
 
   const geral = (
@@ -191,29 +186,14 @@ export default async function FinanceiroPage() {
     <>
       <section className="grid grid-cols-[1fr_320px] gap-4 max-[900px]:grid-cols-1">
         <div className="flex flex-col gap-3.5">
-          <h2 className="font-display font-bold text-[21px]">Fluxo de pagamentos</h2>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <h2 className="font-display font-bold text-[21px]">Fluxo de pagamentos</h2>
+            <NovaVendaButton />
+          </div>
           <p className="text-[13px] text-muted">
-            Nem tudo entra pelo Asaas — lance aqui também o que cair direto por PIX ou outro canal.{" "}
-            <b className="text-ink-2">Aceleração</b> = recorrente. <b className="text-ink-2">Consultoria</b> = pontual.
+            Toda venda nova (recorrência e/ou consultoria) entra por aqui, com o canal — Asaas ou PIX C6 —
+            escolhido em cada etapa da cobrança.
           </p>
-          <form action={handleLancarPagamento} className="bg-paper-2 border border-dashed border-line rounded-xl p-4 flex flex-wrap gap-3 items-end">
-            <FieldSmall label="Data"><input name="data" type="date" className="input" /></FieldSmall>
-            <FieldSmall label="Cliente"><input name="cliente" className="input" /></FieldSmall>
-            <FieldSmall label="Canal">
-              <select name="canal" className="input">
-                <option>Asaas</option><option>PIX C6</option><option>PIX outro</option><option>Boleto direto</option><option>Outro</option>
-              </select>
-            </FieldSmall>
-            <FieldSmall label="Tipo">
-              <select name="tipo" className="input">
-                <option value="recorrencia">Aceleração (recorrente)</option>
-                <option value="consultoria">Consultoria (pontual)</option>
-                <option value="avulso">Avulso / outro</option>
-              </select>
-            </FieldSmall>
-            <FieldSmall label="Valor (R$)"><input name="valor" type="number" step="0.01" min="0" required className="input" /></FieldSmall>
-            <button type="submit" className="btn-primary">Lançar</button>
-          </form>
           <div className="border border-line rounded-xl overflow-auto bg-paper">
             <table className="w-full text-[13px] border-collapse">
               <thead><tr className="bg-paper-2"><Th>Data</Th><Th>Cliente</Th><Th>Canal</Th><Th>Tipo</Th><Th right>Valor</Th><Th></Th></tr></thead>
