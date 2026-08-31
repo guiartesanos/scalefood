@@ -93,6 +93,79 @@ export async function listarPagamentosAsaas(customerId: string): Promise<Pagamen
   return data.data || [];
 }
 
+interface PaginadoAsaas<T> {
+  data: T[];
+  hasMore: boolean;
+  totalCount: number;
+}
+
+async function listarTudoPaginado<T>(path: string): Promise<T[]> {
+  const separador = path.includes("?") ? "&" : "?";
+  const out: T[] = [];
+  let offset = 0;
+  for (let i = 0; i < 20; i++) {
+    const pagina = await asaasRequest<PaginadoAsaas<T>>(
+      "GET",
+      `${path}${separador}limit=100&offset=${offset}`
+    );
+    out.push(...pagina.data);
+    if (!pagina.hasMore) break;
+    offset += 100;
+  }
+  return out;
+}
+
+export interface ClienteAsaasResumo {
+  id: string;
+  name: string;
+}
+
+// Mapa id -> nome de TODOS os clientes Asaas — usado pra "traduzir" o
+// customer id (que é tudo que vem no payment) num nome legível.
+export async function mapaClientesAsaas(): Promise<Map<string, string>> {
+  const clientes = await listarTudoPaginado<ClienteAsaasResumo>("/customers");
+  return new Map(clientes.map((c) => [c.id, c.name]));
+}
+
+export interface ContaReceberAsaas {
+  id: string;
+  customerId: string;
+  customerName: string;
+  value: number;
+  dueDate: string;
+  status: "PENDING" | "OVERDUE";
+  description: string | null;
+  billingType: string;
+  invoiceUrl: string | null;
+}
+
+// TODAS as cobranças em aberto (pendentes + vencidas) de TODOS os
+// clientes — é o "contas a receber" de verdade, direto do Asaas (não é
+// projeção nossa nem depende de lançamento manual).
+export async function listarContasReceberAsaas(): Promise<ContaReceberAsaas[]> {
+  const [pendentes, vencidas, nomesPorId] = await Promise.all([
+    listarTudoPaginado<PagamentoAsaas & { customer: string; invoiceUrl: string | null }>("/payments?status=PENDING"),
+    listarTudoPaginado<PagamentoAsaas & { customer: string; invoiceUrl: string | null }>("/payments?status=OVERDUE"),
+    mapaClientesAsaas(),
+  ]);
+
+  const todas = [...pendentes.map((p) => ({ ...p, status: "PENDING" as const })), ...vencidas.map((p) => ({ ...p, status: "OVERDUE" as const }))];
+
+  return todas
+    .map((p) => ({
+      id: p.id,
+      customerId: p.customer,
+      customerName: nomesPorId.get(p.customer) || p.customer,
+      value: Number(p.value),
+      dueDate: p.dueDate,
+      status: p.status,
+      description: p.description,
+      billingType: p.billingType,
+      invoiceUrl: p.invoiceUrl,
+    }))
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+}
+
 export async function criarAssinaturaAsaas(a: NovaAssinaturaAsaas): Promise<{ id: string; status: string }> {
   const body = {
     customer: a.customerId,

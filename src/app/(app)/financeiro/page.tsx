@@ -14,13 +14,14 @@ import {
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 import { FinanceiroTabs } from "@/components/FinanceiroTabs";
 import { VisibilidadeProvider, BotaoOcultarValores, ValorOcultavel } from "@/components/ValoresVisibilidade";
-import { CalendarioRecebiveis } from "@/components/CalendarioRecebiveis";
 import { CalendarioContasPagar } from "@/components/CalendarioContasPagar";
 import { EditarCustoFixoButton } from "@/components/EditarCustoFixoButton";
 import { NovaVendaButton } from "@/components/NovaVendaButton";
 import { GrowthChart } from "@/components/GrowthChart";
 import { ContasPendentesList, type ContaPaga } from "@/components/ContasPendentesList";
+import { ContasReceberAsaas } from "@/components/ContasReceberAsaas";
 import { getContasPendentes } from "@/lib/pendencias";
+import { listarContasReceberAsaas, type ContaReceberAsaas } from "@/lib/asaas";
 import type { CustoFixo } from "@/lib/types";
 
 const MES_NOME = [
@@ -64,6 +65,14 @@ export default async function FinanceiroPage() {
       return c ? { custoFixoId: p.custo_fixo_id, nome: c.nome, valor: Number(c.valor), data: p.data } : null;
     })
     .filter((x): x is ContaPaga => x !== null);
+
+  let contasReceberAsaas: ContaReceberAsaas[] = [];
+  let erroContasReceberAsaas: string | null = null;
+  try {
+    contasReceberAsaas = await listarContasReceberAsaas();
+  } catch (e) {
+    erroContasReceberAsaas = e instanceof Error ? e.message : "Erro ao buscar contas a receber no Asaas.";
+  }
 
   const faturamentoRecorrente = clientes.reduce((s, c) => s + c.rec, 0);
   const faturamentoAvulso = (pagamentos || [])
@@ -305,45 +314,48 @@ export default async function FinanceiroPage() {
 
   const receber = (
     <>
-      <section className="grid grid-cols-[1fr_320px] gap-4 max-[900px]:grid-cols-1">
-        <div className="flex flex-col gap-3.5">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <h2 className="font-display font-bold text-[21px]">Fluxo de pagamentos</h2>
-            <NovaVendaButton />
-          </div>
-          <p className="text-[13px] text-muted">
-            Toda venda nova (recorrência e/ou consultoria) entra por aqui, com o canal — Asaas ou PIX C6 —
-            escolhido em cada etapa da cobrança.
-          </p>
-          <div className="border border-line rounded-xl overflow-auto bg-paper">
-            <table className="w-full text-[13px] border-collapse">
-              <thead><tr className="bg-paper-2"><Th>Data</Th><Th>Cliente</Th><Th>Canal</Th><Th>Tipo</Th><Th right>Valor</Th><Th></Th></tr></thead>
-              <tbody>
-                {(pagamentos || []).map((p) => (
-                  <tr key={p.id} className="border-t border-line/50">
-                    <td className="px-3 py-2">{p.data ? new Date(p.data + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</td>
-                    <td className="px-3 py-2">{p.cliente || <span className="text-critical">sem cliente{p.pendente ? " ⚠" : ""}</span>}</td>
-                    <td className="px-3 py-2">{p.canal}</td>
-                    <td className="px-3 py-2">{TIPO_LABEL[p.tipo] || p.tipo}</td>
-                    <td className="px-3 py-2 text-right num">{brl(p.valor)}</td>
-                    <td className="px-3 py-2">
-                      <ConfirmarExclusao
-                        itemLabel={`o pagamento de ${p.cliente || "cliente não informado"}`}
-                        acao={removerPagamento.bind(null, p.id)}
-                        senha
-                        userEmail={profile.email}
-                      />
-                    </td>
-                  </tr>
-                ))}
-                {!pagamentos?.length && <tr><td colSpan={6} className="text-center text-muted py-4">Nenhum pagamento lançado ainda.</td></tr>}
-              </tbody>
-            </table>
-          </div>
+      <section className="flex flex-col gap-3.5">
+        <h2 className="font-display font-bold text-[21px]">Contas a receber</h2>
+        {erroContasReceberAsaas ? (
+          <p className="text-critical text-sm">{erroContasReceberAsaas}</p>
+        ) : (
+          <ContasReceberAsaas contas={contasReceberAsaas} />
+        )}
+      </section>
+
+      <section className="flex flex-col gap-3.5">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h2 className="font-display font-bold text-[21px]">Fluxo de pagamentos (histórico)</h2>
+          <NovaVendaButton />
         </div>
-        <div className="flex flex-col gap-3.5">
-          <h2 className="font-display font-bold text-[21px] opacity-0 select-none max-[900px]:hidden">.</h2>
-          <CalendarioRecebiveis pagamentos={pagamentos || []} />
+        <p className="text-[13px] text-muted">
+          Toda venda nova (recorrência e/ou consultoria) entra por aqui, com o canal — Asaas ou PIX C6 —
+          escolhido em cada etapa da cobrança.
+        </p>
+        <div className="border border-line rounded-xl overflow-auto bg-paper">
+          <table className="w-full text-[13px] border-collapse">
+            <thead><tr className="bg-paper-2"><Th>Data</Th><Th>Cliente</Th><Th>Canal</Th><Th>Tipo</Th><Th right>Valor</Th><Th></Th></tr></thead>
+            <tbody>
+              {(pagamentos || []).map((p) => (
+                <tr key={p.id} className="border-t border-line/50">
+                  <td className="px-3 py-2">{p.data ? new Date(p.data + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</td>
+                  <td className="px-3 py-2">{p.cliente || <span className="text-critical">sem cliente{p.pendente ? " ⚠" : ""}</span>}</td>
+                  <td className="px-3 py-2">{p.canal}</td>
+                  <td className="px-3 py-2">{TIPO_LABEL[p.tipo] || p.tipo}</td>
+                  <td className="px-3 py-2 text-right num">{brl(p.valor)}</td>
+                  <td className="px-3 py-2">
+                    <ConfirmarExclusao
+                      itemLabel={`o pagamento de ${p.cliente || "cliente não informado"}`}
+                      acao={removerPagamento.bind(null, p.id)}
+                      senha
+                      userEmail={profile.email}
+                    />
+                  </td>
+                </tr>
+              ))}
+              {!pagamentos?.length && <tr><td colSpan={6} className="text-center text-muted py-4">Nenhum pagamento lançado ainda.</td></tr>}
+            </tbody>
+          </table>
         </div>
       </section>
     </>
