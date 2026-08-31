@@ -51,15 +51,14 @@ export function PendenciasModal({ contas, tarefas }: { contas: ContaPendente[]; 
         {!!contas.length && (
           <div className="flex flex-col gap-2">
             <h3 className="text-xs uppercase tracking-wide text-muted font-semibold">
-              Contas a pagar ({contas.length})
+              Contas vencendo hoje/amanhã ({contas.length})
             </h3>
             {contas.slice(0, 6).map((c) => (
               <div key={`${c.custoFixoId}-${c.data}`} className="flex justify-between items-center text-[13px] border-b border-dashed border-line/50 pb-1.5">
                 <span>
                   {c.nome}{" "}
                   {c.hoje && <b className="text-critical">· vence hoje</b>}
-                  {c.atrasada && <b style={{ color: "var(--warning)" }}>· atrasada ({fmtData(c.data)})</b>}
-                  {!c.hoje && !c.atrasada && <span className="text-muted">· vence {fmtData(c.data)}</span>}
+                  {c.amanha && <b style={{ color: "var(--warning)" }}>· vence amanhã ({fmtData(c.data)})</b>}
                 </span>
                 <span className="num font-semibold shrink-0 ml-2">{brl(c.valor)}</span>
               </div>

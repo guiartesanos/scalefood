@@ -181,7 +181,7 @@ export default async function FinanceiroPage() {
     <>
       <section className="flex flex-col gap-3.5">
         <div className="flex items-center gap-2">
-          <h2 className="font-display font-bold text-[21px]">Contas deste mês</h2>
+          <h2 className="font-display font-bold text-[21px]">Contas vencendo (hoje / amanhã)</h2>
           {!!contasPendentes.length && (
             <span
               className="text-[11px] font-bold text-white rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center"

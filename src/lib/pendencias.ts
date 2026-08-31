@@ -8,47 +8,58 @@ export interface ContaPendente {
   valor: number;
   data: string; // yyyy-mm-dd
   hoje: boolean;
-  atrasada: boolean;
+  amanha: boolean;
 }
 
-function hojeStr(): string {
-  const h = new Date();
-  return `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, "0")}-${String(h.getDate()).padStart(2, "0")}`;
+function ymd(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-// Pendências financeiras = ocorrências de custo fixo DESTE mês que ainda
-// não têm um registro em custos_fixos_pagamentos. Não olha meses
-// passados (não temos histórico de pagamento anterior a essa feature) nem
-// futuros (só vira pendência quando o mês em questão começa).
+// Pendências financeiras = contas que vencem HOJE ou AMANHÃ e ainda não
+// têm um registro em custos_fixos_pagamentos. Janela curta de propósito
+// (não é uma lista de tudo que está em aberto no mês) — é um aviso do
+// que precisa de atenção imediata. Cobre os dois meses quando hoje/amanhã
+// cruza virada de mês (ex: 31/08 -> 01/09).
 export async function getContasPendentes(): Promise<ContaPendente[]> {
   const supabase = await createClient();
   const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mes = hoje.getMonth();
-  const hj = hojeStr();
+  const amanha = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1);
+  const hj = ymd(hoje);
+  const am = ymd(amanha);
 
   const { data: custosRaw } = await supabase.from("custos_fixos").select("*");
   const custos = (custosRaw || []) as CustoFixo[];
 
-  const inicioMes = `${ano}-${String(mes + 1).padStart(2, "0")}-01`;
   const { data: pagosRaw } = await supabase
     .from("custos_fixos_pagamentos")
     .select("custo_fixo_id, data")
-    .gte("data", inicioMes);
+    .in("data", [hj, am]);
   const pagosSet = new Set((pagosRaw || []).map((p) => `${p.custo_fixo_id}|${p.data}`));
 
+  const mesesAlvo = new Set([
+    `${hoje.getFullYear()}-${hoje.getMonth()}`,
+    `${amanha.getFullYear()}-${amanha.getMonth()}`,
+  ]);
+
   const pendentes: ContaPendente[] = [];
-  custos.forEach((c) => {
-    ocorrenciasNoMes(c, ano, mes).forEach((dia) => {
-      const data = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-      if (pagosSet.has(`${c.id}|${data}`)) return;
-      pendentes.push({
-        custoFixoId: c.id,
-        nome: c.nome,
-        valor: Number(c.valor),
-        data,
-        hoje: data === hj,
-        atrasada: data < hj,
+  const vistos = new Set<string>();
+  mesesAlvo.forEach((chave) => {
+    const [ano, mes] = chave.split("-").map(Number);
+    custos.forEach((c) => {
+      ocorrenciasNoMes(c, ano, mes).forEach((dia) => {
+        const data = ymd(new Date(ano, mes, dia));
+        if (data !== hj && data !== am) return;
+        const key = `${c.id}|${data}`;
+        if (vistos.has(key) || pagosSet.has(key)) return;
+        vistos.add(key);
+        pendentes.push({
+          custoFixoId: c.id,
+          nome: c.nome,
+          valor: Number(c.valor),
+          data,
+          hoje: data === hj,
+          amanha: data === am,
+        });
       });
     });
   });

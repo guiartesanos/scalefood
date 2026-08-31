@@ -26,17 +26,15 @@ export function ContasPendentesList({ pendentes, pagas }: { pendentes: ContaPend
             style={
               c.hoje
                 ? { borderColor: "var(--critical)", background: "color-mix(in srgb, var(--critical) 8%, var(--paper))" }
-                : c.atrasada
-                  ? { borderColor: "var(--warning)", background: "var(--paper-2)" }
-                  : { borderColor: "var(--line)", background: "var(--paper)" }
+                : { borderColor: "var(--warning)", background: "var(--paper-2)" }
             }
           >
             <div className="flex flex-col gap-0.5 min-w-0">
               <span className="font-semibold text-[13px] truncate">{c.nome}</span>
               <span className="text-[11.5px] text-muted">
                 vence {fmtData(c.data)}
-                {c.hoje && <b className="text-critical"> · vence hoje</b>}
-                {c.atrasada && <b style={{ color: "var(--warning)" }}> · atrasada</b>}
+                {c.hoje && <b className="text-critical"> — vence hoje</b>}
+                {c.amanha && <b style={{ color: "var(--warning)" }}> — vence amanhã</b>}
               </span>
             </div>
             <div className="flex items-center gap-2.5 shrink-0">
@@ -46,7 +44,7 @@ export function ContasPendentesList({ pendentes, pagas }: { pendentes: ContaPend
           </div>
         ))}
         {!pendentes.length && (
-          <p className="text-sm text-muted py-2">Nenhuma conta pendente esse mês — tudo pago 🎉</p>
+          <p className="text-sm text-muted py-2">Nenhuma conta vencendo hoje ou amanhã.</p>
         )}
       </div>
 
