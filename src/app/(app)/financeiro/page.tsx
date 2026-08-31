@@ -21,9 +21,10 @@ import { GrowthChart } from "@/components/GrowthChart";
 import { ContasPendentesList, type ContaPaga } from "@/components/ContasPendentesList";
 import { ContasReceberAsaas } from "@/components/ContasReceberAsaas";
 import { RecebiveisManuaisList } from "@/components/RecebiveisManuaisList";
+import { RepassesAvulsosList } from "@/components/RepassesAvulsosList";
 import { getContasPendentes, getRecebiveisManuaisDoMes } from "@/lib/pendencias";
 import { listarContasReceberAsaas, type ContaReceberAsaas } from "@/lib/asaas";
-import type { CustoFixo } from "@/lib/types";
+import type { CustoFixo, ContaPagarAvulsa } from "@/lib/types";
 
 const MES_NOME = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -66,6 +67,14 @@ export default async function FinanceiroPage() {
       return c ? { custoFixoId: p.custo_fixo_id, nome: c.nome, valor: Number(c.valor), data: p.data } : null;
     })
     .filter((x): x is ContaPaga => x !== null);
+
+  const { data: avulsasRaw } = await supabase
+    .from("contas_pagar_avulsas")
+    .select("*")
+    .order("created_at", { ascending: false });
+  const avulsas = (avulsasRaw || []) as ContaPagarAvulsa[];
+  const avulsasPendentes = avulsas.filter((a) => !a.pago);
+  const avulsasPagas = avulsas.filter((a) => a.pago).slice(0, 15);
 
   let contasReceberAsaas: ContaReceberAsaas[] = [];
   let erroContasReceberAsaas: string | null = null;
@@ -205,6 +214,10 @@ export default async function FinanceiroPage() {
           )}
         </div>
         <ContasPendentesList pendentes={contasPendentes} pagas={contasPagas} />
+      </section>
+
+      <section className="flex flex-col gap-3.5">
+        <RepassesAvulsosList pendentes={avulsasPendentes} pagas={avulsasPagas} />
       </section>
 
       <section className="grid grid-cols-[1fr_320px] gap-4 max-[900px]:grid-cols-1">

@@ -1,6 +1,6 @@
 import { requireProfile } from "@/lib/auth";
 import { getClientes } from "@/lib/data";
-import { getContasPendentes, getTarefasPendentes } from "@/lib/pendencias";
+import { getContasPendentes, getRepassesAvulsosPendentes, getTarefasPendentes } from "@/lib/pendencias";
 import { MetaBar } from "@/components/MetaBar";
 import { TabNav } from "@/components/TabNav";
 import { MobileTabNav } from "@/components/MobileTabNav";
@@ -18,10 +18,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const clientes = await getClientes();
 
   const podeVerFinanceiro = canAccessTab(profile.role, "financeiro");
-  const [contasPendentes, tarefasPendentes] = await Promise.all([
+  const [contasPendentes, avulsasPendentes, tarefasPendentes] = await Promise.all([
     podeVerFinanceiro ? getContasPendentes() : Promise.resolve([]),
+    podeVerFinanceiro ? getRepassesAvulsosPendentes() : Promise.resolve([]),
     getTarefasPendentes(profile),
   ]);
+  const pendenciasFinanceiro = contasPendentes.length + avulsasPendentes.length;
 
   return (
     <div className="min-h-screen flex flex-col bg-page">
@@ -38,16 +40,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </header>
 
-      <TabNav role={profile.role} pendenciasFinanceiro={contasPendentes.length} pendenciasTarefas={tarefasPendentes.length} />
+      <TabNav role={profile.role} pendenciasFinanceiro={pendenciasFinanceiro} pendenciasTarefas={tarefasPendentes.length} />
       <MetaBar role={profile.role} />
 
       <main className="max-w-[1220px] mx-auto w-full px-6 py-7 max-[767px]:pb-20 flex flex-col gap-7 flex-1">
         {children}
       </main>
 
-      <MobileTabNav role={profile.role} pendenciasFinanceiro={contasPendentes.length} pendenciasTarefas={tarefasPendentes.length} />
+      <MobileTabNav role={profile.role} pendenciasFinanceiro={pendenciasFinanceiro} pendenciasTarefas={tarefasPendentes.length} />
       <IdleLogout />
-      <PendenciasModal contas={contasPendentes} tarefas={tarefasPendentes} />
+      <PendenciasModal contas={contasPendentes} avulsas={avulsasPendentes} tarefas={tarefasPendentes} />
     </div>
   );
 }

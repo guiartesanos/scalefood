@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { ocorrenciasNoMes } from "./data";
-import type { CustoFixo, RecebivelManual, Tarefa, Profile } from "./types";
+import type { ContaPagarAvulsa, CustoFixo, RecebivelManual, Tarefa, Profile } from "./types";
 
 export interface ContaPendente {
   custoFixoId: string;
@@ -111,6 +111,18 @@ export async function getRecebiveisManuaisDoMes(): Promise<RecebivelOcorrencia[]
     });
   });
   return out.sort((a, b) => a.data.localeCompare(b.data));
+}
+
+// Repasses de tráfego avulsos ainda não pagos — gerados automaticamente
+// pelo webhook do Asaas sempre que um cliente paga.
+export async function getRepassesAvulsosPendentes(): Promise<ContaPagarAvulsa[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("contas_pagar_avulsas")
+    .select("*")
+    .eq("pago", false)
+    .order("created_at", { ascending: false });
+  return (data as ContaPagarAvulsa[]) || [];
 }
 
 // Tarefas atribuídas a essa pessoa (por nome) que ainda não estão feitas.

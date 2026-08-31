@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
   const { data: cliente } = await supabase
     .from("clientes")
-    .select("id, nome")
+    .select("id, nome, traf, trafego_gestor")
     .eq("asaas_customer_id", pagamento.customer)
     .maybeSingle();
 
@@ -64,6 +64,21 @@ export async function POST(request: NextRequest) {
     cliente_nome: cliente.nome,
     coluna: "a-fazer",
   });
+
+  // cliente pagou -> gera a conta a pagar do repasse de tráfego pro
+  // gestor dele (Jota ou Lorenzo) — só paga tráfego de quem já pagou.
+  const trafego = Number(cliente.traf) || 0;
+  if (trafego > 0) {
+    await supabase.from("contas_pagar_avulsas").insert({
+      nome: `Repasse tráfego — ${cliente.nome}`,
+      valor: trafego,
+      cliente_nome: cliente.nome,
+      gestor: cliente.trafego_gestor || "Jota",
+      categoria: "Tráfego",
+      origem: "trafego_asaas",
+      referencia: pagamento.id,
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }

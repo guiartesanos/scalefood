@@ -56,6 +56,21 @@ export interface CustoFixo {
   created_at: string;
 }
 
+export interface ContaPagarAvulsa {
+  id: string;
+  nome: string;
+  valor: number;
+  cliente_nome: string | null;
+  gestor: string | null;
+  categoria: string | null;
+  origem: string;
+  referencia: string | null;
+  data: string;
+  pago: boolean;
+  pago_em: string | null;
+  created_at: string;
+}
+
 export interface RecebivelManual {
   id: string;
   nome: string;

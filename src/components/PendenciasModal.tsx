@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { ContaPendente } from "@/lib/pendencias";
-import type { Tarefa } from "@/lib/types";
+import type { ContaPagarAvulsa, Tarefa } from "@/lib/types";
 
 const URG_CLS: Record<string, string> = { alta: "critical", media: "warning", baixa: "muted" };
 
@@ -14,9 +14,17 @@ function fmtData(d: string) {
   return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
 }
 
-export function PendenciasModal({ contas, tarefas }: { contas: ContaPendente[]; tarefas: Tarefa[] }) {
+export function PendenciasModal({
+  contas,
+  avulsas,
+  tarefas,
+}: {
+  contas: ContaPendente[];
+  avulsas: ContaPagarAvulsa[];
+  tarefas: Tarefa[];
+}) {
   const [open, setOpen] = useState(false);
-  const total = contas.length + tarefas.length;
+  const total = contas.length + avulsas.length + tarefas.length;
 
   useEffect(() => {
     if (!total) return;
@@ -64,6 +72,26 @@ export function PendenciasModal({ contas, tarefas }: { contas: ContaPendente[]; 
               </div>
             ))}
             {contas.length > 6 && <span className="text-xs text-muted">+ {contas.length - 6} outra(s)</span>}
+            <Link href="/financeiro" className="btn text-xs self-start" onClick={() => setOpen(false)}>
+              ver em Financeiro →
+            </Link>
+          </div>
+        )}
+
+        {!!avulsas.length && (
+          <div className="flex flex-col gap-2">
+            <h3 className="text-xs uppercase tracking-wide text-muted font-semibold">
+              Repasses de tráfego a pagar ({avulsas.length})
+            </h3>
+            {avulsas.slice(0, 6).map((a) => (
+              <div key={a.id} className="flex justify-between items-center text-[13px] border-b border-dashed border-line/50 pb-1.5">
+                <span>
+                  {a.nome} <span className="text-muted">· {a.gestor}</span>
+                </span>
+                <span className="num font-semibold shrink-0 ml-2">{brl(a.valor)}</span>
+              </div>
+            ))}
+            {avulsas.length > 6 && <span className="text-xs text-muted">+ {avulsas.length - 6} outra(s)</span>}
             <Link href="/financeiro" className="btn text-xs self-start" onClick={() => setOpen(false)}>
               ver em Financeiro →
             </Link>

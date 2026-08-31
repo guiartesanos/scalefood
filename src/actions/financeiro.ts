@@ -113,6 +113,32 @@ export async function desconfirmarRecebivelManual(recebivelId: string, data: str
   return { success: true };
 }
 
+export async function marcarAvulsaPaga(id: string) {
+  const profile = await requireProfile();
+  if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("contas_pagar_avulsas")
+    .update({ pago: true, pago_em: new Date().toISOString(), pago_por: profile.id })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/financeiro");
+  return { success: true };
+}
+
+export async function desmarcarAvulsaPaga(id: string) {
+  const profile = await requireProfile();
+  if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("contas_pagar_avulsas")
+    .update({ pago: false, pago_em: null, pago_por: null })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/financeiro");
+  return { success: true };
+}
+
 export async function criarCustoVariavel(formData: FormData) {
   const profile = await requireProfile();
   if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
