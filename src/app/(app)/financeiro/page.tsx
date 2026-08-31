@@ -20,7 +20,8 @@ import { NovaVendaButton } from "@/components/NovaVendaButton";
 import { GrowthChart } from "@/components/GrowthChart";
 import { ContasPendentesList, type ContaPaga } from "@/components/ContasPendentesList";
 import { ContasReceberAsaas } from "@/components/ContasReceberAsaas";
-import { getContasPendentes } from "@/lib/pendencias";
+import { RecebiveisManuaisList } from "@/components/RecebiveisManuaisList";
+import { getContasPendentes, getRecebiveisManuaisDoMes } from "@/lib/pendencias";
 import { listarContasReceberAsaas, type ContaReceberAsaas } from "@/lib/asaas";
 import type { CustoFixo } from "@/lib/types";
 
@@ -73,6 +74,7 @@ export default async function FinanceiroPage() {
   } catch (e) {
     erroContasReceberAsaas = e instanceof Error ? e.message : "Erro ao buscar contas a receber no Asaas.";
   }
+  const recebiveisManuais = await getRecebiveisManuaisDoMes();
 
   const faturamentoRecorrente = clientes.reduce((s, c) => s + c.rec, 0);
   const faturamentoAvulso = (pagamentos || [])
@@ -81,6 +83,8 @@ export default async function FinanceiroPage() {
   const faturamentoTotal = faturamentoRecorrente + faturamentoAvulso;
 
   const trafegoTotal = clientes.reduce((s, c) => s + c.traf, 0);
+  const trafegoLorenzo = clientes.filter((c) => c.trafego_gestor === "Lorenzo").reduce((s, c) => s + c.traf, 0);
+  const trafegoJota = trafegoTotal - trafegoLorenzo;
   const comissaoTotal = clientes.reduce((s, c) => s + c.com, 0);
   const impostoTotal = clientes.reduce((s, c) => s + c.imp, 0);
   const taxaTotal = clientes.reduce((s, c) => s + (c.taxa || 0), 0);
@@ -281,7 +285,8 @@ export default async function FinanceiroPage() {
         <div className="grid grid-cols-2 gap-4 max-[900px]:grid-cols-1">
           <div className="bg-paper border border-line rounded-xl p-4 flex flex-col gap-2">
             <h3 className="text-xs uppercase tracking-wide text-muted font-semibold">Automáticos (da carteira)</h3>
-            <Row label="Tráfego pago (repasse Jota)" value={brl(trafegoTotal)} />
+            <Row label="Tráfego pago (repasse Jota)" value={brl(trafegoJota)} />
+            <Row label="Tráfego pago (repasse Lorenzo)" value={brl(trafegoLorenzo)} />
             <Row label="Comissão / repasse" value={brl(comissaoTotal)} />
             <Row label="Imposto" value={brl(impostoTotal)} />
             <Row label="Taxa de plataforma (Asaas)" value={brl(taxaTotal)} />
@@ -321,6 +326,7 @@ export default async function FinanceiroPage() {
         ) : (
           <ContasReceberAsaas contas={contasReceberAsaas} />
         )}
+        <RecebiveisManuaisList ocorrencias={recebiveisManuais} />
       </section>
 
       <section className="flex flex-col gap-3.5">

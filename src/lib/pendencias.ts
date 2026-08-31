@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { ocorrenciasNoMes } from "./data";
-import type { CustoFixo, Tarefa, Profile } from "./types";
+import type { CustoFixo, RecebivelManual, Tarefa, Profile } from "./types";
 
 export interface ContaPendente {
   custoFixoId: string;
@@ -65,6 +65,52 @@ export async function getContasPendentes(): Promise<ContaPendente[]> {
   });
 
   return pendentes.sort((a, b) => a.data.localeCompare(b.data));
+}
+
+export interface RecebivelOcorrencia {
+  recebivelId: string;
+  nome: string;
+  clienteNome: string | null;
+  valor: number;
+  data: string;
+  confirmado: boolean;
+}
+
+// Recebíveis manuais (dinheiro combinado fora do Asaas, ex: comissão de
+// parceiro) do mês atual — mesma lógica de ocorrência do contas a pagar,
+// só que pro lado da receita. Mostra pendentes e confirmados do mês pra
+// dar visibilidade e permitir desfazer confirmação por engano.
+export async function getRecebiveisManuaisDoMes(): Promise<RecebivelOcorrencia[]> {
+  const supabase = await createClient();
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = hoje.getMonth();
+
+  const { data: recebiveisRaw } = await supabase.from("recebiveis_manuais").select("*").eq("ativo", true);
+  const recebiveis = (recebiveisRaw || []) as RecebivelManual[];
+
+  const inicioMes = `${ano}-${String(mes + 1).padStart(2, "0")}-01`;
+  const { data: confRaw } = await supabase
+    .from("recebiveis_manuais_confirmacoes")
+    .select("recebivel_id, data")
+    .gte("data", inicioMes);
+  const confSet = new Set((confRaw || []).map((c) => `${c.recebivel_id}|${c.data}`));
+
+  const out: RecebivelOcorrencia[] = [];
+  recebiveis.forEach((r) => {
+    ocorrenciasNoMes(r, ano, mes).forEach((dia) => {
+      const data = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+      out.push({
+        recebivelId: r.id,
+        nome: r.nome,
+        clienteNome: r.cliente_nome,
+        valor: Number(r.valor),
+        data,
+        confirmado: confSet.has(`${r.id}|${data}`),
+      });
+    });
+  });
+  return out.sort((a, b) => a.data.localeCompare(b.data));
 }
 
 // Tarefas atribuídas a essa pessoa (por nome) que ainda não estão feitas.

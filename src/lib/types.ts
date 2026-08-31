@@ -28,6 +28,7 @@ export interface Cliente {
   imp: number;
   taxa: number;
   taxa_fonte: "real" | "estimado" | null;
+  trafego_gestor: string;
   // liq/marg vêm null pra financeiro/onboarding (view esconde de propósito)
   liq: number | null;
   marg: number | null;
@@ -52,6 +53,18 @@ export interface CustoFixo {
   data: string;
   recorrencia: "pontual" | "semanal" | "mensal";
   vigente_desde: string;
+  created_at: string;
+}
+
+export interface RecebivelManual {
+  id: string;
+  nome: string;
+  valor: number;
+  cliente_nome: string | null;
+  data: string;
+  recorrencia: "pontual" | "semanal" | "mensal";
+  vigente_desde: string;
+  ativo: boolean;
   created_at: string;
 }
 

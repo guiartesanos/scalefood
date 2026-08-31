@@ -87,6 +87,32 @@ export async function desmarcarCustoFixoPago(custoFixoId: string, data: string) 
   return { success: true };
 }
 
+export async function confirmarRecebivelManual(recebivelId: string, data: string) {
+  const profile = await requireProfile();
+  if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("recebiveis_manuais_confirmacoes")
+    .insert({ recebivel_id: recebivelId, data, confirmado_por: profile.id });
+  if (error) return { error: error.message };
+  revalidatePath("/financeiro");
+  return { success: true };
+}
+
+export async function desconfirmarRecebivelManual(recebivelId: string, data: string) {
+  const profile = await requireProfile();
+  if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("recebiveis_manuais_confirmacoes")
+    .delete()
+    .eq("recebivel_id", recebivelId)
+    .eq("data", data);
+  if (error) return { error: error.message };
+  revalidatePath("/financeiro");
+  return { success: true };
+}
+
 export async function criarCustoVariavel(formData: FormData) {
   const profile = await requireProfile();
   if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
