@@ -1,32 +1,10 @@
 import type { CustoFixo } from "@/lib/types";
+import { ocorrenciasNoMes } from "@/lib/data";
 
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 function brl(v: number) {
   return "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function ocorrenciasNoMes(custo: CustoFixo, ano: number, mes: number): number[] {
-  const vigenteDesde = new Date(custo.vigente_desde + "T00:00:00");
-  if (vigenteDesde.getFullYear() > ano || (vigenteDesde.getFullYear() === ano && vigenteDesde.getMonth() > mes)) {
-    return [];
-  }
-  const ref = new Date(custo.data + "T00:00:00");
-  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
-
-  if (custo.recorrencia === "pontual") {
-    return ref.getFullYear() === ano && ref.getMonth() === mes ? [ref.getDate()] : [];
-  }
-  if (custo.recorrencia === "mensal") {
-    return [Math.min(ref.getDate(), diasNoMes)];
-  }
-  // semanal: todo dia com o mesmo dia-da-semana da data de referencia
-  const diaSemana = ref.getDay();
-  const dias: number[] = [];
-  for (let d = 1; d <= diasNoMes; d++) {
-    if (new Date(ano, mes, d).getDay() === diaSemana) dias.push(d);
-  }
-  return dias;
 }
 
 export function CalendarioContasPagar({ custos }: { custos: CustoFixo[] }) {

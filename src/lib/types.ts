@@ -85,6 +85,7 @@ export interface Tarefa {
   urgencia: "alta" | "media" | "baixa";
   cliente_nome: string | null;
   agenda_id: string | null;
+  responsavel: string | null;
   criado_em: string;
 }
 

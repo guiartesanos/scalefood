@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { criarTarefa } from "@/actions/tarefas";
 import type { Agenda } from "@/lib/types";
 
-export function NovaTarefaForm({ agendas }: { agendas: Agenda[] }) {
+export function NovaTarefaForm({ agendas, responsaveis }: { agendas: Agenda[]; responsaveis: string[] }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -34,6 +34,13 @@ export function NovaTarefaForm({ agendas }: { agendas: Agenda[] }) {
       <div className="flex flex-col gap-1 min-w-[140px]">
         <label className="text-[11px] uppercase tracking-wide text-muted font-semibold">Cliente (opcional)</label>
         <input name="clienteNome" className="input" />
+      </div>
+      <div className="flex flex-col gap-1 min-w-[150px]">
+        <label className="text-[11px] uppercase tracking-wide text-muted font-semibold">Responsável (opcional)</label>
+        <input name="responsavel" className="input" list="responsaveis-lista" placeholder="quem vai fazer" />
+        <datalist id="responsaveis-lista">
+          {responsaveis.map((r) => <option key={r} value={r} />)}
+        </datalist>
       </div>
       <div className="flex flex-col gap-1 min-w-[160px]">
         <label className="text-[11px] uppercase tracking-wide text-muted font-semibold">Agenda</label>

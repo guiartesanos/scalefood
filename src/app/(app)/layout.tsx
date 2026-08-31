@@ -1,12 +1,14 @@
 import { requireProfile } from "@/lib/auth";
 import { getClientes } from "@/lib/data";
+import { getContasPendentes, getTarefasPendentes } from "@/lib/pendencias";
 import { MetaBar } from "@/components/MetaBar";
 import { TabNav } from "@/components/TabNav";
 import { MobileTabNav } from "@/components/MobileTabNav";
 import { CommandPalette } from "@/components/CommandPalette";
 import { IdleLogout } from "@/components/IdleLogout";
+import { PendenciasModal } from "@/components/PendenciasModal";
 import { signOut } from "@/actions/auth";
-import { roleLabel } from "@/lib/permissions";
+import { roleLabel, canAccessTab } from "@/lib/permissions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   // Verificação de sessão no servidor — roda ANTES de qualquer dado ser
@@ -14,6 +16,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // redireciona pro /login.
   const profile = await requireProfile();
   const clientes = await getClientes();
+
+  const podeVerFinanceiro = canAccessTab(profile.role, "financeiro");
+  const [contasPendentes, tarefasPendentes] = await Promise.all([
+    podeVerFinanceiro ? getContasPendentes() : Promise.resolve([]),
+    getTarefasPendentes(profile),
+  ]);
 
   return (
     <div className="min-h-screen flex flex-col bg-page">
@@ -30,15 +38,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </header>
 
-      <TabNav role={profile.role} />
+      <TabNav role={profile.role} pendenciasFinanceiro={contasPendentes.length} pendenciasTarefas={tarefasPendentes.length} />
       <MetaBar role={profile.role} />
 
       <main className="max-w-[1220px] mx-auto w-full px-6 py-7 max-[767px]:pb-20 flex flex-col gap-7 flex-1">
         {children}
       </main>
 
-      <MobileTabNav role={profile.role} />
+      <MobileTabNav role={profile.role} pendenciasFinanceiro={contasPendentes.length} pendenciasTarefas={tarefasPendentes.length} />
       <IdleLogout />
+      <PendenciasModal contas={contasPendentes} tarefas={tarefasPendentes} />
     </div>
   );
 }

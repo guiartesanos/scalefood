@@ -14,9 +14,22 @@ export async function criarTarefa(formData: FormData) {
     urgencia: String(formData.get("urgencia") || "media"),
     cliente_nome: String(formData.get("clienteNome") || "") || null,
     agenda_id: String(formData.get("agendaId") || "") || null,
+    responsavel: String(formData.get("responsavel") || "") || null,
     coluna: "a-fazer",
   });
 
+  if (error) return { error: error.message };
+  revalidatePath("/tarefas");
+  return { success: true };
+}
+
+export async function atualizarResponsavelTarefa(tarefaId: string, responsavel: string) {
+  await requireProfile();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("tarefas")
+    .update({ responsavel: responsavel || null })
+    .eq("id", tarefaId);
   if (error) return { error: error.message };
   revalidatePath("/tarefas");
   return { success: true };

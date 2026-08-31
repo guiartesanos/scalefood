@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { canAccessTab } from "@/lib/permissions";
+import { NavBadge } from "@/components/NavBadge";
 import type { UserRole } from "@/lib/types";
 
 const TABS = [
@@ -13,8 +14,17 @@ const TABS = [
   { key: "icp", href: "/icp", label: "ICP" },
 ];
 
-export function TabNav({ role }: { role: UserRole }) {
+export function TabNav({
+  role,
+  pendenciasFinanceiro = 0,
+  pendenciasTarefas = 0,
+}: {
+  role: UserRole;
+  pendenciasFinanceiro?: number;
+  pendenciasTarefas?: number;
+}) {
   const pathname = usePathname();
+  const BADGES: Record<string, number> = { financeiro: pendenciasFinanceiro, tarefas: pendenciasTarefas };
 
   return (
     <nav className="max-[767px]:hidden flex gap-1 border-b border-line overflow-x-auto px-6 max-w-[1220px] mx-auto w-full">
@@ -31,6 +41,7 @@ export function TabNav({ role }: { role: UserRole }) {
             }}
           >
             {t.label}
+            <NavBadge count={BADGES[t.key] || 0} />
           </Link>
         );
       })}

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { canAccessTab } from "@/lib/permissions";
+import { NavBadge } from "@/components/NavBadge";
 import type { UserRole } from "@/lib/types";
 
 type TabItem = { key: string; href: string; label: string; icon: () => React.JSX.Element };
@@ -15,8 +16,17 @@ const TABS: TabItem[] = [
   { key: "icp", href: "/icp", label: "ICP", icon: IconTarget },
 ];
 
-export function MobileTabNav({ role }: { role: UserRole }) {
+export function MobileTabNav({
+  role,
+  pendenciasFinanceiro = 0,
+  pendenciasTarefas = 0,
+}: {
+  role: UserRole;
+  pendenciasFinanceiro?: number;
+  pendenciasTarefas?: number;
+}) {
   const pathname = usePathname();
+  const BADGES: Record<string, number> = { financeiro: pendenciasFinanceiro, tarefas: pendenciasTarefas };
   const tabs: TabItem[] = TABS.filter((t) => canAccessTab(role, t.key));
   if (role === "master") {
     tabs.push({ key: "configuracoes", href: "/configuracoes/usuarios", label: "Config", icon: IconSettings });
@@ -34,10 +44,20 @@ export function MobileTabNav({ role }: { role: UserRole }) {
           <Link
             key={t.key}
             href={t.href}
-            className="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-1.5"
+            className="flex-1 flex flex-col items-center gap-0.5 pt-2 pb-1.5 relative"
             style={{ color: active ? "var(--accent-ink)" : "var(--muted)" }}
           >
-            <Icon />
+            <span className="relative">
+              <Icon />
+              {!!BADGES[t.key] && (
+                <span
+                  className="absolute -top-1 -right-2.5 text-[9px] font-bold text-white rounded-full min-w-[14px] h-[14px] px-[3px] flex items-center justify-center"
+                  style={{ background: "var(--critical)" }}
+                >
+                  {BADGES[t.key] > 99 ? "99+" : BADGES[t.key]}
+                </span>
+              )}
+            </span>
             <span className="text-[10px] font-semibold">{t.label}</span>
           </Link>
         );

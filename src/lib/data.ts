@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import type { Cliente } from "./types";
+import type { Cliente, CustoFixo } from "./types";
 
 // SEMPRE via clientes_view (não a tabela clientes crua) — é a view que
 // esconde liq/marg de financeiro/onboarding no nível do banco.
@@ -32,6 +32,33 @@ export function tenureLabel(fechamento: string | null): { text: string; days: nu
 
 export function pctOf(c: Cliente): number | null {
   return c.entrada && c.entrada > 0 && c.hoje != null ? ((c.hoje - c.entrada) / c.entrada) * 100 : null;
+}
+
+export function ocorrenciasNoMes(
+  custo: Pick<CustoFixo, "data" | "recorrencia" | "vigente_desde">,
+  ano: number,
+  mes: number
+): number[] {
+  const vigenteDesde = new Date(custo.vigente_desde + "T00:00:00");
+  if (vigenteDesde.getFullYear() > ano || (vigenteDesde.getFullYear() === ano && vigenteDesde.getMonth() > mes)) {
+    return [];
+  }
+  const ref = new Date(custo.data + "T00:00:00");
+  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+
+  if (custo.recorrencia === "pontual") {
+    return ref.getFullYear() === ano && ref.getMonth() === mes ? [ref.getDate()] : [];
+  }
+  if (custo.recorrencia === "mensal") {
+    return [Math.min(ref.getDate(), diasNoMes)];
+  }
+  // semanal: todo dia com o mesmo dia-da-semana da data de referência
+  const diaSemana = ref.getDay();
+  const dias: number[] = [];
+  for (let d = 1; d <= diasNoMes; d++) {
+    if (new Date(ano, mes, d).getDay() === diaSemana) dias.push(d);
+  }
+  return dias;
 }
 
 export function periodoLabel(inicio: string | null, fim: string | null): string {

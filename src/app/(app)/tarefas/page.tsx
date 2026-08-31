@@ -11,7 +11,12 @@ export default async function TarefasPage() {
   const supabase = await createClient();
   const { data: tarefas } = await supabase.from("tarefas").select("*").order("created_at");
   const { data: agendas } = await supabase.from("agendas").select("*").order("nome");
+  const { data: profilesRaw } = await supabase.from("profiles").select("nome");
   const clientes = await getClientes();
+
+  const responsaveis = [...new Set([...clientes.map((c) => c.dono), ...(profilesRaw || []).map((p) => p.nome)])]
+    .filter((n): n is string => !!n)
+    .sort();
 
   const attnClientes = clientes.filter((c) => {
     const t = tenureLabel(c.fechamento);
@@ -24,13 +29,13 @@ export default async function TarefasPage() {
         <div className="flex items-center justify-between">
           <h2 className="font-display font-bold text-[21px]">Quadro (kanban)</h2>
         </div>
-        <NovaTarefaForm agendas={agendas || []} />
+        <NovaTarefaForm agendas={agendas || []} responsaveis={responsaveis} />
         {!agendas?.length && (
           <p className="text-sm text-muted">
             ⚠ Nenhuma agenda cadastrada ainda — cadastre abaixo quando tiver os e-mails do time.
           </p>
         )}
-        <TarefasKanban tarefas={tarefas || []} agendas={agendas || []} />
+        <TarefasKanban tarefas={tarefas || []} agendas={agendas || []} responsaveis={responsaveis} />
       </section>
 
       <section className="flex flex-col gap-3.5">

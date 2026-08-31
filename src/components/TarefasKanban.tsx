@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { moverTarefa, removerTarefa } from "@/actions/tarefas";
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
+import { AtribuirResponsavelChip } from "@/components/AtribuirResponsavelChip";
 import type { Tarefa, Agenda } from "@/lib/types";
 
 const URG_CLS: Record<string, string> = { alta: "critical", media: "warning", baixa: "muted" };
@@ -13,7 +14,7 @@ const COLS = [
   { key: "em-andamento" as const, titulo: "Em andamento" },
 ];
 
-export function TarefasKanban({ tarefas, agendas }: { tarefas: Tarefa[]; agendas: Agenda[] }) {
+export function TarefasKanban({ tarefas, agendas, responsaveis }: { tarefas: Tarefa[]; agendas: Agenda[]; responsaveis: string[] }) {
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<Coluna | null>(null);
   const [feitoAberto, setFeitoAberto] = useState(false);
@@ -71,6 +72,7 @@ export function TarefasKanban({ tarefas, agendas }: { tarefas: Tarefa[]; agendas
           coluna="a-fazer"
           lista={aFazer}
           agendas={agendas}
+          responsaveis={responsaveis}
           dragOver={dragOver === "a-fazer"}
           onDragEnter={() => setDragOver("a-fazer")}
           onDragLeave={() => setDragOver(null)}
@@ -84,6 +86,7 @@ export function TarefasKanban({ tarefas, agendas }: { tarefas: Tarefa[]; agendas
           coluna="em-andamento"
           lista={emAndamento}
           agendas={agendas}
+          responsaveis={responsaveis}
           dragOver={dragOver === "em-andamento"}
           onDragEnter={() => setDragOver("em-andamento")}
           onDragLeave={() => setDragOver(null)}
@@ -134,6 +137,7 @@ function Coluna({
   coluna,
   lista,
   agendas,
+  responsaveis,
   dragOver,
   onDragEnter,
   onDragLeave,
@@ -146,6 +150,7 @@ function Coluna({
   coluna: Coluna;
   lista: Tarefa[];
   agendas: Agenda[];
+  responsaveis: string[];
   dragOver: boolean;
   onDragEnter: () => void;
   onDragLeave: () => void;
@@ -190,6 +195,7 @@ function Coluna({
                 {t.urgencia}
               </span>
               {t.cliente_nome && <span className="text-[10.5px] bg-paper-2 border border-line rounded-full px-1.5 py-0.5">{t.cliente_nome}</span>}
+              <AtribuirResponsavelChip tarefaId={t.id} responsavel={t.responsavel} responsaveis={responsaveis} />
             </div>
             <span className="text-[10.5px] text-muted num">📅 {agenda ? agenda.nome : "sem agenda definida"}</span>
             <div className="hidden max-[767px]:flex gap-1.5 pt-1 border-t border-line/50 mt-0.5">

@@ -19,6 +19,8 @@ import { CalendarioContasPagar } from "@/components/CalendarioContasPagar";
 import { EditarCustoFixoButton } from "@/components/EditarCustoFixoButton";
 import { NovaVendaButton } from "@/components/NovaVendaButton";
 import { GrowthChart } from "@/components/GrowthChart";
+import { ContasPendentesList, type ContaPaga } from "@/components/ContasPendentesList";
+import { getContasPendentes } from "@/lib/pendencias";
 import type { CustoFixo } from "@/lib/types";
 
 const MES_NOME = [
@@ -46,6 +48,22 @@ export default async function FinanceiroPage() {
     .order("ano")
     .order("mes");
   const { data: faturamentoAtual } = await supabase.from("faturamento_mes_atual").select("*").single();
+
+  const contasPendentes = await getContasPendentes();
+  const hoje = new Date();
+  const inicioMesStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-01`;
+  const { data: pagosRaw } = await supabase
+    .from("custos_fixos_pagamentos")
+    .select("custo_fixo_id, data")
+    .gte("data", inicioMesStr)
+    .order("data", { ascending: false });
+  const custosFixosPorId = new Map((custosFixosRaw as CustoFixo[] | null || []).map((c) => [c.id, c]));
+  const contasPagas: ContaPaga[] = (pagosRaw || [])
+    .map((p) => {
+      const c = custosFixosPorId.get(p.custo_fixo_id);
+      return c ? { custoFixoId: p.custo_fixo_id, nome: c.nome, valor: Number(c.valor), data: p.data } : null;
+    })
+    .filter((x): x is ContaPaga => x !== null);
 
   const faturamentoRecorrente = clientes.reduce((s, c) => s + c.rec, 0);
   const faturamentoAvulso = (pagamentos || [])
@@ -161,10 +179,25 @@ export default async function FinanceiroPage() {
 
   const pagar = (
     <>
+      <section className="flex flex-col gap-3.5">
+        <div className="flex items-center gap-2">
+          <h2 className="font-display font-bold text-[21px]">Contas deste mês</h2>
+          {!!contasPendentes.length && (
+            <span
+              className="text-[11px] font-bold text-white rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center"
+              style={{ background: "var(--critical)" }}
+            >
+              {contasPendentes.length}
+            </span>
+          )}
+        </div>
+        <ContasPendentesList pendentes={contasPendentes} pagas={contasPagas} />
+      </section>
+
       <section className="grid grid-cols-[1fr_320px] gap-4 max-[900px]:grid-cols-1">
         <div className="flex flex-col gap-3.5">
           <div className="flex items-center justify-between">
-            <h2 className="font-display font-bold text-[21px]">Custos fixos</h2>
+            <h2 className="font-display font-bold text-[21px]">Custos fixos (gerenciar)</h2>
           </div>
           <form action={handleCriarCustoFixo} className="bg-paper-2 border border-dashed border-line rounded-xl p-4 flex flex-wrap gap-3 items-end">
             <FieldSmall label="Nome"><input name="nome" required className="input" placeholder="Ex: aluguel, ferramenta" /></FieldSmall>

@@ -61,6 +61,32 @@ export async function removerCustoFixo(id: string) {
   revalidatePath("/financeiro");
 }
 
+export async function marcarCustoFixoPago(custoFixoId: string, data: string) {
+  const profile = await requireProfile();
+  if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("custos_fixos_pagamentos")
+    .insert({ custo_fixo_id: custoFixoId, data, pago_por: profile.id });
+  if (error) return { error: error.message };
+  revalidatePath("/financeiro");
+  return { success: true };
+}
+
+export async function desmarcarCustoFixoPago(custoFixoId: string, data: string) {
+  const profile = await requireProfile();
+  if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("custos_fixos_pagamentos")
+    .delete()
+    .eq("custo_fixo_id", custoFixoId)
+    .eq("data", data);
+  if (error) return { error: error.message };
+  revalidatePath("/financeiro");
+  return { success: true };
+}
+
 export async function criarCustoVariavel(formData: FormData) {
   const profile = await requireProfile();
   if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
