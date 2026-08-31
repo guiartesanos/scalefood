@@ -37,6 +37,11 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
   const [filtroStatus, setFiltroStatus] = useState<ClienteStatus | null>(null);
   const [filtroNicho, setFiltroNicho] = useState<string | null>(null);
 
+  function irParaTabela(status: ClienteStatus) {
+    setFiltroStatus(filtroStatus === status ? null : status);
+    document.getElementById("clientes-ativos-tabela")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   const byStatus: Record<string, Cliente[]> = {};
   clientes.forEach((c) => {
     (byStatus[c.status] = byStatus[c.status] || []).push(c);
@@ -67,11 +72,12 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
             const rec = list.reduce((sum, c) => sum + c.rec, 0);
             const liq = list.reduce((sum, c) => sum + (c.liq || 0), 0);
             const active = filtroStatus === s;
+            const pct = Math.round((list.length / clientes.length) * 100);
             return (
               <button
                 key={s}
                 type="button"
-                onClick={() => setFiltroStatus(active ? null : s)}
+                onClick={() => irParaTabela(s)}
                 className="bg-paper border border-line rounded-xl p-4 flex flex-col gap-2 text-left transition-shadow"
                 style={{
                   borderLeft: `4px solid var(--${STATUS_CLS[s]})`,
@@ -82,9 +88,10 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
                   <span className="font-display font-extrabold text-[28px] num" style={{ color: `var(--${STATUS_CLS[s]})` }}>
                     {list.length}
                   </span>
-                  <span className="text-[11.5px] text-muted num">
-                    {Math.round((list.length / clientes.length) * 100)}% da carteira
-                  </span>
+                  <span className="text-[11.5px] text-muted num">{pct}% da carteira</span>
+                </div>
+                <div className="h-[6px] rounded-full overflow-hidden" style={{ background: `var(--${STATUS_CLS[s]}-wash)` }}>
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: `var(--${STATUS_CLS[s]})` }} />
                 </div>
                 <span className="font-semibold text-[13.5px]">{s}</span>
                 {verLucro && (
@@ -93,13 +100,16 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
                   </span>
                 )}
                 <span className="text-xs text-ink-2 leading-snug">{STATUS_DESC[s]}</span>
+                <span className="text-[11.5px] font-semibold mt-1" style={{ color: `var(--${STATUS_CLS[s]})` }}>
+                  ver {list.length} cliente{list.length > 1 ? "s" : ""} ›
+                </span>
               </button>
             );
           })}
         </div>
       </section>
 
-      <section className="flex flex-col gap-3.5">
+      <section id="clientes-ativos-tabela" className="flex flex-col gap-3.5 scroll-mt-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h2 className="font-display font-bold text-[21px]">Clientes ativos</h2>
           {(filtroStatus || filtroNicho) && (
