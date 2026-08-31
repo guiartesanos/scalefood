@@ -75,6 +75,24 @@ export interface NovaAssinaturaAsaas {
   ciclo?: "WEEKLY" | "BIWEEKLY" | "MONTHLY" | "QUARTERLY" | "SEMIANNUALLY" | "YEARLY";
 }
 
+export interface PagamentoAsaas {
+  id: string;
+  value: number;
+  status: string;
+  paymentDate: string | null;
+  dueDate: string;
+  description: string | null;
+  billingType: string;
+}
+
+export async function listarPagamentosAsaas(customerId: string): Promise<PagamentoAsaas[]> {
+  const data = await asaasRequest<{ data: PagamentoAsaas[] }>(
+    "GET",
+    `/payments?customer=${customerId}&limit=100`
+  );
+  return data.data || [];
+}
+
 export async function criarAssinaturaAsaas(a: NovaAssinaturaAsaas): Promise<{ id: string; status: string }> {
   const body = {
     customer: a.customerId,

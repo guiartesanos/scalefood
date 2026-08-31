@@ -125,6 +125,10 @@ export interface ClienteCancelado {
   asaas_customer_id: string | null;
   total_recebido: number;
   ultimo_pagamento: string | null;
+  primeiro_pagamento: string | null;
+  telefone: string | null;
+  nicho: string | null;
+  dono: string | null;
   motivo: string | null;
   observacao: string | null;
   created_at: string;
@@ -137,6 +141,7 @@ export const MOTIVOS_CANCELAMENTO = [
   "Fechou o negócio",
   "Insatisfação com atendimento",
   "Assumiu o marketing internamente",
+  "Nem começou",
 ] as const;
 
 export const CATEGORIAS_CUSTO = [

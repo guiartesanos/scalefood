@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { getClientes, brl, brlInt, tenureLabel, pctOf } from "@/lib/data";
+import { getClientes, brl, brlInt, tenureLabel, pctOf, periodoLabel } from "@/lib/data";
 import { StatusSelect } from "@/components/StatusSelect";
 import { ClienteValoresForm } from "@/components/ClienteValoresForm";
 import { ClientesKanban } from "@/components/ClientesKanban";
 import { ClientesTabs } from "@/components/ClientesTabs";
 import { MotivoCancelamentoSelect } from "@/components/MotivoCancelamentoSelect";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { canEditClienteValores } from "@/lib/permissions";
 import type { ClienteCancelado } from "@/lib/types";
 
@@ -106,16 +107,23 @@ export default async function ClientesPage() {
         <Kpi label="Sem motivo definido" value={String(semMotivo)} sub="ainda precisa classificar" color={semMotivo ? "var(--critical)" : undefined} />
       </div>
       <div className="border border-line rounded-xl overflow-auto bg-paper">
-        <table className="w-full min-w-[700px] text-[13px] border-collapse">
+        <table className="w-full min-w-[900px] text-[13px] border-collapse">
           <thead>
             <tr className="bg-paper-2">
-              <Th>Cliente</Th><Th right>Total recebido</Th><Th>Último pagamento</Th><Th>Motivo do cancelamento</Th>
+              <Th>Cliente</Th><Th>Nicho</Th><Th>Dono</Th><Th>Tempo ativo</Th><Th right>Total recebido</Th><Th>Último pagamento</Th><Th>Motivo do cancelamento</Th><Th>Reativar</Th>
             </tr>
           </thead>
           <tbody>
             {cancelados.map((c) => (
-              <tr key={c.id} className="border-t border-line/50">
-                <td className="px-3 py-2 font-semibold">{c.nome}</td>
+              <tr key={c.id} className="border-t border-line/50 hover:bg-paper-2/60">
+                <td className="px-3 py-2 font-semibold">
+                  <Link href={`/clientes/cancelados/${c.id}`} className="hover:text-accent-ink hover:underline">
+                    {c.nome}
+                  </Link>
+                </td>
+                <td className="px-3 py-2">{c.nicho || "—"}</td>
+                <td className="px-3 py-2">{c.dono || "—"}</td>
+                <td className="px-3 py-2 num">{periodoLabel(c.primeiro_pagamento, c.ultimo_pagamento)}</td>
                 <td className="px-3 py-2 text-right num">{brl(c.total_recebido)}</td>
                 <td className="px-3 py-2 num">
                   {c.ultimo_pagamento ? new Date(c.ultimo_pagamento + "T12:00:00").toLocaleDateString("pt-BR") : "—"}
@@ -123,10 +131,13 @@ export default async function ClientesPage() {
                 <td className="px-3 py-2">
                   <MotivoCancelamentoSelect id={c.id} motivo={c.motivo} />
                 </td>
+                <td className="px-3 py-2">
+                  <WhatsAppButton telefone={c.telefone} nome={c.nome} compact />
+                </td>
               </tr>
             ))}
             {!cancelados.length && (
-              <tr><td colSpan={4} className="text-center text-muted py-4">Nenhum cliente cancelado encontrado no Asaas.</td></tr>
+              <tr><td colSpan={8} className="text-center text-muted py-4">Nenhum cliente cancelado encontrado no Asaas.</td></tr>
             )}
           </tbody>
         </table>
