@@ -18,6 +18,7 @@ import { CalendarioRecebiveis } from "@/components/CalendarioRecebiveis";
 import { CalendarioContasPagar } from "@/components/CalendarioContasPagar";
 import { EditarCustoFixoButton } from "@/components/EditarCustoFixoButton";
 import { NovaVendaButton } from "@/components/NovaVendaButton";
+import { GrowthChart } from "@/components/GrowthChart";
 import type { CustoFixo } from "@/lib/types";
 
 const MES_NOME = [
@@ -62,6 +63,36 @@ export default async function FinanceiroPage() {
   const lucro = faturamentoTotal - custosVariaveis - custosFixosTotal;
   const verLucro = canSeeLucro(profile.role);
 
+  // custos variáveis históricos: reconstruídos a partir da data real de
+  // entrada de cada cliente (só conta quem já tinha fechado naquele mês),
+  // usando os valores atuais de tráfego/comissão/imposto/taxa de cada um —
+  // não temos um histórico mês a mês desses valores, então isso é a melhor
+  // aproximação real disponível (não é inventado, vem do fechamento real).
+  function custosVariaveisAte(ano: number, mes: number): number {
+    const fimDoMes = new Date(ano, mes, 0);
+    return clientes
+      .filter((c) => c.fechamento && new Date(c.fechamento + "T00:00:00") <= fimDoMes)
+      .reduce((s, c) => s + c.traf + c.com + c.imp + (c.taxa || 0), 0);
+  }
+
+  const agoraChart = new Date();
+  const pontosMensal = [
+    ...(historicoMensal || []).map((h) => ({
+      label: `${MES_NOME[h.mes - 1].slice(0, 3)}/${String(h.ano).slice(2)}`,
+      faturamento: Number(h.faturamento),
+      custosFixos: Number(h.custos_fixos),
+      custosVariaveis: custosVariaveisAte(h.ano, h.mes),
+      lucro: Number(h.faturamento) - Number(h.custos_fixos) - custosVariaveisAte(h.ano, h.mes),
+    })),
+    {
+      label: `${MES_NOME[agoraChart.getMonth()].slice(0, 3)}/${String(agoraChart.getFullYear()).slice(2)}`,
+      faturamento: Number(faturamentoAtual?.faturamento_novo_mes || 0),
+      custosFixos: custosFixosTotal,
+      custosVariaveis,
+      lucro: Number(faturamentoAtual?.faturamento_novo_mes || 0) - custosFixosTotal - custosVariaveis,
+    },
+  ];
+
   // Wrappers void — <form action> do React só aceita (fd) => void |
   // Promise<void>, e as Server Actions abaixo retornam {error}/{success}
   // pra quando são chamadas de componentes client (com feedback de
@@ -104,6 +135,13 @@ export default async function FinanceiroPage() {
         <Kpi label="Custos variáveis" value={brlInt(custosVariaveis)} sub="tráfego + comissão + imposto + taxa + extras" color="var(--critical)" />
         {verLucro && <Kpi label="Lucro estimado" value={brl(lucro)} sub="faturamento − custos fixos − variáveis" color="var(--good)" />}
       </div>
+
+      {verLucro && (
+        <div className="flex flex-col gap-2">
+          <h3 className="font-display font-bold text-base">Crescimento mês a mês</h3>
+          <GrowthChart pontos={pontosMensal} />
+        </div>
+      )}
     </VisibilidadeProvider>
   );
 
@@ -291,6 +329,8 @@ export default async function FinanceiroPage() {
           Faturamento novo recebido por mês (puxado do Asaas) e o total de custos fixos vigente naquele mês.
         </p>
       </div>
+
+      <GrowthChart pontos={pontosMensal} />
       <div className="border border-line rounded-xl overflow-auto bg-paper">
         <table className="w-full text-[13px] border-collapse">
           <thead>
@@ -328,9 +368,11 @@ export default async function FinanceiroPage() {
         </table>
       </div>
       <p className="text-[11px] text-muted">
-        Janeiro e fevereiro de 2026 ainda sem faturamento no Asaas (carteira começando). Custos fixos de
-        cada mês já contam só o que estava vigente naquela época (Mentoria comercial, Comercial e Claude
-        só entram a partir de agosto).
+        Janeiro e fevereiro de 2026 corrigidos manualmente (Urla R$5.000 em janeiro; Perto da chapa +
+        Urla, R$10.000, em fevereiro). Custos fixos de cada mês já contam só o que estava vigente naquela
+        época (Mentoria comercial, Comercial e Claude só entram a partir de agosto). No gráfico de
+        crescimento, custos variáveis de meses passados são uma estimativa — reconstruída a partir da data
+        real de entrada de cada cliente ainda ativo, não é um valor gravado mês a mês.
       </p>
     </section>
   );

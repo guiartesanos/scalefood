@@ -119,6 +119,26 @@ export interface FaturamentoMesAtual {
   pct_projecao: number | null;
 }
 
+export interface ClienteCancelado {
+  id: string;
+  nome: string;
+  asaas_customer_id: string | null;
+  total_recebido: number;
+  ultimo_pagamento: string | null;
+  motivo: string | null;
+  observacao: string | null;
+  created_at: string;
+}
+
+export const MOTIVOS_CANCELAMENTO = [
+  "Problemas financeiros",
+  "Não teve resultado",
+  "Optou por gestor mais barato",
+  "Fechou o negócio",
+  "Insatisfação com atendimento",
+  "Assumiu o marketing internamente",
+] as const;
+
 export const CATEGORIAS_CUSTO = [
   "Pessoas",
   "Sistema/Ferramentas",
