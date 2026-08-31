@@ -26,14 +26,8 @@ export function NovaVendaButton() {
       </button>
 
       {open && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[500] flex items-start justify-center p-6 overflow-y-auto"
-          onClick={fechar}
-        >
-          <div
-            className="bg-paper border border-line rounded-xl p-6 max-w-2xl w-full flex flex-col gap-4 shadow-[var(--shadow)]"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[500] flex items-start justify-center p-6 overflow-y-auto">
+          <div className="bg-paper border border-line rounded-xl p-6 max-w-2xl w-full flex flex-col gap-4 shadow-[var(--shadow)]">
             <div className="flex justify-between items-start">
               <h3 className="font-display font-bold text-xl">Nova venda</h3>
               <button onClick={fechar} className="text-muted hover:text-critical text-xl leading-none">
