@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
   const { data: cliente } = await supabase
     .from("clientes")
-    .select("id, nome, traf, trafego_gestor")
+    .select("id, nome, dono, traf, com, trafego_gestor")
     .eq("asaas_customer_id", pagamento.customer)
     .maybeSingle();
 
@@ -65,8 +65,14 @@ export async function POST(request: NextRequest) {
     coluna: "a-fazer",
   });
 
-  // cliente pagou -> gera a conta a pagar do repasse de tráfego pro
-  // gestor dele (Jota ou Lorenzo) — só paga tráfego de quem já pagou.
+  // cliente pagou -> gera a conta a pagar do repasse de tráfego e da
+  // comissão de vendas, uma vez por cliente por mês (não por pagamento —
+  // alguns clientes têm 2 assinaturas ativas no Asaas cobrando no mesmo
+  // mês, e tráfego/comissão são valores mensais, não por cobrança).
+  // referencia com o mês embutido garante essa dedupe via unique index.
+  const dataPagamento: string = pagamento.paymentDate || pagamento.clientPaymentDate || pagamento.dueDate;
+  const competencia = dataPagamento.slice(0, 7); // "2026-08"
+
   const trafego = Number(cliente.traf) || 0;
   if (trafego > 0) {
     await supabase.from("contas_pagar_avulsas").insert({
@@ -76,7 +82,22 @@ export async function POST(request: NextRequest) {
       gestor: cliente.trafego_gestor || "Jota",
       categoria: "Tráfego",
       origem: "trafego_asaas",
-      referencia: pagamento.id,
+      referencia: `trafego:${cliente.id}:${competencia}`,
+      data: dataPagamento,
+    });
+  }
+
+  const comissao = Number(cliente.com) || 0;
+  if (comissao > 0) {
+    await supabase.from("contas_pagar_avulsas").insert({
+      nome: `Comissão de vendas — ${cliente.nome}`,
+      valor: comissao,
+      cliente_nome: cliente.nome,
+      gestor: cliente.dono,
+      categoria: "Comissão",
+      origem: "comissao_asaas",
+      referencia: `comissao:${cliente.id}:${competencia}`,
+      data: dataPagamento,
     });
   }
 
