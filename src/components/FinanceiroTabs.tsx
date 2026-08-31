@@ -6,6 +6,7 @@ const TABS = [
   { key: "geral", label: "Geral" },
   { key: "pagar", label: "Contas a pagar" },
   { key: "receber", label: "Contas a receber" },
+  { key: "mensal", label: "Mensal" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -14,13 +15,15 @@ export function FinanceiroTabs({
   geral,
   pagar,
   receber,
+  mensal,
 }: {
   geral: React.ReactNode;
   pagar: React.ReactNode;
   receber: React.ReactNode;
+  mensal: React.ReactNode;
 }) {
   const [ativo, setAtivo] = useState<TabKey>("geral");
-  const conteudo: Record<TabKey, React.ReactNode> = { geral, pagar, receber };
+  const conteudo: Record<TabKey, React.ReactNode> = { geral, pagar, receber, mensal };
 
   return (
     <div className="flex flex-col gap-5">

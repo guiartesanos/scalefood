@@ -49,6 +49,9 @@ export interface CustoFixo {
   nome: string;
   valor: number;
   categoria: string | null;
+  data: string;
+  recorrencia: "pontual" | "semanal" | "mensal";
+  vigente_desde: string;
   created_at: string;
 }
 

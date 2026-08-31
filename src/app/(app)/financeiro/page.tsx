@@ -15,7 +15,15 @@ import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 import { FinanceiroTabs } from "@/components/FinanceiroTabs";
 import { VisibilidadeProvider, BotaoOcultarValores, ValorOcultavel } from "@/components/ValoresVisibilidade";
 import { CalendarioRecebiveis } from "@/components/CalendarioRecebiveis";
+import { CalendarioContasPagar } from "@/components/CalendarioContasPagar";
+import { EditarCustoFixoButton } from "@/components/EditarCustoFixoButton";
 import { NovaVendaButton } from "@/components/NovaVendaButton";
+import type { CustoFixo } from "@/lib/types";
+
+const MES_NOME = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
 
 export default async function FinanceiroPage() {
   const profile = await requireProfile();
@@ -27,9 +35,16 @@ export default async function FinanceiroPage() {
 
   const supabase = await createClient();
   const clientes = await getClientes();
-  const { data: custosFixos } = await supabase.from("custos_fixos").select("*").order("created_at");
+  const { data: custosFixosRaw } = await supabase.from("custos_fixos").select("*").order("data");
+  const custosFixos = custosFixosRaw as CustoFixo[] | null;
   const { data: custosVar } = await supabase.from("custos_variaveis_extra").select("*").order("created_at");
   const { data: pagamentos } = await supabase.from("pagamentos").select("*").order("data", { ascending: false });
+  const { data: historicoMensal } = await supabase
+    .from("faturamento_mensal_historico")
+    .select("*")
+    .order("ano")
+    .order("mes");
+  const { data: faturamentoAtual } = await supabase.from("faturamento_mes_atual").select("*").single();
 
   const faturamentoRecorrente = clientes.reduce((s, c) => s + c.rec, 0);
   const faturamentoAvulso = (pagamentos || [])
@@ -92,46 +107,69 @@ export default async function FinanceiroPage() {
     </VisibilidadeProvider>
   );
 
+  const RECORRENCIA_LABEL: Record<string, string> = { mensal: "Mensal", semanal: "Semanal", pontual: "Pontual" };
+
   const pagar = (
     <>
-      <section className="flex flex-col gap-3.5">
-        <div className="flex items-center justify-between">
-          <h2 className="font-display font-bold text-[21px]">Custos fixos</h2>
+      <section className="grid grid-cols-[1fr_320px] gap-4 max-[900px]:grid-cols-1">
+        <div className="flex flex-col gap-3.5">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display font-bold text-[21px]">Custos fixos</h2>
+          </div>
+          <form action={handleCriarCustoFixo} className="bg-paper-2 border border-dashed border-line rounded-xl p-4 flex flex-wrap gap-3 items-end">
+            <FieldSmall label="Nome"><input name="nome" required className="input" placeholder="Ex: aluguel, ferramenta" /></FieldSmall>
+            <FieldSmall label="Valor mensal (R$)"><input name="valor" type="number" step="0.01" min="0" required className="input" /></FieldSmall>
+            <FieldSmall label="Categoria">
+              <select name="categoria" className="input">
+                {CATEGORIAS_CUSTO.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </FieldSmall>
+            <FieldSmall label="Data de vencimento"><input name="data" type="date" required className="input" /></FieldSmall>
+            <FieldSmall label="Recorrência">
+              <select name="recorrencia" className="input" defaultValue="mensal">
+                <option value="mensal">Mensal (dia fixo do mês)</option>
+                <option value="semanal">Semanal (dia fixo da semana)</option>
+                <option value="pontual">Pontual (só essa data)</option>
+              </select>
+            </FieldSmall>
+            <button type="submit" className="btn-primary">+ adicionar</button>
+          </form>
+          <div className="border border-line rounded-xl overflow-auto bg-paper">
+            <table className="w-full text-[13px] border-collapse">
+              <thead><tr className="bg-paper-2"><Th>Nome</Th><Th>Categoria</Th><Th>Vencimento</Th><Th right>Valor</Th><Th></Th></tr></thead>
+              <tbody>
+                {(custosFixos || []).map((c) => (
+                  <tr key={c.id} className="border-t border-line/50">
+                    <td className="px-3 py-2">{c.nome}</td>
+                    <td className="px-3 py-2">{c.categoria || "—"}</td>
+                    <td className="px-3 py-2 text-ink-2">
+                      {RECORRENCIA_LABEL[c.recorrencia] || c.recorrencia}
+                      {c.recorrencia === "mensal" && ` · dia ${new Date(c.data + "T12:00:00").getDate()}`}
+                      {c.recorrencia === "semanal" && ` · ${new Date(c.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long" })}`}
+                      {c.recorrencia === "pontual" && ` · ${new Date(c.data + "T12:00:00").toLocaleDateString("pt-BR")}`}
+                    </td>
+                    <td className="px-3 py-2 text-right num">{brl(c.valor)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <EditarCustoFixoButton custo={c} />{" "}
+                      <ConfirmarExclusao
+                        itemLabel={`o custo fixo "${c.nome}"`}
+                        acao={removerCustoFixo.bind(null, c.id)}
+                        senha
+                        userEmail={profile.email}
+                      />
+                    </td>
+                  </tr>
+                ))}
+                {!custosFixos?.length && (
+                  <tr><td colSpan={5} className="text-center text-muted py-4">Nenhum custo fixo lançado ainda.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <form action={handleCriarCustoFixo} className="bg-paper-2 border border-dashed border-line rounded-xl p-4 flex flex-wrap gap-3 items-end">
-          <FieldSmall label="Nome"><input name="nome" required className="input" placeholder="Ex: aluguel, ferramenta" /></FieldSmall>
-          <FieldSmall label="Valor mensal (R$)"><input name="valor" type="number" step="0.01" min="0" required className="input" /></FieldSmall>
-          <FieldSmall label="Categoria">
-            <select name="categoria" className="input">
-              {CATEGORIAS_CUSTO.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </FieldSmall>
-          <button type="submit" className="btn-primary">+ adicionar</button>
-        </form>
-        <div className="border border-line rounded-xl overflow-auto bg-paper">
-          <table className="w-full text-[13px] border-collapse">
-            <thead><tr className="bg-paper-2"><Th>Nome</Th><Th>Categoria</Th><Th right>Valor</Th><Th></Th></tr></thead>
-            <tbody>
-              {(custosFixos || []).map((c) => (
-                <tr key={c.id} className="border-t border-line/50">
-                  <td className="px-3 py-2">{c.nome}</td>
-                  <td className="px-3 py-2">{c.categoria || "—"}</td>
-                  <td className="px-3 py-2 text-right num">{brl(c.valor)}</td>
-                  <td className="px-3 py-2">
-                    <ConfirmarExclusao
-                      itemLabel={`o custo fixo "${c.nome}"`}
-                      acao={removerCustoFixo.bind(null, c.id)}
-                      senha
-                      userEmail={profile.email}
-                    />
-                  </td>
-                </tr>
-              ))}
-              {!custosFixos?.length && (
-                <tr><td colSpan={4} className="text-center text-muted py-4">Nenhum custo fixo lançado ainda.</td></tr>
-              )}
-            </tbody>
-          </table>
+        <div className="flex flex-col gap-3.5">
+          <h2 className="font-display font-bold text-[21px] opacity-0 select-none max-[900px]:hidden">.</h2>
+          <CalendarioContasPagar custos={custosFixos || []} />
         </div>
       </section>
 
@@ -228,7 +266,76 @@ export default async function FinanceiroPage() {
     </>
   );
 
-  return <FinanceiroTabs geral={geral} pagar={pagar} receber={receber} />;
+  const agora = new Date();
+  const linhasMensal = [
+    ...(historicoMensal || []).map((h) => ({
+      label: `${MES_NOME[h.mes - 1]} de ${h.ano}`,
+      faturamento: Number(h.faturamento),
+      custos: Number(h.custos_fixos),
+      atual: false,
+    })),
+    {
+      label: `${MES_NOME[agora.getMonth()]} de ${agora.getFullYear()} (em andamento)`,
+      faturamento: Number(faturamentoAtual?.faturamento_novo_mes || 0),
+      custos: custosFixosTotal,
+      atual: true,
+    },
+  ];
+  const maxFaturamentoMensal = Math.max(...linhasMensal.map((l) => l.faturamento), 1);
+
+  const mensal = (
+    <section className="flex flex-col gap-3.5">
+      <div>
+        <h2 className="font-display font-bold text-[21px]">Faturamento e custos por mês</h2>
+        <p className="text-[13px] text-muted">
+          Faturamento novo recebido por mês (puxado do Asaas) e o total de custos fixos vigente naquele mês.
+        </p>
+      </div>
+      <div className="border border-line rounded-xl overflow-auto bg-paper">
+        <table className="w-full text-[13px] border-collapse">
+          <thead>
+            <tr className="bg-paper-2">
+              <Th>Mês</Th>
+              <Th right>Faturamento</Th>
+              <Th right>Custos fixos</Th>
+              <Th right>Lucro (sem variáveis)</Th>
+              <Th></Th>
+            </tr>
+          </thead>
+          <tbody>
+            {linhasMensal.map((l) => (
+              <tr key={l.label} className="border-t border-line/50" style={l.atual ? { background: "var(--accent-wash)" } : undefined}>
+                <td className="px-3 py-2 font-semibold">{l.label}</td>
+                <td className="px-3 py-2 text-right num">{brl(l.faturamento)}</td>
+                <td className="px-3 py-2 text-right num text-critical">{brl(l.custos)}</td>
+                <td className="px-3 py-2 text-right num" style={{ color: l.faturamento - l.custos >= 0 ? "var(--good)" : "var(--critical)" }}>
+                  {brl(l.faturamento - l.custos)}
+                </td>
+                <td className="px-3 py-2 w-[160px]">
+                  <div className="h-[8px] rounded bg-paper-2 border border-line/50 overflow-hidden">
+                    <div
+                      className="h-full rounded"
+                      style={{
+                        width: `${(l.faturamento / maxFaturamentoMensal) * 100}%`,
+                        background: "linear-gradient(90deg, var(--accent), var(--accent-ink))",
+                      }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-[11px] text-muted">
+        Janeiro e fevereiro de 2026 ainda sem faturamento no Asaas (carteira começando). Custos fixos de
+        cada mês já contam só o que estava vigente naquela época (Mentoria comercial, Comercial e Claude
+        só entram a partir de agosto).
+      </p>
+    </section>
+  );
+
+  return <FinanceiroTabs geral={geral} pagar={pagar} receber={receber} mensal={mensal} />;
 }
 
 function Kpi({ label, value, sub, color }: { label: string; value: string; sub: string; color?: string }) {

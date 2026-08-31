@@ -21,7 +21,29 @@ export async function criarCustoFixo(formData: FormData) {
     nome: String(formData.get("nome") || ""),
     valor: parseFloat(String(formData.get("valor") || "0")) || 0,
     categoria: String(formData.get("categoria") || "") || null,
+    data: String(formData.get("data") || "") || undefined,
+    recorrencia: String(formData.get("recorrencia") || "mensal"),
   });
+  if (error) return { error: error.message };
+  revalidatePath("/financeiro");
+  return { success: true };
+}
+
+export async function atualizarCustoFixo(formData: FormData) {
+  const profile = await requireProfile();
+  if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
+  const supabase = await createClient();
+  const id = String(formData.get("id") || "");
+  const { error } = await supabase
+    .from("custos_fixos")
+    .update({
+      nome: String(formData.get("nome") || ""),
+      valor: parseFloat(String(formData.get("valor") || "0")) || 0,
+      categoria: String(formData.get("categoria") || "") || null,
+      data: String(formData.get("data") || ""),
+      recorrencia: String(formData.get("recorrencia") || "mensal"),
+    })
+    .eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/financeiro");
   return { success: true };
