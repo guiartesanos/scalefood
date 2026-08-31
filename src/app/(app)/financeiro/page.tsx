@@ -76,6 +76,14 @@ export default async function FinanceiroPage() {
   }
 
   const agoraChart = new Date();
+  // se o mês atual já foi "fechado" em faturamento_mensal_historico
+  // (ex: closamos agosto no dia 31), não duplica ele como "ao vivo" —
+  // o valor congelado (Asaas + PIX/manual) é mais confiável que o
+  // faturamento_novo_mes (que só conta evento novo de receita, não o
+  // total recebido no mês).
+  const mesAtualJaFechado = (historicoMensal || []).some(
+    (h) => h.ano === agoraChart.getFullYear() && h.mes === agoraChart.getMonth() + 1
+  );
   const pontosMensal = [
     ...(historicoMensal || []).map((h) => ({
       label: `${MES_NOME[h.mes - 1].slice(0, 3)}/${String(h.ano).slice(2)}`,
@@ -84,13 +92,17 @@ export default async function FinanceiroPage() {
       custosVariaveis: custosVariaveisAte(h.ano, h.mes),
       lucro: Number(h.faturamento) - Number(h.custos_fixos) - custosVariaveisAte(h.ano, h.mes),
     })),
-    {
-      label: `${MES_NOME[agoraChart.getMonth()].slice(0, 3)}/${String(agoraChart.getFullYear()).slice(2)}`,
-      faturamento: Number(faturamentoAtual?.faturamento_novo_mes || 0),
-      custosFixos: custosFixosTotal,
-      custosVariaveis,
-      lucro: Number(faturamentoAtual?.faturamento_novo_mes || 0) - custosFixosTotal - custosVariaveis,
-    },
+    ...(mesAtualJaFechado
+      ? []
+      : [
+          {
+            label: `${MES_NOME[agoraChart.getMonth()].slice(0, 3)}/${String(agoraChart.getFullYear()).slice(2)}`,
+            faturamento: Number(faturamentoAtual?.faturamento_novo_mes || 0),
+            custosFixos: custosFixosTotal,
+            custosVariaveis,
+            lucro: Number(faturamentoAtual?.faturamento_novo_mes || 0) - custosFixosTotal - custosVariaveis,
+          },
+        ]),
   ];
 
   // Wrappers void — <form action> do React só aceita (fd) => void |
@@ -304,7 +316,6 @@ export default async function FinanceiroPage() {
     </>
   );
 
-  const agora = new Date();
   const linhasMensal = [
     ...(historicoMensal || []).map((h) => ({
       label: `${MES_NOME[h.mes - 1]} de ${h.ano}`,
@@ -312,12 +323,16 @@ export default async function FinanceiroPage() {
       custos: Number(h.custos_fixos),
       atual: false,
     })),
-    {
-      label: `${MES_NOME[agora.getMonth()]} de ${agora.getFullYear()} (em andamento)`,
-      faturamento: Number(faturamentoAtual?.faturamento_novo_mes || 0),
-      custos: custosFixosTotal,
-      atual: true,
-    },
+    ...(mesAtualJaFechado
+      ? []
+      : [
+          {
+            label: `${MES_NOME[agoraChart.getMonth()]} de ${agoraChart.getFullYear()} (em andamento)`,
+            faturamento: Number(faturamentoAtual?.faturamento_novo_mes || 0),
+            custos: custosFixosTotal,
+            atual: true,
+          },
+        ]),
   ];
   const maxFaturamentoMensal = Math.max(...linhasMensal.map((l) => l.faturamento), 1);
 
@@ -369,10 +384,13 @@ export default async function FinanceiroPage() {
       </div>
       <p className="text-[11px] text-muted">
         Janeiro e fevereiro de 2026 corrigidos manualmente (Urla R$5.000 em janeiro; Perto da chapa +
-        Urla, R$10.000, em fevereiro). Custos fixos de cada mês já contam só o que estava vigente naquela
-        época (Mentoria comercial, Comercial e Claude só entram a partir de agosto). No gráfico de
-        crescimento, custos variáveis de meses passados são uma estimativa — reconstruída a partir da data
-        real de entrada de cada cliente ainda ativo, não é um valor gravado mês a mês.
+        Urla, R$10.000, em fevereiro). Todo mês fechado conta o total realmente recebido (Asaas + PIX/
+        manual), não só receita nova — foi isso que estava errado em agosto (mostrava R$14.500, só a
+        receita nova, quando o total recebido no mês já era R$50.414,71). Custos fixos de cada mês já
+        contam só o que estava vigente naquela época (Mentoria comercial, Comercial e Claude só entram a
+        partir de agosto). No gráfico de crescimento, custos variáveis de meses passados são uma estimativa
+        — reconstruída a partir da data real de entrada de cada cliente ainda ativo, não é um valor gravado
+        mês a mês.
       </p>
     </section>
   );
