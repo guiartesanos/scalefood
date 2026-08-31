@@ -13,6 +13,9 @@ import {
   removerPagamento,
 } from "@/actions/financeiro";
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
+import { FinanceiroTabs } from "@/components/FinanceiroTabs";
+import { VisibilidadeProvider, BotaoOcultarValores, ValorOcultavel } from "@/components/ValoresVisibilidade";
+import { CalendarioRecebiveis } from "@/components/CalendarioRecebiveis";
 
 export default async function FinanceiroPage() {
   const profile = await requireProfile();
@@ -64,13 +67,18 @@ export default async function FinanceiroPage() {
 
   const TIPO_LABEL: Record<string, string> = { recorrencia: "Aceleração", consultoria: "Consultoria", avulso: "Avulso" };
 
-  return (
-    <>
+  const geral = (
+    <VisibilidadeProvider>
       <div className="bg-paper border border-accent rounded-xl p-5 flex flex-col gap-1.5">
-        <span className="text-[11.5px] uppercase tracking-wide text-accent-ink font-semibold">
-          Faturamento total
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[11.5px] uppercase tracking-wide text-accent-ink font-semibold">
+            Faturamento total
+          </span>
+          <BotaoOcultarValores />
+        </div>
+        <span className="font-display font-extrabold text-[40px] num">
+          <ValorOcultavel>{brl(faturamentoTotal)}</ValorOcultavel>
         </span>
-        <span className="font-display font-extrabold text-[40px] num">{brl(faturamentoTotal)}</span>
         <span className="text-[13px] text-ink-2">
           {brlInt(faturamentoRecorrente)} recorrência mensal de todos os clientes ativos ·{" "}
           {brlInt(faturamentoAvulso)} em consultorias já recebidas (histórico completo)
@@ -86,7 +94,11 @@ export default async function FinanceiroPage() {
         <Kpi label="Custos variáveis" value={brlInt(custosVariaveis)} sub="tráfego + comissão + imposto + taxa + extras" color="var(--critical)" />
         {verLucro && <Kpi label="Lucro estimado" value={brl(lucro)} sub="faturamento − custos fixos − variáveis" color="var(--good)" />}
       </div>
+    </VisibilidadeProvider>
+  );
 
+  const pagar = (
+    <>
       <section className="flex flex-col gap-3.5">
         <div className="flex items-center justify-between">
           <h2 className="font-display font-bold text-[21px]">Custos fixos</h2>
@@ -172,66 +184,80 @@ export default async function FinanceiroPage() {
           </div>
         </div>
       </section>
+    </>
+  );
 
-      <section className="flex flex-col gap-3.5">
-        <h2 className="font-display font-bold text-[21px]">Fluxo de pagamentos</h2>
-        <p className="text-[13px] text-muted">
-          Nem tudo entra pelo Asaas — lance aqui também o que cair direto por PIX ou outro canal.{" "}
-          <b className="text-ink-2">Aceleração</b> = recorrente. <b className="text-ink-2">Consultoria</b> = pontual.
-        </p>
-        <form action={handleLancarPagamento} className="bg-paper-2 border border-dashed border-line rounded-xl p-4 flex flex-wrap gap-3 items-end">
-          <FieldSmall label="Data"><input name="data" type="date" className="input" /></FieldSmall>
-          <FieldSmall label="Cliente"><input name="cliente" className="input" /></FieldSmall>
-          <FieldSmall label="Canal">
-            <select name="canal" className="input">
-              <option>Asaas</option><option>PIX C6</option><option>PIX outro</option><option>Boleto direto</option><option>Outro</option>
-            </select>
-          </FieldSmall>
-          <FieldSmall label="Tipo">
-            <select name="tipo" className="input">
-              <option value="recorrencia">Aceleração (recorrente)</option>
-              <option value="consultoria">Consultoria (pontual)</option>
-              <option value="avulso">Avulso / outro</option>
-            </select>
-          </FieldSmall>
-          <FieldSmall label="Valor (R$)"><input name="valor" type="number" step="0.01" min="0" required className="input" /></FieldSmall>
-          <button type="submit" className="btn-primary">Lançar</button>
-        </form>
-        <div className="border border-line rounded-xl overflow-auto bg-paper">
-          <table className="w-full text-[13px] border-collapse">
-            <thead><tr className="bg-paper-2"><Th>Data</Th><Th>Cliente</Th><Th>Canal</Th><Th>Tipo</Th><Th right>Valor</Th><Th></Th></tr></thead>
-            <tbody>
-              {(pagamentos || []).map((p) => (
-                <tr key={p.id} className="border-t border-line/50">
-                  <td className="px-3 py-2">{p.data ? new Date(p.data + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</td>
-                  <td className="px-3 py-2">{p.cliente || <span className="text-critical">sem cliente{p.pendente ? " ⚠" : ""}</span>}</td>
-                  <td className="px-3 py-2">{p.canal}</td>
-                  <td className="px-3 py-2">{TIPO_LABEL[p.tipo] || p.tipo}</td>
-                  <td className="px-3 py-2 text-right num">{brl(p.valor)}</td>
-                  <td className="px-3 py-2">
-                    <ConfirmarExclusao
-                      itemLabel={`o pagamento de ${p.cliente || "cliente não informado"}`}
-                      acao={removerPagamento.bind(null, p.id)}
-                      senha
-                      userEmail={profile.email}
-                    />
-                  </td>
-                </tr>
-              ))}
-              {!pagamentos?.length && <tr><td colSpan={6} className="text-center text-muted py-4">Nenhum pagamento lançado ainda.</td></tr>}
-            </tbody>
-          </table>
+  const receber = (
+    <>
+      <section className="grid grid-cols-[1fr_320px] gap-4 max-[900px]:grid-cols-1">
+        <div className="flex flex-col gap-3.5">
+          <h2 className="font-display font-bold text-[21px]">Fluxo de pagamentos</h2>
+          <p className="text-[13px] text-muted">
+            Nem tudo entra pelo Asaas — lance aqui também o que cair direto por PIX ou outro canal.{" "}
+            <b className="text-ink-2">Aceleração</b> = recorrente. <b className="text-ink-2">Consultoria</b> = pontual.
+          </p>
+          <form action={handleLancarPagamento} className="bg-paper-2 border border-dashed border-line rounded-xl p-4 flex flex-wrap gap-3 items-end">
+            <FieldSmall label="Data"><input name="data" type="date" className="input" /></FieldSmall>
+            <FieldSmall label="Cliente"><input name="cliente" className="input" /></FieldSmall>
+            <FieldSmall label="Canal">
+              <select name="canal" className="input">
+                <option>Asaas</option><option>PIX C6</option><option>PIX outro</option><option>Boleto direto</option><option>Outro</option>
+              </select>
+            </FieldSmall>
+            <FieldSmall label="Tipo">
+              <select name="tipo" className="input">
+                <option value="recorrencia">Aceleração (recorrente)</option>
+                <option value="consultoria">Consultoria (pontual)</option>
+                <option value="avulso">Avulso / outro</option>
+              </select>
+            </FieldSmall>
+            <FieldSmall label="Valor (R$)"><input name="valor" type="number" step="0.01" min="0" required className="input" /></FieldSmall>
+            <button type="submit" className="btn-primary">Lançar</button>
+          </form>
+          <div className="border border-line rounded-xl overflow-auto bg-paper">
+            <table className="w-full text-[13px] border-collapse">
+              <thead><tr className="bg-paper-2"><Th>Data</Th><Th>Cliente</Th><Th>Canal</Th><Th>Tipo</Th><Th right>Valor</Th><Th></Th></tr></thead>
+              <tbody>
+                {(pagamentos || []).map((p) => (
+                  <tr key={p.id} className="border-t border-line/50">
+                    <td className="px-3 py-2">{p.data ? new Date(p.data + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</td>
+                    <td className="px-3 py-2">{p.cliente || <span className="text-critical">sem cliente{p.pendente ? " ⚠" : ""}</span>}</td>
+                    <td className="px-3 py-2">{p.canal}</td>
+                    <td className="px-3 py-2">{TIPO_LABEL[p.tipo] || p.tipo}</td>
+                    <td className="px-3 py-2 text-right num">{brl(p.valor)}</td>
+                    <td className="px-3 py-2">
+                      <ConfirmarExclusao
+                        itemLabel={`o pagamento de ${p.cliente || "cliente não informado"}`}
+                        acao={removerPagamento.bind(null, p.id)}
+                        senha
+                        userEmail={profile.email}
+                      />
+                    </td>
+                  </tr>
+                ))}
+                {!pagamentos?.length && <tr><td colSpan={6} className="text-center text-muted py-4">Nenhum pagamento lançado ainda.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div className="flex flex-col gap-3.5">
+          <h2 className="font-display font-bold text-[21px] opacity-0 select-none max-[900px]:hidden">.</h2>
+          <CalendarioRecebiveis pagamentos={pagamentos || []} />
         </div>
       </section>
     </>
   );
+
+  return <FinanceiroTabs geral={geral} pagar={pagar} receber={receber} />;
 }
 
 function Kpi({ label, value, sub, color }: { label: string; value: string; sub: string; color?: string }) {
   return (
     <div className="bg-paper px-5 py-4 flex flex-col gap-1.5">
       <span className="text-[11.5px] uppercase tracking-wide text-muted font-semibold">{label}</span>
-      <span className="font-display font-bold text-[22px] min-[400px]:text-[26px] num break-words" style={{ color }}>{value}</span>
+      <span className="font-display font-bold text-[22px] min-[400px]:text-[26px] num break-words" style={{ color }}>
+        <ValorOcultavel>{value}</ValorOcultavel>
+      </span>
       <span className="text-xs text-ink-2">{sub}</span>
     </div>
   );
