@@ -18,7 +18,7 @@ export async function MetaBar({ role }: { role: UserRole }) {
 
   return (
     <VisibilidadeProvider>
-    <div className="sticky top-0 z-40 bg-paper-2 border-b border-line">
+    <div className="sticky top-0 z-40 bg-paper-2 border-b border-line" style={{ boxShadow: "0 2px 10px -4px rgba(30, 27, 20, 0.18)" }}>
       <div className="hidden max-[767px]:flex items-center gap-2 px-4 py-2">
         <details className="flex-1 min-w-0">
           <summary className="cursor-pointer list-none flex items-center gap-2">

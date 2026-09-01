@@ -12,14 +12,14 @@ button:disabled {
 
 :root {
   color-scheme: light;
-  --page: #f1ecdd;
-  --paper: #faf7ee;
-  --paper-2: #f4efe1;
+  --page: #ece2ca;
+  --paper: #fdfbf5;
+  --paper-2: #f5eeda;
   --ink: #1e1b14;
   --ink-2: #5b564a;
   --muted: #8c8676;
-  --line: rgba(30, 27, 20, 0.12);
-  --line-soft: rgba(30, 27, 20, 0.07);
+  --line: rgba(30, 27, 20, 0.16);
+  --line-soft: rgba(30, 27, 20, 0.09);
   --accent: #b5730e;
   --accent-ink: #7a4b08;
   --accent-wash: rgba(181, 115, 14, 0.12);
@@ -159,7 +159,7 @@ body {
 .btn {
   appearance: none;
   border: 1px solid var(--line);
-  background: var(--paper-2);
+  background: var(--paper);
   color: var(--ink);
   border-radius: 7px;
   padding: 7px 13px;
@@ -167,10 +167,17 @@ body {
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-sans);
-  transition: background 0.1s, border-color 0.1s;
+  box-shadow: 0 1px 2px rgba(30, 27, 20, 0.05);
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s, transform 0.12s;
 }
 .btn:hover {
   border-color: var(--accent);
+  box-shadow: 0 3px 10px -3px rgba(30, 27, 20, 0.18);
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(30, 27, 20, 0.08);
 }
 .btn-primary {
   appearance: none;
@@ -183,14 +190,23 @@ body {
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-sans);
+  box-shadow: 0 1px 2px rgba(122, 75, 8, 0.25), 0 4px 12px -4px rgba(122, 75, 8, 0.4);
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s, transform 0.12s;
 }
 .btn-primary:hover {
   background: var(--accent-ink);
   border-color: var(--accent-ink);
+  box-shadow: 0 2px 4px rgba(122, 75, 8, 0.3), 0 6px 16px -4px rgba(122, 75, 8, 0.45);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
 }
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: default;
+  box-shadow: none;
+  transform: none;
 }
 .btn-critical {
   appearance: none;
@@ -203,10 +219,18 @@ body {
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-sans);
+  box-shadow: 0 1px 2px rgba(178, 51, 39, 0.25), 0 4px 12px -4px rgba(178, 51, 39, 0.4);
+  transition: box-shadow 0.12s, transform 0.12s;
+}
+.btn-critical:hover {
+  box-shadow: 0 2px 4px rgba(178, 51, 39, 0.3), 0 6px 16px -4px rgba(178, 51, 39, 0.45);
+  transform: translateY(-1px);
 }
 .btn-critical:disabled {
   opacity: 0.6;
   cursor: default;
+  box-shadow: none;
+  transform: none;
 }
 .btn-ghost {
   appearance: none;
@@ -219,6 +243,15 @@ body {
 }
 .btn-ghost:hover {
   color: var(--critical);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn, .btn-primary, .btn-critical {
+    transition: none;
+  }
+  .btn:hover, .btn-primary:hover, .btn-critical:hover {
+    transform: none;
+  }
 }
 
 .status-select {
