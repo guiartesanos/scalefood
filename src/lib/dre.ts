@@ -65,11 +65,17 @@ export async function getDRE(ano: number, mes: number): Promise<DREResultado> {
     erroAsaas = e instanceof Error ? e.message : "Erro ao buscar dados do Asaas.";
   }
 
+  // Imposto usa a data de VENCIMENTO (dia 20 do mês seguinte) em `data`,
+  // não a competência — por isso busca por referência (que carrega o
+  // "imposto:YYYY-MM" da competência) em vez do range de data do mês.
+  const referenciaImposto = `imposto:${ano}-${String(mes).padStart(2, "0")}`;
+
   const [
     { data: pagamentosRaw },
     { data: custosFixosRaw },
     { data: pagosFixosRaw },
     { data: avulsasRaw },
+    { data: impostoRaw },
     { data: custosVarRaw },
     { data: recebiveisRaw },
     { data: confRaw },
@@ -78,6 +84,7 @@ export async function getDRE(ano: number, mes: number): Promise<DREResultado> {
     supabase.from("custos_fixos").select("*"),
     supabase.from("custos_fixos_pagamentos").select("custo_fixo_id, data").gte("data", inicio).lte("data", fim),
     supabase.from("contas_pagar_avulsas").select("*").eq("pago", true).gte("data", inicio).lte("data", fim),
+    supabase.from("contas_pagar_avulsas").select("*").eq("pago", true).eq("referencia", referenciaImposto),
     supabase.from("custos_variaveis_extra").select("*").gte("data", inicio).lte("data", fim),
     supabase.from("recebiveis_manuais").select("*").eq("ativo", true),
     supabase.from("recebiveis_manuais_confirmacoes").select("recebivel_id, data").gte("data", inicio).lte("data", fim),
@@ -149,17 +156,17 @@ export async function getDRE(ano: number, mes: number): Promise<DREResultado> {
   // do extrato, incluir aqui contaria a mesma tarifa 2x.
   const manuaisFiltrados = custosVarRawList.filter((c) => !c.nome.startsWith("Tarifas Asaas"));
 
-  const impostoValor = Math.round(receitaTotal * 0.07 * 100) / 100;
+  const imposto = (impostoRaw || []) as ContaPagarAvulsa[];
 
   const linhasCustosVariaveis: DRELinha[] = [
     { label: "Tráfego (repasse Jota)", automatico: true, itens: trafegoJota.map(toItem), valor: trafegoJota.reduce((s, a) => s + Number(a.valor), 0) },
     { label: "Tráfego (repasse Lorenzo)", automatico: true, itens: trafegoLorenzo.map(toItem), valor: trafegoLorenzo.reduce((s, a) => s + Number(a.valor), 0) },
     { label: "Comissão de vendas", automatico: true, itens: comissao.map(toItem), valor: comissao.reduce((s, a) => s + Number(a.valor), 0) },
     {
-      label: "Imposto (7% da receita)",
+      label: "Imposto (7% s/ notas fiscais)",
       automatico: true,
-      valor: impostoValor,
-      itens: receitaTotal > 0 ? [{ label: "7% sobre a receita bruta do mês", valor: impostoValor }] : [],
+      valor: imposto.reduce((s, a) => s + Number(a.valor), 0),
+      itens: imposto.map((a) => ({ label: `${a.nome} · pago em ${a.pago_em?.slice(0, 10)}`, valor: Number(a.valor) })),
     },
     {
       label: "Taxa de processamento Asaas",

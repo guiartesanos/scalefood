@@ -26,6 +26,7 @@ export async function criarCustoFixo(formData: FormData) {
   });
   if (error) return { error: error.message };
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
   return { success: true };
 }
 
@@ -46,6 +47,7 @@ export async function atualizarCustoFixo(formData: FormData) {
     .eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
   return { success: true };
 }
 
@@ -59,6 +61,7 @@ export async function removerCustoFixo(id: string) {
     await logExclusao(supabase, profile, "custo_fixo", `Custo fixo: ${custo.nome} — ${brl(custo.valor)}`);
   }
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
 }
 
 export async function marcarCustoFixoPago(custoFixoId: string, data: string) {
@@ -70,6 +73,7 @@ export async function marcarCustoFixoPago(custoFixoId: string, data: string) {
     .insert({ custo_fixo_id: custoFixoId, data, pago_por: profile.id });
   if (error) return { error: error.message };
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
   return { success: true };
 }
 
@@ -84,6 +88,7 @@ export async function desmarcarCustoFixoPago(custoFixoId: string, data: string) 
     .eq("data", data);
   if (error) return { error: error.message };
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
   return { success: true };
 }
 
@@ -96,6 +101,7 @@ export async function confirmarRecebivelManual(recebivelId: string, data: string
     .insert({ recebivel_id: recebivelId, data, confirmado_por: profile.id });
   if (error) return { error: error.message };
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
   return { success: true };
 }
 
@@ -110,6 +116,19 @@ export async function desconfirmarRecebivelManual(recebivelId: string, data: str
     .eq("data", data);
   if (error) return { error: error.message };
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
+  return { success: true };
+}
+
+export async function editarValorAvulsa(id: string, novoValor: number) {
+  const profile = await requireProfile();
+  if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
+  if (!(novoValor >= 0)) return { error: "Valor inválido." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("contas_pagar_avulsas").update({ valor: novoValor }).eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/financeiro");
+  revalidatePath("/dre");
   return { success: true };
 }
 
@@ -123,6 +142,7 @@ export async function marcarAvulsaPaga(id: string) {
     .eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
   return { success: true };
 }
 
@@ -136,6 +156,7 @@ export async function desmarcarAvulsaPaga(id: string) {
     .eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
   return { success: true };
 }
 
@@ -152,6 +173,7 @@ export async function criarCustoVariavel(formData: FormData) {
   });
   if (error) return { error: error.message };
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
   return { success: true };
 }
 
@@ -170,6 +192,7 @@ export async function removerCustoVariavel(id: string) {
     );
   }
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
 }
 
 export async function lancarPagamento(formData: FormData) {
@@ -214,6 +237,7 @@ export async function lancarPagamento(formData: FormData) {
   });
 
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
   revalidatePath("/dashboard");
   revalidatePath("/tarefas");
   return { success: true };
@@ -234,6 +258,7 @@ export async function removerPagamento(id: string) {
     );
   }
   revalidatePath("/financeiro");
+  revalidatePath("/dre");
 }
 
 export async function definirMeta(formData: FormData) {

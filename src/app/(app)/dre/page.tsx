@@ -102,9 +102,12 @@ export default async function DREPage({
         <p className="text-[11px] text-muted">
           Receita: pagamentos recebidos no Asaas (ao vivo) + entradas fora do Asaas já lançadas + recebíveis
           manuais confirmados. Custos: só entram quando alguém confirma o pagamento — tráfego, comissão e
-          contas fixas usam a data de competência da confirmação; taxa de processamento e tarifas de conta
-          Asaas vêm direto do extrato; imposto é 7% da receita do mês. A única ação manual em todo o DRE é
-          essa confirmação de pagamento — o resto atualiza sozinho.
+          imposto contam na competência (o mês que gerou o valor, não o mês em que foi de fato pago); contas
+          fixas usam a data de competência da confirmação; taxa de processamento e tarifas de conta Asaas vêm
+          direto do extrato. Imposto é gerado automaticamente todo dia 20 (ou próximo dia útil) como previsão
+          — 7% sobre as notas fiscais emitidas no mês anterior — mas o valor pode ser editado antes de
+          confirmar o pagamento. A única ação manual em todo o DRE é essa confirmação — o resto atualiza
+          sozinho.
         </p>
       </div>
     </VisibilidadeProvider>

@@ -180,6 +180,7 @@ export const CATEGORIAS_CUSTO = [
   "Taxas",
   "Tráfego",
   "Comissão",
+  "Imposto",
   "Outros",
 ] as const;
 

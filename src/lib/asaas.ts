@@ -217,6 +217,16 @@ interface FinancialTransactionAsaas {
   date: string;
 }
 
+// Total de notas fiscais de serviço efetivamente emitidas (status
+// AUTHORIZED — ignora canceladas e as ainda em processamento) num
+// período — base de cálculo do imposto (7% sobre esse valor).
+export async function totalNotasFiscaisAsaas(inicio: string, fim: string): Promise<number> {
+  const notas = await listarTudoPaginado<{ value: number; status: string }>(
+    `/invoices?effectiveDate[ge]=${inicio}&effectiveDate[le]=${fim}`
+  );
+  return Math.round(notas.filter((n) => n.status === "AUTHORIZED").reduce((s, n) => s + Number(n.value), 0) * 100) / 100;
+}
+
 export interface TarifasAsaas {
   cobranca: number;
   antecipacao: number;

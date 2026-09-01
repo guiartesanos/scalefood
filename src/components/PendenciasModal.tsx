@@ -81,7 +81,7 @@ export function PendenciasModal({
         {!!avulsas.length && (
           <div className="flex flex-col gap-2">
             <h3 className="text-xs uppercase tracking-wide text-muted font-semibold">
-              Repasses de tráfego a pagar ({avulsas.length})
+              Contas avulsas a pagar — tráfego, comissão, imposto ({avulsas.length})
             </h3>
             {avulsas.slice(0, 6).map((a) => (
               <div key={a.id} className="flex justify-between items-center text-[13px] border-b border-dashed border-line/50 pb-1.5">
