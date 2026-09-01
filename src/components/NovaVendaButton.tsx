@@ -73,17 +73,91 @@ function CamposAsaas({ prefix = "" }: { prefix?: string }) {
       <Field label="CPF ou CNPJ"><input name="cpfCnpj" required className="input" /></Field>
       <Field label="Email"><input name="email" type="email" className="input" /></Field>
       <Field label="Telefone"><input name="telefone" className="input" /></Field>
-      <Field label="CEP"><input name="cep" required className="input" /></Field>
-      <Field label="Endereço"><input name="endereco" className="input" /></Field>
+      <CamposEndereco />
+    </div>
+  );
+}
+
+function CamposEndereco() {
+  const [cep, setCep] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [buscando, setBuscando] = useState(false);
+  const [erroCep, setErroCep] = useState<string | null>(null);
+
+  async function buscarCep() {
+    const digits = cep.replace(/\D/g, "");
+    if (digits.length !== 8) {
+      setErroCep("CEP precisa ter 8 dígitos.");
+      return;
+    }
+    setErroCep(null);
+    setBuscando(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json();
+      if (data.erro) {
+        setErroCep("CEP não encontrado.");
+      } else {
+        setEndereco(data.logradouro || "");
+        setBairro(data.bairro || "");
+        setCidade(data.localidade || "");
+      }
+    } catch {
+      setErroCep("Não deu pra buscar o CEP agora — preenche manual.");
+    } finally {
+      setBuscando(false);
+    }
+  }
+
+  return (
+    <>
+      <Field label="CEP">
+        <div className="flex gap-1.5">
+          <input
+            name="cep"
+            required
+            className="input flex-1"
+            value={cep}
+            onChange={(e) => setCep(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                buscarCep();
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={buscarCep}
+            disabled={buscando}
+            title="Buscar endereço pelo CEP"
+            className="btn px-2.5 shrink-0"
+          >
+            {buscando ? "..." : "🔍"}
+          </button>
+        </div>
+        {erroCep && <span className="text-[11px] text-critical">{erroCep}</span>}
+      </Field>
+      <Field label="Endereço">
+        <input name="endereco" className="input" value={endereco} onChange={(e) => setEndereco(e.target.value)} />
+      </Field>
       <Field label="Número"><input name="numero" className="input" /></Field>
       <Field label="Complemento"><input name="complemento" className="input" /></Field>
-      <Field label="Bairro"><input name="bairro" className="input" /></Field>
-    </div>
+      <Field label="Bairro">
+        <input name="bairro" className="input" value={bairro} onChange={(e) => setBairro(e.target.value)} />
+      </Field>
+      <Field label="Cidade">
+        <input name="cidade" className="input" value={cidade} onChange={(e) => setCidade(e.target.value)} />
+      </Field>
+    </>
   );
 }
 
 function FormRecorrencia({ onVoltar, onSucesso }: { onVoltar: () => void; onSucesso: () => void }) {
   const [primeiroMesGratis, setPrimeiroMesGratis] = useState(false);
+  const [jaRecebeuAVista, setJaRecebeuAVista] = useState(false);
   const [canal, setCanal] = useState<"Asaas" | "PIX C6">("Asaas");
   const integrarAsaas = canal === "Asaas";
   const [error, setError] = useState<string | null>(null);
@@ -145,6 +219,32 @@ function FormRecorrencia({ onVoltar, onSucesso }: { onVoltar: () => void; onSuce
         </Field>
       )}
 
+      <label className="flex items-center gap-2 text-xs text-ink-2">
+        <input
+          type="checkbox"
+          name="jaRecebeuAVista"
+          checked={jaRecebeuAVista}
+          onChange={(e) => setJaRecebeuAVista(e.target.checked)}
+        />
+        Já recebi um 1º pagamento à vista (ex: PIX na hora do fechamento, antes da recorrência começar)
+      </label>
+      {jaRecebeuAVista && (
+        <div className="grid grid-cols-3 gap-3 bg-paper-2 border border-dashed border-line rounded-lg p-4">
+          <Field label="Valor recebido (R$)">
+            <input name="valorAVista" type="number" step="0.01" min="0" required className="input" />
+          </Field>
+          <Field label="Canal">
+            <select name="canalAVista" className="input" defaultValue="PIX C6">
+              <option value="PIX C6">PIX C6</option>
+              <option value="Asaas">Asaas</option>
+            </select>
+          </Field>
+          <Field label="Data do recebimento">
+            <input name="dataAVista" type="date" className="input" />
+          </Field>
+        </div>
+      )}
+
       <div className="border-t border-line pt-4">
         <Field label="Canal de cobrança da recorrência">
           <select name="canal" className="input" value={canal} onChange={(e) => setCanal(e.target.value as "Asaas" | "PIX C6")}>
@@ -188,11 +288,7 @@ function CamposAsaasSemNicho() {
       <Field label="CPF ou CNPJ"><input name="cpfCnpj" required className="input" /></Field>
       <Field label="Email"><input name="email" type="email" className="input" /></Field>
       <Field label="Telefone"><input name="telefone" className="input" /></Field>
-      <Field label="CEP"><input name="cep" required className="input" /></Field>
-      <Field label="Endereço"><input name="endereco" className="input" /></Field>
-      <Field label="Número"><input name="numero" className="input" /></Field>
-      <Field label="Complemento"><input name="complemento" className="input" /></Field>
-      <Field label="Bairro"><input name="bairro" className="input" /></Field>
+      <CamposEndereco />
     </div>
   );
 }

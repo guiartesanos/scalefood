@@ -115,6 +115,18 @@ export default async function FinanceiroPage() {
       .reduce((s, c) => s + c.traf + c.com + c.imp + (c.taxa || 0), 0);
   }
 
+  // Antes de agosto/2026 não tínhamos o cadastro de tráfego/comissão por
+  // cliente vigente na época (muitos clientes de então já cancelaram, e
+  // reconstruir com os valores ATUAIS subestimaria muito) — usa uma
+  // estimativa histórica: sempre girou em torno de 36% de tráfego por
+  // cliente + 20% de comissão, só em metade da carteira. De agosto/2026
+  // em diante já temos o dado real por cliente, então usa a reconstrução
+  // de verdade (custosVariaveisAte).
+  function custosVariaveisEstimados(ano: number, mes: number, faturamentoDoMes: number): number {
+    if (ano * 100 + mes >= 202608) return custosVariaveisAte(ano, mes);
+    return faturamentoDoMes * (0.36 + 0.2 * 0.5);
+  }
+
   const agoraChart = new Date();
   // se o mês atual já foi "fechado" em faturamento_mensal_historico
   // (ex: closamos agosto no dia 31), não duplica ele como "ao vivo" —
@@ -381,19 +393,28 @@ export default async function FinanceiroPage() {
   );
 
   const linhasMensal = [
-    ...(historicoMensal || []).map((h) => ({
-      label: `${MES_NOME[h.mes - 1]} de ${h.ano}`,
-      faturamento: Number(h.faturamento),
-      custos: Number(h.custos_fixos),
-      atual: false,
-    })),
+    ...(historicoMensal || []).map((h) => {
+      const faturamento = Number(h.faturamento);
+      const custosFixosMes = Number(h.custos_fixos);
+      const custosVariaveisMes = custosVariaveisEstimados(h.ano, h.mes, faturamento);
+      return {
+        label: `${MES_NOME[h.mes - 1]} de ${h.ano}`,
+        faturamento,
+        custosFixos: custosFixosMes,
+        custosVariaveis: custosVariaveisMes,
+        lucro: faturamento - custosFixosMes - custosVariaveisMes,
+        atual: false,
+      };
+    }),
     ...(mesAtualJaFechado
       ? []
       : [
           {
             label: `${MES_NOME[agoraChart.getMonth()]} de ${agoraChart.getFullYear()} (em andamento)`,
             faturamento: Number(faturamentoAtual?.faturamento_novo_mes || 0),
-            custos: custosFixosTotal,
+            custosFixos: custosFixosTotal,
+            custosVariaveis,
+            lucro: Number(faturamentoAtual?.faturamento_novo_mes || 0) - custosFixosTotal - custosVariaveis,
             atual: true,
           },
         ]),
@@ -417,7 +438,8 @@ export default async function FinanceiroPage() {
               <Th>Mês</Th>
               <Th right>Faturamento</Th>
               <Th right>Custos fixos</Th>
-              <Th right>Lucro (sem variáveis)</Th>
+              <Th right>Custos variáveis</Th>
+              <Th right>Lucro</Th>
               <Th></Th>
             </tr>
           </thead>
@@ -426,9 +448,10 @@ export default async function FinanceiroPage() {
               <tr key={l.label} className="border-t border-line/50" style={l.atual ? { background: "var(--accent-wash)" } : undefined}>
                 <td className="px-3 py-2 font-semibold">{l.label}</td>
                 <td className="px-3 py-2 text-right num">{brl(l.faturamento)}</td>
-                <td className="px-3 py-2 text-right num text-critical">{brl(l.custos)}</td>
-                <td className="px-3 py-2 text-right num" style={{ color: l.faturamento - l.custos >= 0 ? "var(--good)" : "var(--critical)" }}>
-                  {brl(l.faturamento - l.custos)}
+                <td className="px-3 py-2 text-right num text-critical">{brl(l.custosFixos)}</td>
+                <td className="px-3 py-2 text-right num text-critical">{brl(l.custosVariaveis)}</td>
+                <td className="px-3 py-2 text-right num" style={{ color: l.lucro >= 0 ? "var(--good)" : "var(--critical)" }}>
+                  {brl(l.lucro)}
                 </td>
                 <td className="px-3 py-2 w-[160px]">
                   <div className="h-[8px] rounded bg-paper-2 border border-line/50 overflow-hidden">
@@ -452,9 +475,10 @@ export default async function FinanceiroPage() {
         manual), não só receita nova — foi isso que estava errado em agosto (mostrava R$14.500, só a
         receita nova, quando o total recebido no mês já era R$50.414,71). Custos fixos de cada mês já
         contam só o que estava vigente naquela época (Mentoria comercial, Comercial e Claude só entram a
-        partir de agosto). No gráfico de crescimento, custos variáveis de meses passados são uma estimativa
-        — reconstruída a partir da data real de entrada de cada cliente ainda ativo, não é um valor gravado
-        mês a mês.
+        partir de agosto). Custos variáveis de julho/2026 pra trás são uma estimativa (36% de tráfego + 20%
+        de comissão em metade da carteira, aplicado sobre o faturamento do mês) — não temos o cadastro de
+        tráfego/comissão por cliente vigente naquela época, e vários desses clientes já cancelaram. De
+        agosto/2026 em diante já é o valor real, reconstruído a partir dos dados de cada cliente ainda ativo.
       </p>
     </section>
   );

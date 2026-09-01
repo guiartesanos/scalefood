@@ -30,6 +30,11 @@ export async function criarVendaRecorrencia(formData: FormData) {
   const dataPrimeiroPagamento = String(formData.get("dataPrimeiroPagamento") || "") || null;
   const integrarAsaas = String(formData.get("canal") || "") === "Asaas";
 
+  const jaRecebeuAVista = formData.get("jaRecebeuAVista") === "on";
+  const valorAVista = parseFloat(String(formData.get("valorAVista") || "0")) || 0;
+  const canalAVista = String(formData.get("canalAVista") || "PIX C6");
+  const dataAVista = String(formData.get("dataAVista") || "") || fechamento;
+
   if (!nome || !nicho || !valorRecorrencia || !fechamento) {
     return { error: "Preencha nome, nicho, valor da recorrência e data de fechamento." };
   }
@@ -62,9 +67,26 @@ export async function criarVendaRecorrencia(formData: FormData) {
 
   if ("error" in resultado) return resultado;
 
+  // recorrência já veio com um 1º pagamento à vista (ex: PIX antes da
+  // cobrança recorrente no Asaas começar a valer) — lança no Fluxo de
+  // pagamentos. Não duplica o evento de "novo cliente" (esse já é
+  // criado automaticamente por trigger no insert de clientes).
+  if (jaRecebeuAVista && valorAVista > 0) {
+    await supabase.from("pagamentos").insert({
+      data: dataAVista,
+      cliente: nome,
+      valor: valorAVista,
+      canal: canalAVista,
+      tipo: "recorrencia",
+      descricao: "Primeiro pagamento (à vista)",
+      pendente: false,
+    });
+  }
+
   revalidatePath("/dashboard");
   revalidatePath("/clientes");
   revalidatePath("/icp");
+  revalidatePath("/financeiro");
 
   return {
     success: true,
