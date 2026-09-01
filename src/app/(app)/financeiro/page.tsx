@@ -74,7 +74,7 @@ export default async function FinanceiroPage() {
     .order("created_at", { ascending: false });
   const avulsas = (avulsasRaw || []) as ContaPagarAvulsa[];
   const avulsasPendentes = avulsas.filter((a) => !a.pago);
-  const avulsasPagas = avulsas.filter((a) => a.pago).slice(0, 15);
+  const avulsasPagas = avulsas.filter((a) => a.pago).slice(0, 50);
 
   let contasReceberAsaas: ContaReceberAsaas[] = [];
   let erroContasReceberAsaas: string | null = null;
@@ -471,9 +471,9 @@ export default async function FinanceiroPage() {
       </div>
       <p className="text-[11px] text-muted">
         Janeiro e fevereiro de 2026 corrigidos manualmente (Urla R$5.000 em janeiro; Perto da chapa +
-        Urla, R$10.000, em fevereiro). Todo mês fechado conta o total realmente recebido (Asaas + PIX/
-        manual), não só receita nova — foi isso que estava errado em agosto (mostrava R$14.500, só a
-        receita nova, quando o total recebido no mês já era R$50.414,71). Custos fixos de cada mês já
+        Urla, R$10.000, em fevereiro). Maio também é manual (R$72.000 — teve cliente que pagou a primeira
+        parcela fora do Asaas, exceção). Todo mês fechado conta o total realmente recebido (Asaas + PIX/
+        manual) — consultorias e recorrências, tudo que caiu no mês, não só receita nova. Custos fixos de cada mês já
         contam só o que estava vigente naquela época (Mentoria comercial, Comercial e Claude só entram a
         partir de agosto). Custos variáveis de julho/2026 pra trás são uma estimativa (36% de tráfego + 20%
         de comissão em metade da carteira, aplicado sobre o faturamento do mês) — não temos o cadastro de
