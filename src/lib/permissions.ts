@@ -8,7 +8,7 @@ import type { UserRole } from "./types";
 
 export function canAccessTab(role: UserRole, tab: string): boolean {
   if (role === "master") return true;
-  if (tab === "financeiro") return role === "financeiro" || role === "onboarding";
+  if (tab === "financeiro" || tab === "dre") return role === "financeiro" || role === "onboarding";
   if (tab === "configuracoes") return false;
   // dashboard, clientes, tarefas, icp: todo mundo acessa (com dados
   // diferentes dentro, conforme o papel)

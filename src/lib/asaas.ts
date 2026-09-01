@@ -166,6 +166,51 @@ export async function listarContasReceberAsaas(): Promise<ContaReceberAsaas[]> {
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 }
 
+export interface PagamentoRecebidoAsaas {
+  id: string;
+  customerId: string;
+  customerName: string;
+  value: number;
+  netValue: number;
+  subscription: string | null;
+  description: string | null;
+  paymentDate: string;
+}
+
+// Todo pagamento com dinheiro efetivamente recebido num período — o
+// filtro por paymentDate (não por status) já garante isso: só fica
+// preenchido quando o Asaas confirma o recebimento de fato.
+// subscription != null identifica cobrança de assinatura (recorrência);
+// null é cobrança avulsa (consultoria ou catch-up pontual).
+export async function listarPagamentosRecebidosNoPeriodo(
+  inicio: string,
+  fim: string
+): Promise<PagamentoRecebidoAsaas[]> {
+  const [pagamentos, nomesPorId] = await Promise.all([
+    listarTudoPaginado<{
+      id: string;
+      customer: string;
+      value: number;
+      netValue: number;
+      subscription: string | null;
+      description: string | null;
+      paymentDate: string;
+    }>(`/payments?paymentDate[ge]=${inicio}&paymentDate[le]=${fim}`),
+    mapaClientesAsaas(),
+  ]);
+
+  return pagamentos.map((p) => ({
+    id: p.id,
+    customerId: p.customer,
+    customerName: nomesPorId.get(p.customer) || p.customer,
+    value: Number(p.value),
+    netValue: p.netValue != null ? Number(p.netValue) : Number(p.value),
+    subscription: p.subscription || null,
+    description: p.description,
+    paymentDate: p.paymentDate,
+  }));
+}
+
 interface FinancialTransactionAsaas {
   type: string;
   value: number;
@@ -180,6 +225,11 @@ export interface TarifasAsaas {
   transferencia: number;
   estorno: number;
   total: number;
+  // taxa de processamento por pagamento (boleto/pix/cartão + mensageria) —
+  // fica de fora do `total` de propósito (ver comentário abaixo). Direto do
+  // extrato, não de value-netValue: pagamento antecipado zera o netValue
+  // sem refletir a taxa real, então netValue subestima o valor.
+  processamento: number;
 }
 
 // Tarifas reais cobradas pelo Asaas num período — via /financialTransactions,
@@ -192,12 +242,17 @@ export async function listarTarifasAsaas(inicio: string, fim: string): Promise<T
   const somaTipos = (tipos: string[]) =>
     transacoes.filter((t) => tipos.includes(t.type)).reduce((acc, t) => acc + t.value, 0);
 
-  const cobranca = -somaTipos(["PAYMENT_FEE", "PAYMENT_DUNNING_REQUEST_FEE"]);
+  // PAYMENT_FEE e PAYMENT_MESSAGING_NOTIFICATION_FEE ficam de fora de
+  // propósito — esses dois já são descontados dentro do netValue de cada
+  // pagamento (é o que vira `clientes.taxa` via webhook, na linha "Taxa de
+  // plataforma" do financeiro). Incluir aqui contaria a mesma tarifa 2x.
+  const cobranca = -somaTipos(["PAYMENT_DUNNING_REQUEST_FEE"]);
   const antecipacao = -somaTipos(["RECEIVABLE_ANTICIPATION_FEE"]);
-  const sms = -somaTipos(["PAYMENT_MESSAGING_NOTIFICATION_FEE", "INSTANT_TEXT_MESSAGE_FEE"]);
+  const sms = -somaTipos(["INSTANT_TEXT_MESSAGE_FEE"]);
   const notas = -somaTipos(["INVOICE_FEE"]);
   const transferencia = -somaTipos(["TRANSFER_FEE"]);
   const estorno = somaTipos(["CHARGED_FEE_REFUND"]);
+  const processamento = -somaTipos(["PAYMENT_FEE", "PAYMENT_MESSAGING_NOTIFICATION_FEE"]);
 
   return {
     cobranca,
@@ -206,6 +261,7 @@ export async function listarTarifasAsaas(inicio: string, fim: string): Promise<T
     notas,
     transferencia,
     estorno,
+    processamento: Math.round(processamento * 100) / 100,
     total: Math.round((cobranca + antecipacao + sms + notas + transferencia - estorno) * 100) / 100,
   };
 }

@@ -9,6 +9,7 @@ import type { UserRole } from "@/lib/types";
 const TABS = [
   { key: "dashboard", href: "/dashboard", label: "Dashboard" },
   { key: "financeiro", href: "/financeiro", label: "Financeiro" },
+  { key: "dre", href: "/dre", label: "DRE" },
   { key: "clientes", href: "/clientes", label: "Clientes" },
   { key: "tarefas", href: "/tarefas", label: "Tarefas" },
   { key: "icp", href: "/icp", label: "ICP" },

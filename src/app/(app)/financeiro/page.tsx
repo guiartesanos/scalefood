@@ -179,7 +179,10 @@ export default async function FinanceiroPage() {
           <span className="text-[11.5px] uppercase tracking-wide text-accent-ink font-semibold">
             Faturamento total
           </span>
-          <BotaoOcultarValores />
+          <div className="flex items-center gap-2">
+            <a href="/dre" className="text-[12px] font-semibold underline text-accent-ink">Ver DRE do mês →</a>
+            <BotaoOcultarValores />
+          </div>
         </div>
         <span className="font-display font-extrabold text-[40px] num">
           <ValorOcultavel>{brl(faturamentoTotal)}</ValorOcultavel>
@@ -305,6 +308,9 @@ export default async function FinanceiroPage() {
             </select>
           </FieldSmall>
           <FieldSmall label="Cliente (opcional)"><input name="cliente" className="input" /></FieldSmall>
+          <FieldSmall label="Competência">
+            <input name="data" type="date" defaultValue={new Date().toISOString().slice(0, 10)} className="input" />
+          </FieldSmall>
           <button type="submit" className="btn-primary">+ adicionar</button>
         </form>
         <div className="grid grid-cols-2 gap-4 max-[900px]:grid-cols-1">

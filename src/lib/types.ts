@@ -90,6 +90,7 @@ export interface CustoVariavelExtra {
   categoria: string | null;
   cliente: string | null;
   obs: string | null;
+  data: string;
   created_at: string;
 }
 
