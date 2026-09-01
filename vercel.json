@@ -1,6 +1,7 @@
 {
   "regions": ["gru1"],
   "crons": [
-    { "path": "/api/cron/fechamento-mensal", "schedule": "0 12 1 * *" }
+    { "path": "/api/cron/fechamento-mensal", "schedule": "0 12 1 * *" },
+    { "path": "/api/cron/tarifas-asaas", "schedule": "0 6 * * *" }
   ]
 }

@@ -166,6 +166,50 @@ export async function listarContasReceberAsaas(): Promise<ContaReceberAsaas[]> {
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 }
 
+interface FinancialTransactionAsaas {
+  type: string;
+  value: number;
+  date: string;
+}
+
+export interface TarifasAsaas {
+  cobranca: number;
+  antecipacao: number;
+  sms: number;
+  notas: number;
+  transferencia: number;
+  estorno: number;
+  total: number;
+}
+
+// Tarifas reais cobradas pelo Asaas num período — via /financialTransactions,
+// que é o "extrato" da conta (não é estimativa, é o que foi debitado de fato).
+export async function listarTarifasAsaas(inicio: string, fim: string): Promise<TarifasAsaas> {
+  const transacoes = await listarTudoPaginado<FinancialTransactionAsaas>(
+    `/financialTransactions?startDate=${inicio}&finishDate=${fim}`
+  );
+
+  const somaTipos = (tipos: string[]) =>
+    transacoes.filter((t) => tipos.includes(t.type)).reduce((acc, t) => acc + t.value, 0);
+
+  const cobranca = -somaTipos(["PAYMENT_FEE", "PAYMENT_DUNNING_REQUEST_FEE"]);
+  const antecipacao = -somaTipos(["RECEIVABLE_ANTICIPATION_FEE"]);
+  const sms = -somaTipos(["PAYMENT_MESSAGING_NOTIFICATION_FEE", "INSTANT_TEXT_MESSAGE_FEE"]);
+  const notas = -somaTipos(["INVOICE_FEE"]);
+  const transferencia = -somaTipos(["TRANSFER_FEE"]);
+  const estorno = somaTipos(["CHARGED_FEE_REFUND"]);
+
+  return {
+    cobranca,
+    antecipacao,
+    sms,
+    notas,
+    transferencia,
+    estorno,
+    total: Math.round((cobranca + antecipacao + sms + notas + transferencia - estorno) * 100) / 100,
+  };
+}
+
 export async function criarAssinaturaAsaas(a: NovaAssinaturaAsaas): Promise<{ id: string; status: string }> {
   const body = {
     customer: a.customerId,
