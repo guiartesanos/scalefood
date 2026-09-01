@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
   const { data: cliente } = await supabase
     .from("clientes")
-    .select("id, nome, dono, traf, com, trafego_gestor")
+    .select("id, nome, traf, com, trafego_gestor")
     .eq("asaas_customer_id", pagamento.customer)
     .maybeSingle();
 
@@ -87,13 +87,15 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // toda comissão de vendas vai pro Gui Borrego — regra fixa, não
+  // depende de quem é o "dono" (responsável interno) do cliente.
   const comissao = Number(cliente.com) || 0;
   if (comissao > 0) {
     await supabase.from("contas_pagar_avulsas").insert({
       nome: `Comissão de vendas — ${cliente.nome}`,
       valor: comissao,
       cliente_nome: cliente.nome,
-      gestor: cliente.dono,
+      gestor: "Gui Borrego",
       categoria: "Comissão",
       origem: "comissao_asaas",
       referencia: `comissao:${cliente.id}:${competencia}`,
