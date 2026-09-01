@@ -7,6 +7,7 @@ const TABS = [
   { key: "pagar", label: "Contas a pagar" },
   { key: "receber", label: "Contas a receber" },
   { key: "mensal", label: "Mensal" },
+  { key: "dre", label: "DRE" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -16,18 +17,22 @@ export function FinanceiroTabs({
   pagar,
   receber,
   mensal,
+  dre,
+  tabInicial,
 }: {
   geral: React.ReactNode;
   pagar: React.ReactNode;
   receber: React.ReactNode;
   mensal: React.ReactNode;
+  dre: React.ReactNode;
+  tabInicial?: TabKey;
 }) {
-  const [ativo, setAtivo] = useState<TabKey>("geral");
-  const conteudo: Record<TabKey, React.ReactNode> = { geral, pagar, receber, mensal };
+  const [ativo, setAtivo] = useState<TabKey>(tabInicial && TABS.some((t) => t.key === tabInicial) ? tabInicial : "geral");
+  const conteudo: Record<TabKey, React.ReactNode> = { geral, pagar, receber, mensal, dre };
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex gap-1.5 border-b border-line">
+      <div className="flex gap-1.5 border-b border-line overflow-x-auto">
         {TABS.map((t) => {
           const active = ativo === t.key;
           return (
@@ -35,7 +40,7 @@ export function FinanceiroTabs({
               key={t.key}
               type="button"
               onClick={() => setAtivo(t.key)}
-              className="font-display font-bold text-[14px] px-3.5 pt-2 pb-2.5 border-b-2 transition-colors -mb-px"
+              className="font-display font-bold text-[14px] px-3.5 pt-2 pb-2.5 border-b-2 transition-colors -mb-px whitespace-nowrap"
               style={{
                 color: active ? "var(--accent-ink)" : "var(--muted)",
                 borderColor: active ? "var(--accent)" : "transparent",

@@ -24,6 +24,8 @@ import { RecebiveisManuaisList } from "@/components/RecebiveisManuaisList";
 import { RepassesAvulsosList } from "@/components/RepassesAvulsosList";
 import { getContasPendentes, getRecebiveisManuaisDoMes } from "@/lib/pendencias";
 import { listarContasReceberAsaas, type ContaReceberAsaas } from "@/lib/asaas";
+import { getDRE, DRE_PRIMEIRO_ANO_MES } from "@/lib/dre";
+import { DREView } from "@/components/DREView";
 import type { CustoFixo, ContaPagarAvulsa } from "@/lib/types";
 
 const MES_NOME = [
@@ -31,13 +33,26 @@ const MES_NOME = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-export default async function FinanceiroPage() {
+export default async function FinanceiroPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; ano?: string; mes?: string }>;
+}) {
   const profile = await requireProfile();
 
   // Bloqueio no SERVIDOR — não é só o link escondido no menu. Alguém
   // digitando /financeiro direto na barra de endereço, sendo comercial,
   // é jogado de volta pro dashboard antes de qualquer dado ser buscado.
   if (profile.role === "comercial") redirect("/dashboard");
+
+  const params = await searchParams;
+  const hoje = new Date();
+  let dreAno = Number(params.ano) || hoje.getFullYear();
+  let dreMes = Number(params.mes) || hoje.getMonth() + 1;
+  const dreAnoMes = dreAno * 100 + dreMes;
+  const atualAnoMes = hoje.getFullYear() * 100 + (hoje.getMonth() + 1);
+  if (dreAnoMes < DRE_PRIMEIRO_ANO_MES) { dreAno = 2026; dreMes = 8; }
+  if (dreAnoMes > atualAnoMes) { dreAno = hoje.getFullYear(); dreMes = hoje.getMonth() + 1; }
 
   const supabase = await createClient();
   const clientes = await getClientes();
@@ -53,7 +68,6 @@ export default async function FinanceiroPage() {
   const { data: faturamentoAtual } = await supabase.from("faturamento_mes_atual").select("*").single();
 
   const contasPendentes = await getContasPendentes();
-  const hoje = new Date();
   const inicioMesStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-01`;
   const { data: pagosRaw } = await supabase
     .from("custos_fixos_pagamentos")
@@ -84,6 +98,7 @@ export default async function FinanceiroPage() {
     erroContasReceberAsaas = e instanceof Error ? e.message : "Erro ao buscar contas a receber no Asaas.";
   }
   const recebiveisManuais = await getRecebiveisManuaisDoMes();
+  const dre = await getDRE(dreAno, dreMes);
 
   const faturamentoRecorrente = clientes.reduce((s, c) => s + c.rec, 0);
   const faturamentoAvulso = (pagamentos || [])
@@ -180,7 +195,7 @@ export default async function FinanceiroPage() {
             Faturamento total
           </span>
           <div className="flex items-center gap-2">
-            <a href="/dre" className="text-[12px] font-semibold underline text-accent-ink">Ver DRE do mês →</a>
+            <a href="/financeiro?tab=dre" className="text-[12px] font-semibold underline text-accent-ink">Ver DRE do mês →</a>
             <BotaoOcultarValores />
           </div>
         </div>
@@ -489,7 +504,18 @@ export default async function FinanceiroPage() {
     </section>
   );
 
-  return <FinanceiroTabs geral={geral} pagar={pagar} receber={receber} mensal={mensal} />;
+  const dreView = <DREView dre={dre} verLucro={verLucro} baseHref="/financeiro" />;
+
+  return (
+    <FinanceiroTabs
+      geral={geral}
+      pagar={pagar}
+      receber={receber}
+      mensal={mensal}
+      dre={dreView}
+      tabInicial={params.tab === "dre" ? "dre" : undefined}
+    />
+  );
 }
 
 function Kpi({ label, value, sub, color }: { label: string; value: string; sub: string; color?: string }) {
