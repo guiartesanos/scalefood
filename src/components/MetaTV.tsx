@@ -108,6 +108,20 @@ export function MetaTV({ fat }: { fat: FaturamentoMesAtual | null }) {
               </span>
             </div>
 
+            <div
+              className="w-full flex flex-wrap items-center justify-center gap-x-8 gap-y-1"
+              style={{ fontSize: "clamp(13px, 1.2vw, 20px)", color: "#c9c0ac" }}
+            >
+              <span>
+                {fat?.numero_vendas ?? 0} venda{fat?.numero_vendas === 1 ? "" : "s"} feita{fat?.numero_vendas === 1 ? "" : "s"}
+              </span>
+              {!!fat?.vendas_faltantes && fat.vendas_faltantes > 0 && (
+                <span>
+                  faltam <b className="num" style={{ color: "#e0a23d" }}>{fat.vendas_faltantes}</b> pro ticket médio atual
+                </span>
+              )}
+            </div>
+
             {fat?.bonus_valor ? (
               <span
                 className="font-semibold"

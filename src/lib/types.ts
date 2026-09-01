@@ -147,6 +147,9 @@ export interface FaturamentoMesAtual {
   bonus_valor: number | null;
   pct_meta: number | null;
   pct_projecao: number | null;
+  numero_vendas: number;
+  ticket_medio: number | null;
+  vendas_faltantes: number | null;
 }
 
 export interface ClienteCancelado {

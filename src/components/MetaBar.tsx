@@ -45,6 +45,14 @@ export async function MetaBar({ role }: { role: UserRole }) {
                 {(fat?.pct_projecao ?? 0).toFixed(0)}% da meta
               </span>
             )}
+            {!semMeta && fat?.numero_vendas != null && (
+              <span className="text-ink-2">
+                {fat.numero_vendas} venda{fat.numero_vendas === 1 ? "" : "s"} feita{fat.numero_vendas === 1 ? "" : "s"}
+                {fat?.vendas_faltantes != null && fat.vendas_faltantes > 0 && (
+                  <> · faltam ~{fat.vendas_faltantes} pro ticket médio atual</>
+                )}
+              </span>
+            )}
             {fat?.bonus_valor ? (
               <span className="text-good font-semibold">
                 Bônus ao bater a meta: <ValorOcultavel>{brl(fat.bonus_valor)}</ValorOcultavel>
@@ -100,6 +108,13 @@ export async function MetaBar({ role }: { role: UserRole }) {
               </span>
               <span className="text-sm num text-ink-2">
                 <ValorOcultavel>{brl(fat?.projecao_fechamento)}</ValorOcultavel> · {(fat?.pct_projecao ?? 0).toFixed(0)}% da meta
+              </span>
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[10px] uppercase tracking-wide text-muted font-semibold">Vendas</span>
+              <span className="text-sm num text-ink-2">
+                {fat?.numero_vendas ?? 0} feita{fat?.numero_vendas === 1 ? "" : "s"}
+                {fat?.vendas_faltantes != null && fat.vendas_faltantes > 0 && <> · faltam ~{fat.vendas_faltantes}</>}
               </span>
             </div>
             {fat?.bonus_valor ? (
