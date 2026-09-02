@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { key: "clientes", href: "/clientes", label: "Clientes" },
   { key: "tarefas", href: "/tarefas", label: "Tarefas" },
   { key: "icp", href: "/icp", label: "ICP" },
+  { key: "marketing", href: "/marketing", label: "Marketing" },
 ];
 
 interface Resultado {

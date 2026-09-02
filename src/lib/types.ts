@@ -152,6 +152,40 @@ export interface FaturamentoMesAtual {
   vendas_faltantes: number | null;
 }
 
+export interface RadarNoticia {
+  id: string;
+  titulo: string;
+  resumo: string | null;
+  link: string;
+  fonte: string | null;
+  publicado_em: string | null;
+  status: "novo" | "descartado" | "gerador";
+  created_at: string;
+}
+
+export interface CanvaTemplate {
+  id: string;
+  nome: string;
+  brand_template_id: string;
+  usa_imagem: boolean;
+  ativo: boolean;
+  created_at: string;
+}
+
+export interface GeracaoConteudo {
+  id: string;
+  noticia_id: string | null;
+  tema: string;
+  status: "rascunho" | "perguntas" | "pronto";
+  template_id: string | null;
+  respostas: Record<string, string> | null;
+  conteudo_gerado: { slides?: string[] } | null;
+  canva_design_url: string | null;
+  criado_por: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ClienteCancelado {
   id: string;
   nome: string;

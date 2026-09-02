@@ -3,6 +3,7 @@
   "crons": [
     { "path": "/api/cron/fechamento-mensal", "schedule": "0 12 1 * *" },
     { "path": "/api/cron/tarifas-asaas", "schedule": "0 6 * * *" },
-    { "path": "/api/cron/imposto-mensal", "schedule": "0 9 * * *" }
+    { "path": "/api/cron/imposto-mensal", "schedule": "0 9 * * *" },
+    { "path": "/api/cron/radar-noticias", "schedule": "0 11 * * *" }
   ]
 }
