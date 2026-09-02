@@ -8,6 +8,7 @@ import {
   removerGeracao,
   buscarImagensDriveAction,
   salvarImagemDrive,
+  gerarNoCanva,
 } from "@/actions/marketing";
 import type { GeracaoConteudo, CanvaTemplate } from "@/lib/types";
 import type { ImagemDrive } from "@/lib/googleDrive";
@@ -56,10 +57,12 @@ export function GeracaoCard({
   geracao,
   templates,
   driveConectado,
+  canvaConectado,
 }: {
   geracao: GeracaoConteudo;
   templates: CanvaTemplate[];
   driveConectado: boolean;
+  canvaConectado: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const [respostas, setRespostas] = useState<Record<string, string>>(geracao.respostas || {});
@@ -67,6 +70,16 @@ export function GeracaoCard({
   const [buscandoImagens, setBuscandoImagens] = useState(false);
   const [imagens, setImagens] = useState<ImagemDrive[] | null>(null);
   const [erroImagens, setErroImagens] = useState<string | null>(null);
+  const [gerandoCanva, setGerandoCanva] = useState(false);
+  const [erroCanva, setErroCanva] = useState<string | null>(null);
+
+  async function handleGerarNoCanva() {
+    setGerandoCanva(true);
+    setErroCanva(null);
+    const res = await gerarNoCanva(geracao.id);
+    setGerandoCanva(false);
+    if (res.error) setErroCanva(res.error);
+  }
 
   const templateAtual = templates.find((t) => t.id === geracao.template_id);
   const temRespostas = !!geracao.respostas;
@@ -230,24 +243,43 @@ export function GeracaoCard({
         </div>
       )}
 
-      {geracao.template_id && (
-        <form
-          className="flex items-center gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            startTransition(() => { salvarLinkCanva(geracao.id, link); });
-          }}
-        >
-          <input
-            className="input flex-1"
-            placeholder="Cole aqui o link do design pronto no Canva"
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
-          />
-          <button type="submit" disabled={pending} className="btn-primary text-[12px] py-1.5 px-3 shrink-0">
-            salvar link
+      {geracao.template_id && geracao.status !== "pronto" && canvaConectado && (
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            disabled={gerandoCanva}
+            onClick={handleGerarNoCanva}
+            className="btn-primary text-[12px] py-1.5 px-3 self-start"
+          >
+            {gerandoCanva ? "gerando no Canva..." : "gerar automaticamente no Canva"}
           </button>
-        </form>
+          {erroCanva && <p className="text-[11px] text-critical">{erroCanva}</p>}
+        </div>
+      )}
+
+      {geracao.template_id && geracao.status !== "pronto" && (
+        <details className="text-[12px]">
+          <summary className="text-muted cursor-pointer select-none">
+            {canvaConectado ? "ou cole o link manualmente" : "cole o link do Canva quando terminar"}
+          </summary>
+          <form
+            className="flex items-center gap-2 pt-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              startTransition(() => { salvarLinkCanva(geracao.id, link); });
+            }}
+          >
+            <input
+              className="input flex-1"
+              placeholder="Cole aqui o link do design pronto no Canva"
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+            />
+            <button type="submit" disabled={pending} className="btn-primary text-[12px] py-1.5 px-3 shrink-0">
+              salvar link
+            </button>
+          </form>
+        </details>
       )}
 
       {geracao.status === "pronto" && geracao.canva_design_url && (

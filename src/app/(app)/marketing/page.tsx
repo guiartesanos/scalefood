@@ -6,6 +6,7 @@ import { NoticiaCard } from "@/components/NoticiaCard";
 import { GeracaoCard } from "@/components/GeracaoCard";
 import { criarGeracaoAvulsa } from "@/actions/marketing";
 import { driveConectado as checarDriveConectado } from "@/lib/googleDrive";
+import { canvaConectado as checarCanvaConectado } from "@/lib/canva";
 import type { RadarNoticia, CanvaTemplate, GeracaoConteudo } from "@/lib/types";
 
 const MENSAGEM_DRIVE: Record<string, string> = {
@@ -14,21 +15,28 @@ const MENSAGEM_DRIVE: Record<string, string> = {
   "sem-permissao": "Só o master pode conectar o Google Drive.",
 };
 
+const MENSAGEM_CANVA: Record<string, string> = {
+  conectado: "Canva conectado com sucesso.",
+  erro: "Não consegui conectar com o Canva — tenta de novo.",
+  "sem-permissao": "Só o master pode conectar o Canva.",
+};
+
 export default async function MarketingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ drive?: string }>;
+  searchParams: Promise<{ drive?: string; canva?: string }>;
 }) {
   const profile = await requireProfile();
   if (profile.role !== "master" && profile.role !== "comercial") redirect("/dashboard");
 
   const params = await searchParams;
   const supabase = await createClient();
-  const [{ data: noticiasRaw }, { data: templatesRaw }, { data: geracoesRaw }, drive] = await Promise.all([
+  const [{ data: noticiasRaw }, { data: templatesRaw }, { data: geracoesRaw }, drive, canva] = await Promise.all([
     supabase.from("radar_noticias").select("*").eq("status", "novo").order("publicado_em", { ascending: false }),
     supabase.from("canva_templates").select("*").eq("ativo", true).order("nome"),
     supabase.from("geracoes_conteudo").select("*").order("created_at", { ascending: false }),
     checarDriveConectado(),
+    checarCanvaConectado(),
   ]);
 
   const noticias = (noticiasRaw || []) as RadarNoticia[];
@@ -52,17 +60,30 @@ export default async function MarketingPage({
           </p>
         </div>
         {profile.role === "master" && (
-          <a
-            href={drive ? undefined : "/api/google-drive/authorize"}
-            className={drive ? "text-[12px] text-good font-semibold" : "btn text-[12px] py-1.5 px-3"}
-          >
-            {drive ? "✓ Google Drive conectado" : "conectar Google Drive"}
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href={drive ? undefined : "/api/google-drive/authorize"}
+              className={drive ? "text-[12px] text-good font-semibold" : "btn text-[12px] py-1.5 px-3"}
+            >
+              {drive ? "✓ Google Drive conectado" : "conectar Google Drive"}
+            </a>
+            <a
+              href={canva ? undefined : "/api/canva/authorize"}
+              className={canva ? "text-[12px] text-good font-semibold" : "btn text-[12px] py-1.5 px-3"}
+            >
+              {canva ? "✓ Canva conectado" : "conectar Canva"}
+            </a>
+          </div>
         )}
       </div>
       {params.drive && (
         <p className={`text-[12.5px] ${params.drive === "conectado" ? "text-good" : "text-critical"}`}>
           {MENSAGEM_DRIVE[params.drive] || ""}
+        </p>
+      )}
+      {params.canva && (
+        <p className={`text-[12.5px] ${params.canva === "conectado" ? "text-good" : "text-critical"}`}>
+          {MENSAGEM_CANVA[params.canva] || ""}
         </p>
       )}
       <div className="grid grid-cols-2 gap-3 max-[900px]:grid-cols-1">
@@ -84,7 +105,7 @@ export default async function MarketingPage({
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <h2 className="font-display font-bold text-[21px]">Em produção</h2>
-            <p className="text-[13px] text-muted">Responda as perguntas, escolha o estilo e cole o link do Canva quando terminar.</p>
+            <p className="text-[13px] text-muted">Responda as perguntas, escolha o estilo e gere no Canva quando terminar.</p>
           </div>
         </div>
         <form action={handleCriarAvulsa} className="bg-paper-2 border border-dashed border-line rounded-xl p-4 flex flex-wrap gap-3 items-end">
@@ -96,7 +117,7 @@ export default async function MarketingPage({
         </form>
         <div className="flex flex-col gap-3">
           {emAndamento.map((g) => (
-            <GeracaoCard key={g.id} geracao={g} templates={templates} driveConectado={drive} />
+            <GeracaoCard key={g.id} geracao={g} templates={templates} driveConectado={drive} canvaConectado={canva} />
           ))}
           {!emAndamento.length && <p className="text-sm text-muted py-2">Nada em produção agora.</p>}
         </div>
@@ -107,7 +128,7 @@ export default async function MarketingPage({
           <h2 className="font-display font-bold text-[21px]">Prontos</h2>
           <div className="flex flex-col gap-3">
             {prontos.map((g) => (
-              <GeracaoCard key={g.id} geracao={g} templates={templates} driveConectado={drive} />
+              <GeracaoCard key={g.id} geracao={g} templates={templates} driveConectado={drive} canvaConectado={canva} />
             ))}
           </div>
         </section>
