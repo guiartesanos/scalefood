@@ -181,6 +181,8 @@ export interface GeracaoConteudo {
   respostas: Record<string, string> | null;
   conteudo_gerado: { slides?: string[] } | null;
   canva_design_url: string | null;
+  imagem_drive_url: string | null;
+  imagem_drive_nome: string | null;
   criado_por: string | null;
   created_at: string;
   updated_at: string;

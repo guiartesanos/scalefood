@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { buscarImagensDrive, type ImagemDrive } from "@/lib/googleDrive";
 
 function requireMarketing(role: string) {
   return role === "master" || role === "comercial";
@@ -90,6 +91,30 @@ export async function salvarLinkCanva(geracaoId: string, url: string) {
   const { error } = await supabase
     .from("geracoes_conteudo")
     .update({ canva_design_url: url.trim(), status: "pronto", updated_at: new Date().toISOString() })
+    .eq("id", geracaoId);
+  if (error) return { error: error.message };
+  revalidatePath("/marketing");
+  return { success: true };
+}
+
+export async function buscarImagensDriveAction(termo: string): Promise<{ imagens?: ImagemDrive[]; error?: string }> {
+  const profile = await requireProfile();
+  if (!requireMarketing(profile.role)) return { error: "Sem permissão." };
+  try {
+    const imagens = await buscarImagensDrive(termo);
+    return { imagens };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Erro ao buscar imagens." };
+  }
+}
+
+export async function salvarImagemDrive(geracaoId: string, url: string, nome: string) {
+  const profile = await requireProfile();
+  if (!requireMarketing(profile.role)) return { error: "Sem permissão." };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("geracoes_conteudo")
+    .update({ imagem_drive_url: url, imagem_drive_nome: nome, updated_at: new Date().toISOString() })
     .eq("id", geracaoId);
   if (error) return { error: error.message };
   revalidatePath("/marketing");
