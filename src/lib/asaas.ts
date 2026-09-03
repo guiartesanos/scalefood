@@ -93,6 +93,25 @@ export async function listarPagamentosAsaas(customerId: string): Promise<Pagamen
   return data.data || [];
 }
 
+export interface ClienteAsaasDetalhe {
+  id: string;
+  name: string;
+  phone: string | null;
+  mobilePhone: string | null;
+}
+
+// Busca um cliente específico do Asaas pelo customerId — usado quando
+// um pagamento chega sem correspondência na nossa tabela `clientes`
+// (pra identificar quem é) e ao mover alguém pra clientes_cancelados
+// (pra puxar o telefone, que não guardamos localmente).
+export async function buscarClienteAsaas(customerId: string): Promise<ClienteAsaasDetalhe | null> {
+  try {
+    return await asaasRequest<ClienteAsaasDetalhe>("GET", `/customers/${customerId}`);
+  } catch {
+    return null;
+  }
+}
+
 interface PaginadoAsaas<T> {
   data: T[];
   hasMore: boolean;

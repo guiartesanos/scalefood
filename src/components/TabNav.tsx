@@ -10,6 +10,7 @@ const TABS = [
   { key: "dashboard", href: "/dashboard", label: "Dashboard" },
   { key: "financeiro", href: "/financeiro", label: "Financeiro" },
   { key: "clientes", href: "/clientes", label: "Clientes" },
+  { key: "consultoria", href: "/consultoria", label: "Consultoria" },
   { key: "tarefas", href: "/tarefas", label: "Tarefas" },
   { key: "icp", href: "/icp", label: "ICP" },
   { key: "marketing", href: "/marketing", label: "Marketing" },

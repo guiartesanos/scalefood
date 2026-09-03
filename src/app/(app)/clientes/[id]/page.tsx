@@ -6,6 +6,7 @@ import { brl, brlInt, tenureLabel, pctOf } from "@/lib/data";
 import { canEditClienteValores, canSeeFaturamentoTotalAgregado } from "@/lib/permissions";
 import { StatusSelect } from "@/components/StatusSelect";
 import { ClienteValoresForm } from "@/components/ClienteValoresForm";
+import { ValorOcultavel } from "@/components/ValoresVisibilidade";
 import type { Cliente, Pagamento, Tarefa } from "@/lib/types";
 
 const URG_CLS: Record<string, string> = { alta: "critical", media: "warning", baixa: "muted" };
@@ -76,12 +77,13 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
       </section>
 
       <div className={`grid ${verLucro ? "grid-cols-3" : "grid-cols-2"} max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-xl overflow-hidden`}>
-        <Kpi label="Recorrência" value={brl(c.rec)} sub={`taxa ${c.taxa_fonte === "real" ? "real" : "estimada"}`} />
-        {verLucro && <Kpi label="Líquido" value={c.liq != null ? brl(c.liq) : "—"} sub={c.marg != null ? `${c.marg.toFixed(1).replace(".", ",")}% de margem` : ""} color="var(--good)" />}
+        <Kpi label="Recorrência" value={brl(c.rec)} sub={`taxa ${c.taxa_fonte === "real" ? "real" : "estimada"}`} ocultavel />
+        {verLucro && <Kpi label="Líquido" value={c.liq != null ? brl(c.liq) : "—"} sub={c.marg != null ? `${c.marg.toFixed(1).replace(".", ",")}% de margem` : ""} color="var(--good)" ocultavel />}
         <Kpi
           label="Evolução (entrada → hoje)"
           value={c.entrada != null && c.hoje != null ? `${brlInt(c.entrada)} → ${brlInt(c.hoje)}` : "sem dado"}
           sub={p !== null ? `${p >= 0 ? "+" : ""}${p.toFixed(1).replace(".", ",")}%` : c.growth_note || ""}
+          ocultavel
         />
       </div>
 
@@ -109,7 +111,7 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
                   <td className="px-3 py-2">{pg.data ? new Date(pg.data + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</td>
                   <td className="px-3 py-2">{pg.canal}</td>
                   <td className="px-3 py-2">{pg.tipo}</td>
-                  <td className="px-3 py-2 text-right num">{brl(pg.valor)}</td>
+                  <td className="px-3 py-2 text-right num"><ValorOcultavel>{brl(pg.valor)}</ValorOcultavel></td>
                 </tr>
               ))}
               {!pagamentos?.length && (
@@ -124,7 +126,7 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
               <tfoot>
                 <tr className="border-t border-line font-semibold">
                   <td colSpan={3} className="px-3 py-2">Total</td>
-                  <td className="px-3 py-2 text-right num">{brl(totalConsultoria)}</td>
+                  <td className="px-3 py-2 text-right num"><ValorOcultavel>{brl(totalConsultoria)}</ValorOcultavel></td>
                 </tr>
               </tfoot>
             )}
@@ -157,12 +159,12 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
   );
 }
 
-function Kpi({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
+function Kpi({ label, value, sub, color, ocultavel }: { label: string; value: string; sub?: string; color?: string; ocultavel?: boolean }) {
   return (
     <div className="bg-paper px-5 py-4 flex flex-col gap-1.5">
       <span className="text-[11.5px] uppercase tracking-wide text-muted font-semibold">{label}</span>
       <span className="font-display font-bold text-[20px] min-[400px]:text-[24px] num break-words" style={color ? { color } : undefined}>
-        {value}
+        {ocultavel ? <ValorOcultavel>{value}</ValorOcultavel> : value}
       </span>
       {sub && <span className="text-xs text-ink-2">{sub}</span>}
     </div>

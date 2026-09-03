@@ -13,7 +13,7 @@ import {
 } from "@/actions/financeiro";
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 import { FinanceiroTabs } from "@/components/FinanceiroTabs";
-import { VisibilidadeProvider, BotaoOcultarValores, ValorOcultavel } from "@/components/ValoresVisibilidade";
+import { ValorOcultavel } from "@/components/ValoresVisibilidade";
 import { CalendarioContasPagar } from "@/components/CalendarioContasPagar";
 import { EditarCustoFixoButton } from "@/components/EditarCustoFixoButton";
 import { NovaVendaButton } from "@/components/NovaVendaButton";
@@ -188,16 +188,13 @@ export default async function FinanceiroPage({
   const TIPO_LABEL: Record<string, string> = { recorrencia: "Aceleração", consultoria: "Consultoria", avulso: "Avulso" };
 
   const geral = (
-    <VisibilidadeProvider>
+    <>
       <div className="bg-paper border border-accent rounded-xl p-5 flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-3">
           <span className="text-[11.5px] uppercase tracking-wide text-accent-ink font-semibold">
             Faturamento total
           </span>
-          <div className="flex items-center gap-2">
-            <a href="/financeiro?tab=dre" className="text-[12px] font-semibold underline text-accent-ink">Ver DRE do mês →</a>
-            <BotaoOcultarValores />
-          </div>
+          <a href="/financeiro?tab=dre" className="text-[12px] font-semibold underline text-accent-ink">Ver DRE do mês →</a>
         </div>
         <span className="font-display font-extrabold text-[40px] num">
           <ValorOcultavel>{brl(faturamentoTotal)}</ValorOcultavel>
@@ -215,7 +212,7 @@ export default async function FinanceiroPage({
       <div className={`grid ${verLucro ? "grid-cols-3" : "grid-cols-2"} max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-xl overflow-hidden`}>
         <Kpi label="Custos fixos" value={brlInt(custosFixosTotal)} sub={`${custosFixos?.length || 0} lançamento(s)`} color="var(--critical)" />
         <Kpi label="Custos variáveis" value={brlInt(custosVariaveis)} sub="tráfego + comissão + imposto + taxa + extras" color="var(--critical)" />
-        {verLucro && <Kpi label="Lucro estimado" value={brl(lucro)} sub="faturamento − custos fixos − variáveis" color="var(--good)" />}
+        {verLucro && <Kpi label="Lucro estimado" value={brl(lucro)} sub="faturamento − custos fixos − variáveis" color="var(--good)" ocultavel />}
       </div>
 
       {verLucro && (
@@ -224,7 +221,7 @@ export default async function FinanceiroPage({
           <GrowthChart pontos={pontosMensal} />
         </div>
       )}
-    </VisibilidadeProvider>
+    </>
   );
 
   const RECORRENCIA_LABEL: Record<string, string> = { mensal: "Mensal", semanal: "Semanal", pontual: "Pontual" };
@@ -468,11 +465,11 @@ export default async function FinanceiroPage({
             {linhasMensal.map((l) => (
               <tr key={l.label} className="border-t border-line/50" style={l.atual ? { background: "var(--accent-wash)" } : undefined}>
                 <td className="px-3 py-2 font-semibold">{l.label}</td>
-                <td className="px-3 py-2 text-right num">{brl(l.faturamento)}</td>
+                <td className="px-3 py-2 text-right num"><ValorOcultavel>{brl(l.faturamento)}</ValorOcultavel></td>
                 <td className="px-3 py-2 text-right num text-critical">{brl(l.custosFixos)}</td>
                 <td className="px-3 py-2 text-right num text-critical">{brl(l.custosVariaveis)}</td>
                 <td className="px-3 py-2 text-right num" style={{ color: l.lucro >= 0 ? "var(--good)" : "var(--critical)" }}>
-                  {brl(l.lucro)}
+                  <ValorOcultavel>{brl(l.lucro)}</ValorOcultavel>
                 </td>
                 <td className="px-3 py-2 w-[160px]">
                   <div className="h-[8px] rounded bg-paper-2 border border-line/50 overflow-hidden">
@@ -518,12 +515,12 @@ export default async function FinanceiroPage({
   );
 }
 
-function Kpi({ label, value, sub, color }: { label: string; value: string; sub: string; color?: string }) {
+function Kpi({ label, value, sub, color, ocultavel }: { label: string; value: string; sub: string; color?: string; ocultavel?: boolean }) {
   return (
     <div className="bg-paper px-5 py-4 flex flex-col gap-1.5">
       <span className="text-[11.5px] uppercase tracking-wide text-muted font-semibold">{label}</span>
       <span className="font-display font-bold text-[22px] min-[400px]:text-[26px] num break-words" style={{ color }}>
-        <ValorOcultavel>{value}</ValorOcultavel>
+        {ocultavel ? <ValorOcultavel>{value}</ValorOcultavel> : value}
       </span>
       <span className="text-xs text-ink-2">{sub}</span>
     </div>

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getClientes, brl, brlInt } from "@/lib/data";
 import { canSeeFaturamentoTotalAgregado } from "@/lib/permissions";
 import { DashboardFilterable } from "@/components/DashboardFilterable";
+import { ValorOcultavel } from "@/components/ValoresVisibilidade";
 
 export default async function DashboardPage() {
   const profile = await requireProfile();
@@ -35,10 +36,10 @@ export default async function DashboardPage() {
     <>
       {verLucro && (
         <div className="grid grid-cols-4 max-[900px]:grid-cols-2 max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-xl overflow-hidden">
-          <Kpi label="Faturamento total" value={brl(faturamentoTotal)} sub="recorrência mensal + consultorias já recebidas" />
+          <Kpi label="Faturamento total" value={brl(faturamentoTotal)} sub="recorrência mensal + consultorias já recebidas" ocultavel />
           <Kpi label="Ticket médio" value={brl(ticketMedio)} sub="recorrência média por cliente ativo" />
           <Kpi label="Clientes ativos" value={String(clientes.length)} sub={`${(byStatus["Rodando - com resultado"] || []).length} rodando com resultado`} />
-          <Kpi label="Receita em risco" value={brlInt(riskRec)} sub="cancelamento + onboarding parado" color="var(--critical)" />
+          <Kpi label="Receita em risco" value={brlInt(riskRec)} sub="cancelamento + onboarding parado" color="var(--critical)" ocultavel />
         </div>
       )}
 
@@ -47,12 +48,12 @@ export default async function DashboardPage() {
   );
 }
 
-function Kpi({ label, value, sub, color }: { label: string; value: string; sub: string; color?: string }) {
+function Kpi({ label, value, sub, color, ocultavel }: { label: string; value: string; sub: string; color?: string; ocultavel?: boolean }) {
   return (
     <div className="bg-paper px-5 py-4 flex flex-col gap-1.5">
       <span className="text-[11.5px] uppercase tracking-wide text-muted font-semibold">{label}</span>
       <span className="font-display font-bold text-[22px] min-[400px]:text-[26px] num break-words" style={color ? { color } : undefined}>
-        {value}
+        {ocultavel ? <ValorOcultavel>{value}</ValorOcultavel> : value}
       </span>
       <span className="text-xs text-ink-2">{sub}</span>
     </div>

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { criarVendaRecorrencia } from "@/actions/vendaRecorrencia";
 import { lancarConsultoria } from "@/actions/consultoria";
-import { STATUS_LIST } from "@/lib/types";
+import { STATUS_LIST, CONSULTORIA_TAREFAS_PADRAO } from "@/lib/types";
 
 type Modo = null | "recorrencia" | "consultoria";
 
@@ -71,7 +71,6 @@ function CamposAsaas({ prefix = "" }: { prefix?: string }) {
     <div className="grid grid-cols-2 gap-3">
       <Field label="Nicho"><input name={`${prefix}nicho`} required className="input" /></Field>
       <Field label="CPF ou CNPJ"><input name="cpfCnpj" required className="input" /></Field>
-      <Field label="Email"><input name="email" type="email" className="input" /></Field>
       <Field label="Telefone"><input name="telefone" className="input" /></Field>
       <CamposEndereco />
     </div>
@@ -297,7 +296,6 @@ function FormConsultoria({ onVoltar, onSucesso }: { onVoltar: () => void; onSuce
   const [vendeuRecorrencia, setVendeuRecorrencia] = useState(false);
   const [canalRecorrencia, setCanalRecorrencia] = useState<"Asaas" | "PIX C6">("Asaas");
   const [primeiroMesGratis, setPrimeiroMesGratis] = useState(true);
-  const [temas, setTemas] = useState<string[]>([""]);
   const [error, setError] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -338,35 +336,23 @@ function FormConsultoria({ onVoltar, onSucesso }: { onVoltar: () => void; onSuce
           <input name="dataFechamento" type="date" required className="input" />
         </Field>
         <Field label="Nome do cliente"><input name="nomeCliente" required className="input" /></Field>
+        <Field label="Email do cliente">
+          <input name="email" type="email" required className="input" />
+        </Field>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label className="text-xs uppercase tracking-wide text-muted font-semibold">
-          Reuniões (uma tarefa por tema — datas sugeridas automaticamente)
-        </label>
-        {temas.map((tema, i) => (
-          <div key={i} className="flex gap-2">
-            <input
-              name="tema"
-              value={tema}
-              onChange={(e) => {
-                const next = [...temas];
-                next[i] = e.target.value;
-                setTemas(next);
-              }}
-              placeholder={`Tema da reunião ${i + 1}`}
-              className="input flex-1"
-            />
-            {temas.length > 1 && (
-              <button type="button" onClick={() => setTemas(temas.filter((_, idx) => idx !== i))} className="btn-ghost">
-                ×
-              </button>
-            )}
-          </div>
-        ))}
-        <button type="button" onClick={() => setTemas([...temas, ""])} className="text-xs text-accent-ink hover:underline self-start">
-          + adicionar reunião
-        </button>
+      <div className="flex flex-col gap-1.5 bg-paper-2 border border-dashed border-line rounded-lg p-3">
+        <span className="text-xs uppercase tracking-wide text-muted font-semibold">
+          Onboarding — cria essas 8 etapas automaticamente
+        </span>
+        <p className="text-xs text-ink-2 leading-relaxed">
+          {CONSULTORIA_TAREFAS_PADRAO.join(" · ")}
+        </p>
+        <p className="text-[11px] text-muted">
+          A 1ª reunião fica pendente pra você agendar direto com o cliente; as demais
+          já entram com data — tudo ajustável depois em{" "}
+          <span className="font-semibold">Consultoria</span>.
+        </p>
       </div>
 
       <label className="flex items-center gap-2 text-sm border-t border-line pt-4">

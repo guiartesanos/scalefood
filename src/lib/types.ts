@@ -4,7 +4,8 @@ export type ClienteStatus =
   | "Rodando - com resultado"
   | "Rodando - sem resultado ainda"
   | "Onboarding urgente"
-  | "Pediu pra cancelar";
+  | "Pediu pra cancelar"
+  | "Cancelado";
 
 export interface Profile {
   id: string;
@@ -138,6 +139,17 @@ export interface IcpLogEntry {
   detalhe: string | null;
 }
 
+export interface ReceitaEvento {
+  id: string;
+  cliente_id: string | null;
+  tipo: "novo_cliente" | "upsell" | "downsell" | "consultoria";
+  valor: number;
+  data: string;
+  descricao: string | null;
+  criado_por: string | null;
+  created_at: string;
+}
+
 export interface FaturamentoMesAtual {
   dia_atual: number;
   dias_no_mes: number;
@@ -188,6 +200,50 @@ export interface GeracaoConteudo {
   updated_at: string;
 }
 
+export interface ConsultoriaCliente {
+  id: string;
+  nome: string;
+  email: string | null;
+  cliente_id: string | null;
+  data_fechamento: string;
+  valor: number | null;
+  dia_semana_recorrente: number;
+  hora_recorrente: string;
+  concluido: boolean;
+  concluido_em: string | null;
+  criado_por: string | null;
+  created_at: string;
+}
+
+export interface ConsultoriaTarefa {
+  id: string;
+  consultoria_cliente_id: string;
+  titulo: string;
+  ordem: number;
+  feito: boolean;
+  feito_em: string | null;
+  data_reuniao: string | null;
+  hora_reuniao: string | null;
+  google_event_id: string | null;
+  google_event_url: string | null;
+  created_at: string;
+}
+
+// Toda consultoria nova gera sempre essas 8 tarefas, nessa ordem — a 1ª é
+// agendada manualmente (ver src/lib/reunioes.ts), as demais seguem a
+// cadência semanal do cliente (ConsultoriaCliente.dia_semana_recorrente/
+// hora_recorrente).
+export const CONSULTORIA_TAREFAS_PADRAO = [
+  "Onboarding + raio X",
+  "Diagnóstico + apresentação de plano",
+  "Cardápio e sistema",
+  "Alavancagem sazonal",
+  "Estratégia de marketplace",
+  "Estratégia de comunicação",
+  "Processo de compras",
+  "Mapeamento de fornecedores",
+] as const;
+
 export interface ClienteCancelado {
   id: string;
   nome: string;
@@ -228,6 +284,7 @@ export const STATUS_LIST: ClienteStatus[] = [
   "Rodando - sem resultado ainda",
   "Onboarding urgente",
   "Pediu pra cancelar",
+  "Cancelado",
 ];
 
 export const STATUS_META: Record<ClienteStatus, { cls: string; short: string }> = {
@@ -235,4 +292,8 @@ export const STATUS_META: Record<ClienteStatus, { cls: string; short: string }> 
   "Rodando - sem resultado ainda": { cls: "warning", short: "Sem resultado" },
   "Onboarding urgente": { cls: "serious", short: "Onboarding" },
   "Pediu pra cancelar": { cls: "critical", short: "Cancelando" },
+  // selecionar esse status move o cliente pra clientes_cancelados e
+  // remove ele da lista de ativos (ver atualizarStatusCliente) — por
+  // isso não aparece em ClientesKanban.COLS, é um estado de transição.
+  Cancelado: { cls: "critical", short: "Cancelado" },
 };

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { StatusSelect } from "./StatusSelect";
+import { ValorOcultavel } from "./ValoresVisibilidade";
 import type { Cliente, ClienteStatus } from "@/lib/types";
 
 function brl(v: number | null | undefined) {
@@ -24,6 +25,10 @@ const STATUS_DESC: Record<ClienteStatus, string> = {
   "Rodando - sem resultado ainda": "No ar, mas ainda sem resultado consolidado — acompanhar de perto.",
   "Onboarding urgente": "Não começamos — pendência urgente de onboarding.",
   "Pediu pra cancelar": "Cliente pediu cancelamento — este é o último mês de cobrança.",
+  // nunca aparece aqui de fato: selecionar esse status já move o
+  // cliente pra clientes_cancelados (ver atualizarStatusCliente), então
+  // ele some da lista de ativos antes desse card renderizar de novo.
+  Cancelado: "Cliente cancelado — já saiu da lista de ativos.",
 };
 
 const STATUS_CLS: Record<ClienteStatus, string> = {
@@ -31,6 +36,7 @@ const STATUS_CLS: Record<ClienteStatus, string> = {
   "Rodando - sem resultado ainda": "warning",
   "Onboarding urgente": "serious",
   "Pediu pra cancelar": "critical",
+  Cancelado: "critical",
 };
 
 export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[]; verLucro: boolean }) {
@@ -96,7 +102,8 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
                 <span className="font-semibold text-[13.5px]">{s}</span>
                 {verLucro && (
                   <span className="text-[11.5px] text-muted num">
-                    {brlInt(rec)} recorrência · {brlInt(liq)} líquido
+                    <ValorOcultavel>{brlInt(rec)}</ValorOcultavel> recorrência ·{" "}
+                    <ValorOcultavel>{brlInt(liq)}</ValorOcultavel> líquido
                   </span>
                 )}
                 <span className="text-xs text-ink-2 leading-snug">{STATUS_DESC[s]}</span>
@@ -161,8 +168,12 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
                     <StatusSelect clienteId={c.id} status={c.status} />
                   </td>
                   <td className="px-3 py-2.5">{c.nicho}</td>
-                  <td className="px-3 py-2.5 text-right num">{brl(c.rec)}</td>
-                  {verLucro && <td className="px-3 py-2.5 text-right num">{c.liq != null ? brl(c.liq) : "—"}</td>}
+                  <td className="px-3 py-2.5 text-right num"><ValorOcultavel>{brl(c.rec)}</ValorOcultavel></td>
+                  {verLucro && (
+                    <td className="px-3 py-2.5 text-right num">
+                      {c.liq != null ? <ValorOcultavel>{brl(c.liq)}</ValorOcultavel> : "—"}
+                    </td>
+                  )}
                 </tr>
               ))}
               {!filtrados.length && (
@@ -205,7 +216,7 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
                       style={{ width: `${(v.rec / maxRec) * 100}%`, background: "linear-gradient(90deg, var(--accent), var(--accent-ink))" }}
                     />
                   </div>
-                  <span className="text-right text-xs num text-ink-2">{brlInt(v.rec)}</span>
+                  <span className="text-right text-xs num text-ink-2"><ValorOcultavel>{brlInt(v.rec)}</ValorOcultavel></span>
                 </button>
               );
             })}

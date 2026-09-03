@@ -11,6 +11,7 @@ type TabItem = { key: string; href: string; label: string; icon: () => React.JSX
 const TABS: TabItem[] = [
   { key: "dashboard", href: "/dashboard", label: "Início", icon: IconHome },
   { key: "clientes", href: "/clientes", label: "Clientes", icon: IconUsers },
+  { key: "consultoria", href: "/consultoria", label: "Consultoria", icon: IconClipboard },
   { key: "tarefas", href: "/tarefas", label: "Tarefas", icon: IconCheck },
   { key: "financeiro", href: "/financeiro", label: "Financeiro", icon: IconChart },
   { key: "icp", href: "/icp", label: "ICP", icon: IconTarget },
@@ -34,8 +35,8 @@ export function MobileTabNav({
 
   return (
     <nav
-      className="hidden max-[767px]:flex fixed bottom-0 left-0 right-0 z-40 border-t border-line bg-paper"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className="hidden max-[767px]:flex fixed left-3 right-3 z-40 border border-line bg-paper rounded-2xl shadow-[var(--shadow)]"
+      style={{ bottom: "calc(10px + env(safe-area-inset-bottom))" }}
     >
       {tabs.map((t) => {
         const active = pathname.startsWith(t.href.split("/").slice(0, 2).join("/"));
@@ -92,6 +93,16 @@ function IconUsers() {
       <circle cx="9" cy="7" r="4" />
       <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+function IconClipboard() {
+  return (
+    <svg {...ICON_PROPS}>
+      <rect x="4" y="4" width="16" height="18" rx="2" />
+      <path d="M9 3h6a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+      <line x1="8" y1="11" x2="16" y2="11" />
+      <line x1="8" y1="15" x2="13" y2="15" />
     </svg>
   );
 }

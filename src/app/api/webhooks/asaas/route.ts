@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { buscarClienteAsaas } from "@/lib/asaas";
 
 // Eventos que significam "dinheiro realmente caiu" — mesmo conjunto usado
 // no script de alertas (asaas-alertas/check_payments.py).
@@ -35,7 +36,31 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (!cliente) {
-    return NextResponse.json({ ok: true, cliente_nao_mapeado: pagamento.customer });
+    // idempotência: mesmo padrão do fluxo com cliente mapeado, pra não
+    // duplicar a tarefa se o Asaas reenviar o mesmo evento em retry.
+    const marcador = `[asaas:${pagamento.id}]`;
+    const { data: jaProcessado } = await supabase
+      .from("tarefas")
+      .select("id")
+      .ilike("descricao", `%${marcador}%`)
+      .maybeSingle();
+    if (jaProcessado) {
+      return NextResponse.json({ ok: true, ja_processado: true });
+    }
+
+    const asaasCliente = await buscarClienteAsaas(pagamento.customer);
+    const nomePagador = asaasCliente?.name || pagamento.customer;
+    const valor = Number(pagamento.value) || 0;
+
+    await supabase.from("tarefas").insert({
+      titulo: `Revisar pagamento sem cliente mapeado — ${nomePagador}`,
+      descricao: `Pagamento de ${brl(valor)} recebido no Asaas de "${nomePagador}" (customer ${pagamento.customer}), mas essa pessoa não está cadastrada em Clientes ou não tem o asaas_customer_id vinculado. Verificar quem é e cadastrar/vincular. ${marcador}`,
+      urgencia: "media",
+      cliente_nome: asaasCliente?.name || null,
+      coluna: "a-fazer",
+    });
+
+    return NextResponse.json({ ok: true, cliente_nao_mapeado: pagamento.customer, tarefa_criada: true });
   }
 
   // idempotência: o Asaas pode reenviar o mesmo evento em retry

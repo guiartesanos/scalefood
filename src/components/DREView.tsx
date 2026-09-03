@@ -54,7 +54,7 @@ export function DREView({ dre, verLucro, baseHref }: { dre: DREResultado; verLuc
         </p>
       )}
 
-      <Secao titulo="Receita" total={dre.receita.total} linhas={dre.receita.linhas} cor="var(--good)" sinal="+" />
+      <Secao titulo="Receita" total={dre.receita.total} linhas={dre.receita.linhas} cor="var(--good)" sinal="+" ocultavel />
       <Secao titulo="Custos variáveis" total={dre.custosVariaveis.total} linhas={dre.custosVariaveis.linhas} cor="var(--critical)" sinal="−" />
       <Secao titulo="Custos fixos" total={dre.custosFixos.total} linhas={dre.custosFixos.linhas} cor="var(--critical)" sinal="−" />
 
@@ -89,13 +89,14 @@ export function DREView({ dre, verLucro, baseHref }: { dre: DREResultado; verLuc
   );
 }
 
-function Secao({ titulo, total, linhas, cor, sinal }: { titulo: string; total: number; linhas: DRELinha[]; cor: string; sinal: string }) {
+function Secao({ titulo, total, linhas, cor, sinal, ocultavel }: { titulo: string; total: number; linhas: DRELinha[]; cor: string; sinal: string; ocultavel?: boolean }) {
+  const valor = (children: React.ReactNode) => (ocultavel ? <ValorOcultavel>{children}</ValorOcultavel> : children);
   return (
     <section className="bg-paper border border-line rounded-xl overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 bg-paper-2 border-b border-line">
         <h2 className="font-display font-bold text-[16px]">{titulo}</h2>
         <span className="font-display font-bold num" style={{ color: cor }}>
-          <ValorOcultavel>{sinal} {brl(total)}</ValorOcultavel>
+          {valor(<>{sinal} {brl(total)}</>)}
         </span>
       </div>
       {!linhas.length && <p className="px-4 py-4 text-sm text-muted">Nada realizado ainda neste mês.</p>}
@@ -110,7 +111,7 @@ function Secao({ titulo, total, linhas, cor, sinal }: { titulo: string; total: n
               )}
             </span>
             <span className="num font-semibold text-[13.5px]" style={{ color: cor }}>
-              <ValorOcultavel>{brl(l.valor)}</ValorOcultavel>
+              {valor(brl(l.valor))}
             </span>
           </summary>
           <div className="px-4 pb-3 flex flex-col gap-1 bg-paper-2/40">
@@ -119,7 +120,7 @@ function Secao({ titulo, total, linhas, cor, sinal }: { titulo: string; total: n
                 <span>
                   {item.label} {item.data && <span className="text-muted">· {fmtData(item.data)}</span>}
                 </span>
-                <span className="num"><ValorOcultavel>{brl(item.valor)}</ValorOcultavel></span>
+                <span className="num">{valor(brl(item.valor))}</span>
               </div>
             ))}
           </div>

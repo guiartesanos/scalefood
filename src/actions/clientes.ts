@@ -4,10 +4,67 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import type { ClienteStatus } from "@/lib/types";
+import { listarPagamentosAsaas, buscarClienteAsaas } from "@/lib/asaas";
+
+const PAGAMENTOS_RECEBIDOS = new Set(["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"]);
 
 export async function atualizarStatusCliente(clienteId: string, status: ClienteStatus) {
   await requireProfile();
   const supabase = await createClient();
+
+  // "Cancelado" não é só mais um status: tira o cliente da lista de
+  // ativos e joga ele pra clientes_cancelados (mesma tabela que a aba
+  // "Clientes cancelados" usa), puxando histórico de pagamentos e
+  // telefone do Asaas quando dá.
+  if (status === "Cancelado") {
+    const { data: cliente } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
+    if (!cliente) return { error: "Cliente não encontrado." };
+
+    let totalRecebido = Number(cliente.rec) || 0;
+    let primeiroPagamento: string | null = cliente.fechamento;
+    let ultimoPagamento: string | null = null;
+    let telefone: string | null = null;
+
+    if (cliente.asaas_customer_id) {
+      try {
+        const [pagamentos, asaasCliente] = await Promise.all([
+          listarPagamentosAsaas(cliente.asaas_customer_id),
+          buscarClienteAsaas(cliente.asaas_customer_id),
+        ]);
+        const recebidos = pagamentos.filter((p) => PAGAMENTOS_RECEBIDOS.has(p.status));
+        if (recebidos.length) {
+          totalRecebido = recebidos.reduce((s, p) => s + Number(p.value), 0);
+          const datas = recebidos.map((p) => p.paymentDate).filter((d): d is string => !!d).sort();
+          primeiroPagamento = datas[0] || primeiroPagamento;
+          ultimoPagamento = datas[datas.length - 1] || null;
+        }
+        telefone = asaasCliente?.mobilePhone || asaasCliente?.phone || null;
+      } catch {
+        // Asaas fora do ar ou API mudou — segue o cancelamento com o
+        // que já temos localmente em vez de travar o usuário.
+      }
+    }
+
+    const { error: insertError } = await supabase.from("clientes_cancelados").insert({
+      nome: cliente.nome,
+      asaas_customer_id: cliente.asaas_customer_id,
+      total_recebido: totalRecebido,
+      primeiro_pagamento: primeiroPagamento,
+      ultimo_pagamento: ultimoPagamento,
+      telefone,
+      nicho: cliente.nicho,
+      dono: cliente.dono,
+    });
+    if (insertError) return { error: "Erro ao mover pra cancelados: " + insertError.message };
+
+    const { error: deleteError } = await supabase.from("clientes").delete().eq("id", clienteId);
+    if (deleteError) return { error: "Cliente duplicado em cancelados, mas não saiu dos ativos: " + deleteError.message };
+
+    revalidatePath("/dashboard");
+    revalidatePath("/clientes");
+    return { success: true };
+  }
+
   const { error } = await supabase.from("clientes").update({ status }).eq("id", clienteId);
   if (error) return { error: error.message };
   revalidatePath("/dashboard");

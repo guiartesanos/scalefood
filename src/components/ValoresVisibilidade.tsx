@@ -1,12 +1,35 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+
+const STORAGE_KEY = "fs_valores_ocultos";
 
 const Ctx = createContext<{ visivel: boolean; toggle: () => void }>({ visivel: true, toggle: () => {} });
 
+// Provider único, montado no layout do app (não em cada página) — assim o
+// estado sobrevive a troca de aba/página. localStorage + evento "storage"
+// garantem que também sobrevive a um reload e fica em sincronia entre abas.
 export function VisibilidadeProvider({ children }: { children: React.ReactNode }) {
   const [visivel, setVisivel] = useState(true);
-  return <Ctx.Provider value={{ visivel, toggle: () => setVisivel((v) => !v) }}>{children}</Ctx.Provider>;
+
+  useEffect(() => {
+    if (localStorage.getItem(STORAGE_KEY) === "1") setVisivel(false);
+    function onStorage(e: StorageEvent) {
+      if (e.key === STORAGE_KEY) setVisivel(e.newValue !== "1");
+    }
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  function toggle() {
+    setVisivel((v) => {
+      const novo = !v;
+      localStorage.setItem(STORAGE_KEY, novo ? "0" : "1");
+      return novo;
+    });
+  }
+
+  return <Ctx.Provider value={{ visivel, toggle }}>{children}</Ctx.Provider>;
 }
 
 export function BotaoOcultarValores() {
@@ -17,7 +40,7 @@ export function BotaoOcultarValores() {
       onClick={toggle}
       className="text-muted hover:text-ink-2 shrink-0"
       aria-label={visivel ? "ocultar valores" : "mostrar valores"}
-      title={visivel ? "ocultar valores" : "mostrar valores"}
+      title={visivel ? "ocultar faturamento, lucro e bônus" : "mostrar valores"}
     >
       {visivel ? (
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
