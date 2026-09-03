@@ -88,6 +88,7 @@ export async function criarClienteComRecorrencia(
   if (d.primeiroMesGratis && d.dataPrimeiroPagamento) {
     await supabase.from("receita_eventos").insert({
       cliente_id: clienteId,
+      cliente_nome: d.nome,
       tipo: "novo_cliente",
       valor: d.valorRecorrencia,
       data: d.dataPrimeiroPagamento,

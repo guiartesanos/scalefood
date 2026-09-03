@@ -219,6 +219,7 @@ export async function lancarPagamento(formData: FormData) {
   // pagamentos avulsos/consultoria contam pra "faturamento novo do mês"
   if (tipo !== "recorrencia") {
     await supabase.from("receita_eventos").insert({
+      cliente_nome: cliente,
       tipo: "consultoria",
       valor,
       data: data || undefined,

@@ -142,6 +142,7 @@ export interface IcpLogEntry {
 export interface ReceitaEvento {
   id: string;
   cliente_id: string | null;
+  cliente_nome: string | null;
   tipo: "novo_cliente" | "upsell" | "downsell" | "consultoria";
   valor: number;
   data: string;

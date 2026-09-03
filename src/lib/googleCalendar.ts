@@ -94,10 +94,17 @@ export async function calendarConectado(): Promise<boolean> {
   return !!data;
 }
 
+const TIMEZONE = "America/Sao_Paulo";
+
+// Monta os horários como string local "ingênua" (sem Z/offset) + timeZone
+// explícito no payload do evento — nunca usa Date/toISOString aqui, porque
+// isso interpretaria "09:00" como UTC (a função roda em UTC na Vercel) e
+// criaria o evento 3h adiantado na agenda do cliente.
 function montarHorario(data: string, hora: string, duracaoMin: number): { inicio: string; fim: string } {
-  const inicio = new Date(`${data}T${hora}:00`);
-  const fim = new Date(inicio.getTime() + duracaoMin * 60_000);
-  return { inicio: inicio.toISOString(), fim: fim.toISOString() };
+  const [h, m] = hora.split(":").map(Number);
+  const totalMin = h * 60 + m + duracaoMin;
+  const fimHora = `${String(Math.floor(totalMin / 60)).padStart(2, "0")}:${String(totalMin % 60).padStart(2, "0")}`;
+  return { inicio: `${data}T${hora}:00`, fim: `${data}T${fimHora}:00` };
 }
 
 export interface EventoCriado {
@@ -128,8 +135,8 @@ export async function criarEventoReuniao(params: {
     body: JSON.stringify({
       summary: params.titulo,
       description: params.descricao,
-      start: { dateTime: inicio },
-      end: { dateTime: fim },
+      start: { dateTime: inicio, timeZone: TIMEZONE },
+      end: { dateTime: fim, timeZone: TIMEZONE },
       attendees: params.emailCliente ? [{ email: params.emailCliente }] : undefined,
     }),
   });
@@ -149,7 +156,10 @@ export async function atualizarEventoReuniao(eventId: string, data: string, hora
   const res = await fetch(`${EVENTS_URL}/${eventId}?sendUpdates=all`, {
     method: "PATCH",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ start: { dateTime: inicio }, end: { dateTime: fim } }),
+    body: JSON.stringify({
+      start: { dateTime: inicio, timeZone: TIMEZONE },
+      end: { dateTime: fim, timeZone: TIMEZONE },
+    }),
   });
   if (!res.ok) {
     const erro = await res.json();

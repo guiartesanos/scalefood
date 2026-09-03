@@ -99,7 +99,7 @@ export async function atualizarValoresCliente(formData: FormData) {
 
   const { data: cliente } = await supabase
     .from("clientes")
-    .select("rec, taxa, entrada, hoje")
+    .select("nome, rec, taxa, entrada, hoje")
     .eq("id", clienteId)
     .single();
 
@@ -124,6 +124,7 @@ export async function atualizarValoresCliente(formData: FormData) {
   if (Math.abs(delta) > 0.01) {
     await supabase.from("receita_eventos").insert({
       cliente_id: clienteId,
+      cliente_nome: cliente.nome,
       tipo: delta > 0 ? "upsell" : "downsell",
       valor: delta,
       descricao: `Ajuste de recorrência: ${recAntigo} → ${rec}`,

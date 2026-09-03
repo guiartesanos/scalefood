@@ -83,6 +83,7 @@ export async function lancarConsultoria(formData: FormData) {
 
   await supabase.from("receita_eventos").insert({
     cliente_id: clienteId,
+    cliente_nome: nomeCliente,
     tipo: "consultoria",
     valor: valorConsultoria,
     data: dataFechamento,

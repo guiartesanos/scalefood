@@ -12,11 +12,29 @@ function fmtData(d: string) {
 }
 
 const TIPO_LABEL: Record<ReceitaEvento["tipo"], string> = {
-  novo_cliente: "Novo cliente",
+  novo_cliente: "Recorrência",
   upsell: "Upsell",
   downsell: "Downsell",
   consultoria: "Consultoria",
 };
+
+// Categoria mostrada na listinha: "consultoria" cobre tanto venda
+// avulsa quanto pagamento fora do Asaas (financeiro.ts reaproveita esse
+// tipo), então só vira "Consultoria + Recorrência" quando o evento tem
+// cliente_id vinculado — ou seja, quando a mesma venda também criou um
+// cliente recorrente (ver lancarConsultoria em actions/consultoria.ts).
+function categoriaLabel(ev: ReceitaEvento): string {
+  if (ev.tipo === "consultoria" && ev.cliente_id) return "Consultoria + Recorrência";
+  return TIPO_LABEL[ev.tipo];
+}
+
+// Linhas antigas (antes do cliente_nome existir) caem aqui: a
+// descrição sempre termina em "...: Nome do cliente".
+function nomeCliente(ev: ReceitaEvento): string {
+  if (ev.cliente_nome) return ev.cliente_nome;
+  if (ev.descricao?.includes(": ")) return ev.descricao.split(": ").slice(-1)[0];
+  return ev.descricao || categoriaLabel(ev);
+}
 
 // Gatilho compartilhado pelo valor de "faturamento novo do mês" e pelo
 // "X vendas feitas" na MetaBar — os dois vêm da mesma query de
@@ -68,9 +86,9 @@ export function FaturamentoNovoModal({
                   className="flex justify-between items-start gap-3 text-[13px] border-b border-dashed border-line/50 pb-1.5"
                 >
                   <div className="flex flex-col min-w-0">
-                    <span className="truncate">{ev.descricao || TIPO_LABEL[ev.tipo]}</span>
+                    <span className="truncate font-semibold">{nomeCliente(ev)}</span>
                     <span className="text-[11px] text-muted">
-                      {TIPO_LABEL[ev.tipo]} · {fmtData(ev.data)}
+                      {categoriaLabel(ev)} · {fmtData(ev.data)}
                     </span>
                   </div>
                   <span
