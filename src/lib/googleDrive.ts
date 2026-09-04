@@ -2,6 +2,7 @@
 // pra buscar imagens do usuário relacionadas ao tema do carrossel.
 // Um único registro guarda o token da conta pessoal conectada.
 
+import crypto from "crypto";
 import { createAdminClient } from "@/lib/supabase/server";
 
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -13,12 +14,21 @@ function redirectUri(): string {
   return `${base}/api/google-drive/callback`;
 }
 
-export function getGoogleDriveAuthUrl(): string {
+// Nonce anti-CSRF: sem isso, um code obtido pelo próprio atacante (numa
+// conta Google dele, contra o mesmo client_id/redirect_uri — ambos
+// públicos) podia ser trocado só levando o master a abrir um GET pro
+// callback, sequestrando a conexão pra conta do atacante.
+export function gerarState(): string {
+  return crypto.randomBytes(24).toString("hex");
+}
+
+export function getGoogleDriveAuthUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_DRIVE_CLIENT_ID!,
     redirect_uri: redirectUri(),
     response_type: "code",
     scope: SCOPE,
+    state,
     access_type: "offline",
     prompt: "consent",
   });

@@ -11,13 +11,21 @@ export async function GET(request: NextRequest) {
 
   const code = request.nextUrl.searchParams.get("code");
   const erro = request.nextUrl.searchParams.get("error");
-  if (erro || !code) {
+  const state = request.nextUrl.searchParams.get("state");
+  const stateCookie = request.cookies.get("google_calendar_oauth_state")?.value;
+
+  // state precisa bater com o que a gente mesmo gerou no /authorize —
+  // sem isso, um code obtido pelo próprio atacante (numa conta Google
+  // dele) podia ser trocado só levando o master a abrir esse link.
+  if (erro || !code || !state || !stateCookie || state !== stateCookie) {
     return NextResponse.redirect(`${base}/consultoria?calendar=erro`);
   }
 
   try {
     await trocarCodigoPorToken(code);
-    return NextResponse.redirect(`${base}/consultoria?calendar=conectado`);
+    const response = NextResponse.redirect(`${base}/consultoria?calendar=conectado`);
+    response.cookies.delete("google_calendar_oauth_state");
+    return response;
   } catch {
     return NextResponse.redirect(`${base}/consultoria?calendar=erro`);
   }
