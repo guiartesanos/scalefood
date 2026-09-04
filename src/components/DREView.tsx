@@ -2,6 +2,7 @@ import Link from "next/link";
 import { brl } from "@/lib/data";
 import { DRE_PRIMEIRO_ANO_MES, type DREResultado, type DRELinha } from "@/lib/dre";
 import { ValorOcultavel } from "@/components/ValoresVisibilidade";
+import { hojeBR } from "@/lib/tz";
 
 const MES_NOME = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -16,8 +17,8 @@ function fmtData(d?: string) {
 export function DREView({ dre, verLucro, baseHref }: { dre: DREResultado; verLucro: boolean; baseHref: string }) {
   const { ano, mes } = dre;
   const atualAnoMes = (() => {
-    const hoje = new Date();
-    return hoje.getFullYear() * 100 + (hoje.getMonth() + 1);
+    const { ano: anoBR, mes: mesBR } = hojeBR();
+    return anoBR * 100 + mesBR;
   })();
   const mesAnterior = mes === 1 ? { ano: ano - 1, mes: 12 } : { ano, mes: mes - 1 };
   const mesSeguinte = mes === 12 ? { ano: ano + 1, mes: 1 } : { ano, mes: mes + 1 };

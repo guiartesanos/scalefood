@@ -25,6 +25,7 @@ import { RepassesAvulsosList } from "@/components/RepassesAvulsosList";
 import { getContasPendentes, getRecebiveisManuaisDoMes } from "@/lib/pendencias";
 import { listarContasReceberAsaas, type ContaReceberAsaas } from "@/lib/asaas";
 import { getDRE, DRE_PRIMEIRO_ANO_MES } from "@/lib/dre";
+import { hojeBR, hojeISOBR } from "@/lib/tz";
 import { DREView } from "@/components/DREView";
 import type { CustoFixo, ContaPagarAvulsa } from "@/lib/types";
 
@@ -46,13 +47,13 @@ export default async function FinanceiroPage({
   if (profile.role === "comercial") redirect("/dashboard");
 
   const params = await searchParams;
-  const hoje = new Date();
-  let dreAno = Number(params.ano) || hoje.getFullYear();
-  let dreMes = Number(params.mes) || hoje.getMonth() + 1;
+  const { ano: anoAtual, mes: mesAtual } = hojeBR();
+  let dreAno = Number(params.ano) || anoAtual;
+  let dreMes = Number(params.mes) || mesAtual;
   const dreAnoMes = dreAno * 100 + dreMes;
-  const atualAnoMes = hoje.getFullYear() * 100 + (hoje.getMonth() + 1);
+  const atualAnoMes = anoAtual * 100 + mesAtual;
   if (dreAnoMes < DRE_PRIMEIRO_ANO_MES) { dreAno = 2026; dreMes = 8; }
-  if (dreAnoMes > atualAnoMes) { dreAno = hoje.getFullYear(); dreMes = hoje.getMonth() + 1; }
+  if (dreAnoMes > atualAnoMes) { dreAno = anoAtual; dreMes = mesAtual; }
 
   const supabase = await createClient();
   const clientes = await getClientes();
@@ -68,7 +69,7 @@ export default async function FinanceiroPage({
   const { data: faturamentoAtual } = await supabase.from("faturamento_mes_atual").select("*").single();
 
   const contasPendentes = await getContasPendentes();
-  const inicioMesStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-01`;
+  const inicioMesStr = `${anoAtual}-${String(mesAtual).padStart(2, "0")}-01`;
   const { data: pagosRaw } = await supabase
     .from("custos_fixos_pagamentos")
     .select("custo_fixo_id, data")
@@ -142,15 +143,12 @@ export default async function FinanceiroPage({
     return faturamentoDoMes * (0.36 + 0.2 * 0.5);
   }
 
-  const agoraChart = new Date();
   // se o mês atual já foi "fechado" em faturamento_mensal_historico
   // (ex: closamos agosto no dia 31), não duplica ele como "ao vivo" —
   // o valor congelado (Asaas + PIX/manual) é mais confiável que o
   // faturamento_novo_mes (que só conta evento novo de receita, não o
   // total recebido no mês).
-  const mesAtualJaFechado = (historicoMensal || []).some(
-    (h) => h.ano === agoraChart.getFullYear() && h.mes === agoraChart.getMonth() + 1
-  );
+  const mesAtualJaFechado = (historicoMensal || []).some((h) => h.ano === anoAtual && h.mes === mesAtual);
   const pontosMensal = [
     ...(historicoMensal || []).map((h) => ({
       label: `${MES_NOME[h.mes - 1].slice(0, 3)}/${String(h.ano).slice(2)}`,
@@ -163,7 +161,7 @@ export default async function FinanceiroPage({
       ? []
       : [
           {
-            label: `${MES_NOME[agoraChart.getMonth()].slice(0, 3)}/${String(agoraChart.getFullYear()).slice(2)}`,
+            label: `${MES_NOME[mesAtual - 1].slice(0, 3)}/${String(anoAtual).slice(2)}`,
             faturamento: Number(faturamentoAtual?.faturamento_novo_mes || 0),
             custosFixos: custosFixosTotal,
             custosVariaveis,
@@ -321,7 +319,7 @@ export default async function FinanceiroPage({
           </FieldSmall>
           <FieldSmall label="Cliente (opcional)"><input name="cliente" className="input" /></FieldSmall>
           <FieldSmall label="Competência">
-            <input name="data" type="date" defaultValue={new Date().toISOString().slice(0, 10)} className="input" />
+            <input name="data" type="date" defaultValue={hojeISOBR()} className="input" />
           </FieldSmall>
           <button type="submit" className="btn-primary">+ adicionar</button>
         </form>
@@ -428,7 +426,7 @@ export default async function FinanceiroPage({
       ? []
       : [
           {
-            label: `${MES_NOME[agoraChart.getMonth()]} de ${agoraChart.getFullYear()} (em andamento)`,
+            label: `${MES_NOME[mesAtual - 1]} de ${anoAtual} (em andamento)`,
             faturamento: Number(faturamentoAtual?.faturamento_novo_mes || 0),
             custosFixos: custosFixosTotal,
             custosVariaveis,

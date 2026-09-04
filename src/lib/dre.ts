@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ocorrenciasNoMes } from "./data";
 import { listarPagamentosRecebidosNoPeriodo, listarTarifasAsaas } from "./asaas";
+import { hojeBR } from "./tz";
 import type { ContaPagarAvulsa, CustoFixo, CustoVariavelExtra, RecebivelManual } from "./types";
 
 export const DRE_PRIMEIRO_ANO_MES = 202608; // agosto/2026 — antes disso não fecha (regra do usuário)
@@ -44,8 +45,9 @@ const CANAIS_NAO_ASAAS = (canal: string | null) => (canal || "").trim().toLowerC
 // única ação manual que existe em todo o DRE é justamente essa confirmação.
 export async function getDRE(ano: number, mes: number): Promise<DREResultado> {
   const supabase = await createClient();
-  const hoje = new Date();
-  const ehMesAtual = ano === hoje.getFullYear() && mes === hoje.getMonth() + 1;
+  const { ano: anoBR, mes: mesBR, dia: diaBR } = hojeBR();
+  const hoje = new Date(anoBR, mesBR - 1, diaBR);
+  const ehMesAtual = ano === anoBR && mes === mesBR;
   const inicio = `${ano}-${String(mes).padStart(2, "0")}-01`;
   const ultimoDiaDoMes = new Date(ano, mes, 0).getDate();
   const fim = ehMesAtual ? ymd(hoje) : `${ano}-${String(mes).padStart(2, "0")}-${ultimoDiaDoMes}`;

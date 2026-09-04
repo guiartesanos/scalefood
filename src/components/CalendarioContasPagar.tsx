@@ -1,5 +1,6 @@
 import type { CustoFixo } from "@/lib/types";
 import { ocorrenciasNoMes } from "@/lib/data";
+import { hojeBR } from "@/lib/tz";
 
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -8,7 +9,8 @@ function brl(v: number) {
 }
 
 export function CalendarioContasPagar({ custos }: { custos: CustoFixo[] }) {
-  const hoje = new Date();
+  const { ano: anoBR, mes: mesBR, dia: diaBR } = hojeBR();
+  const hoje = new Date(anoBR, mesBR - 1, diaBR);
   const ano = hoje.getFullYear();
   const mes = hoje.getMonth();
   const primeiroDiaSemana = new Date(ano, mes, 1).getDay();

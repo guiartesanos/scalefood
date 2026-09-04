@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { ocorrenciasNoMes } from "./data";
+import { hojeBR } from "./tz";
 import type { ContaPagarAvulsa, CustoFixo, RecebivelManual, Tarefa, Profile } from "./types";
 
 export interface ContaPendente {
@@ -22,8 +23,9 @@ function ymd(d: Date): string {
 // cruza virada de mês (ex: 31/08 -> 01/09).
 export async function getContasPendentes(): Promise<ContaPendente[]> {
   const supabase = await createClient();
-  const hoje = new Date();
-  const amanha = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1);
+  const { ano: anoBR, mes: mesBR, dia: diaBR } = hojeBR();
+  const hoje = new Date(anoBR, mesBR - 1, diaBR);
+  const amanha = new Date(anoBR, mesBR - 1, diaBR + 1);
   const hj = ymd(hoje);
   const am = ymd(amanha);
 
@@ -82,9 +84,8 @@ export interface RecebivelOcorrencia {
 // dar visibilidade e permitir desfazer confirmação por engano.
 export async function getRecebiveisManuaisDoMes(): Promise<RecebivelOcorrencia[]> {
   const supabase = await createClient();
-  const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mes = hoje.getMonth();
+  const { ano, mes: mesBR } = hojeBR();
+  const mes = mesBR - 1;
 
   const { data: recebiveisRaw } = await supabase.from("recebiveis_manuais").select("*").eq("ativo", true);
   const recebiveis = (recebiveisRaw || []) as RecebivelManual[];

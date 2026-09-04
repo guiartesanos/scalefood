@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { logExclusao } from "@/lib/auditoria";
+import { hojeISOBR } from "@/lib/tz";
 
 function brl(v: number | null | undefined) {
   return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -169,7 +170,7 @@ export async function criarCustoVariavel(formData: FormData) {
     valor: parseFloat(String(formData.get("valor") || "0")) || 0,
     categoria: String(formData.get("categoria") || "") || null,
     cliente: String(formData.get("cliente") || "") || null,
-    data: String(formData.get("data") || "") || new Date().toISOString().slice(0, 10),
+    data: String(formData.get("data") || "") || hojeISOBR(),
   });
   if (error) return { error: error.message };
   revalidatePath("/financeiro");
