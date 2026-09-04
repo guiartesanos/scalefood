@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+// Sem centavos de propósito — número grande na TV do dashboard, não uma
+// conferência de valores (ver @/lib/format pra fonte única de formatação).
+import { brlInt as brl } from "@/lib/format";
 import type { FaturamentoMesAtual } from "@/lib/types";
 
 const REFRESH_MS = 60_000;
-
-function brl(v: number | null | undefined) {
-  return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
 
 export function MetaTV({ fat }: { fat: FaturamentoMesAtual | null }) {
   const router = useRouter();

@@ -3,13 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { ContaPendente } from "@/lib/pendencias";
+import { brl } from "@/lib/format";
 import type { ContaPagarAvulsa, Tarefa } from "@/lib/types";
 
 const URG_CLS: Record<string, string> = { alta: "critical", media: "warning", baixa: "muted" };
 
-function brl(v: number) {
-  return "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 function fmtData(d: string) {
   return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
 }

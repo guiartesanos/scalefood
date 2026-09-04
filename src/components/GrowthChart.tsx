@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+// Sem centavos de propósito — eixo de gráfico, não conferência de valores
+// (ver @/lib/format pra fonte única de formatação).
+import { brlInt as brl } from "@/lib/format";
 
 export interface PontoMensal {
   label: string;
@@ -19,9 +22,6 @@ const SERIES = [
 
 type SerieKey = (typeof SERIES)[number]["key"];
 
-function brl(v: number) {
-  return "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
 function brlEixo(v: number) {
   if (Math.abs(v) >= 1000) return (v / 1000).toFixed(0) + "k";
   return v.toFixed(0);

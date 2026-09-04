@@ -1,12 +1,8 @@
 import type { CustoFixo } from "@/lib/types";
-import { ocorrenciasNoMes } from "@/lib/data";
+import { ocorrenciasNoMes, brl } from "@/lib/data";
 import { hojeBR } from "@/lib/tz";
 
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-
-function brl(v: number) {
-  return "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 export function CalendarioContasPagar({ custos }: { custos: CustoFixo[] }) {
   const { ano: anoBR, mes: mesBR, dia: diaBR } = hojeBR();

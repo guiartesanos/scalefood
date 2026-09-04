@@ -2,11 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { marcarAvulsaPaga, desmarcarAvulsaPaga, editarValorAvulsa } from "@/actions/financeiro";
+import { brl } from "@/lib/format";
 import type { ContaPagarAvulsa } from "@/lib/types";
 
-function brl(v: number) {
-  return "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 function fmtData(d: string) {
   return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
 }

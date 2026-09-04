@@ -1,15 +1,12 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { hojeBR } from "@/lib/tz";
+import { brl } from "@/lib/format";
 import type { FaturamentoMesAtual, ReceitaEvento, UserRole } from "@/lib/types";
 import { DefinirMetaButton } from "./DefinirMetaButton";
 import { NovaVendaButton } from "./NovaVendaButton";
 import { FaturamentoNovoModal } from "./FaturamentoNovoModal";
 import { ValorOcultavel } from "./ValoresVisibilidade";
-
-function brl(v: number | null | undefined) {
-  return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 // Mesmo recorte de mês que a view faturamento_mes_atual usa em SQL (hoje
 // no fuso de São Paulo, ver migration 0023), só que em JS pra filtrar a

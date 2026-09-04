@@ -4,6 +4,7 @@ import { getContasPendentes, getRepassesAvulsosPendentes, getTarefasPendentes } 
 import { driveStatus } from "@/lib/googleDrive";
 import { calendarStatus } from "@/lib/googleCalendar";
 import { canvaStatus } from "@/lib/canva";
+import { listarSaudeCrons } from "@/lib/cronHealth";
 import { MetaBar } from "@/components/MetaBar";
 import { TabNav } from "@/components/TabNav";
 import { MobileTabNav } from "@/components/MobileTabNav";
@@ -23,19 +24,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const clientes = await getClientes();
 
   const podeVerFinanceiro = canAccessTab(profile.role, "financeiro");
-  const [contasPendentes, avulsasPendentes, tarefasPendentes, statusIntegracoes] = await Promise.all([
+  const [contasPendentes, avulsasPendentes, tarefasPendentes, statusIntegracoes, saudeCrons] = await Promise.all([
     podeVerFinanceiro ? getContasPendentes() : Promise.resolve([]),
     podeVerFinanceiro ? getRepassesAvulsosPendentes() : Promise.resolve([]),
     getTarefasPendentes(profile),
     // Só master vê a aba Configurações, então só master precisa pagar o
-    // custo dessas 3 leituras (conexões OAuth compartilhadas — ver
+    // custo dessas leituras (conexões OAuth + saúde dos crons — ver
     // /configuracoes/integracoes).
     profile.role === "master"
       ? Promise.all([driveStatus(), calendarStatus(), canvaStatus()])
       : Promise.resolve([]),
+    profile.role === "master" ? listarSaudeCrons() : Promise.resolve([]),
   ]);
   const pendenciasFinanceiro = contasPendentes.length + avulsasPendentes.length;
-  const integracoesComErro = statusIntegracoes.filter((s) => s.conectado && s.erro).length;
+  const integracoesComErro =
+    statusIntegracoes.filter((s) => s.conectado && s.erro).length +
+    saudeCrons.filter((c) => !c.nuncaRodou && !c.ultimoSucesso).length;
 
   return (
     <VisibilidadeProvider>

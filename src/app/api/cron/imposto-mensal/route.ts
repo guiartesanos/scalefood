@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { totalNotasFiscaisAsaas } from "@/lib/asaas";
+import { registrarExecucaoCron } from "@/lib/cronHealth";
 
 const MES_NOME = [
   "janeiro", "fevereiro", "março", "abril", "maio", "junho",
@@ -37,32 +38,53 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: true, naoEhDiaDeVencimento: true });
   }
 
-  const inicioCompetencia = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-  const fimCompetencia = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
-  const competenciaChave = `${inicioCompetencia.getFullYear()}-${String(inicioCompetencia.getMonth() + 1).padStart(2, "0")}`;
-  const referencia = `imposto:${competenciaChave}`;
+  try {
+    const inicioCompetencia = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+    const fimCompetencia = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
+    const competenciaChave = `${inicioCompetencia.getFullYear()}-${String(inicioCompetencia.getMonth() + 1).padStart(2, "0")}`;
+    const referencia = `imposto:${competenciaChave}`;
 
-  const supabase = createAdminClient();
-  const { data: existente } = await supabase
-    .from("contas_pagar_avulsas")
-    .select("id")
-    .eq("referencia", referencia)
-    .maybeSingle();
-  if (existente) return NextResponse.json({ ok: true, jaGerado: true });
+    const supabase = createAdminClient();
+    const { data: existente } = await supabase
+      .from("contas_pagar_avulsas")
+      .select("id")
+      .eq("referencia", referencia)
+      .maybeSingle();
+    if (existente) {
+      await registrarExecucaoCron("imposto-mensal", { ok: true, detalhe: "já gerado pra essa competência" });
+      return NextResponse.json({ ok: true, jaGerado: true });
+    }
 
-  const totalNotas = await totalNotasFiscaisAsaas(ymd(inicioCompetencia), ymd(fimCompetencia));
-  const valorImposto = Math.round(totalNotas * 0.07 * 100) / 100;
-  if (valorImposto <= 0) return NextResponse.json({ ok: true, semNotas: true });
+    // Se isso falhar (token do Asaas expirado, API fora do ar), cai no
+    // catch abaixo em vez de sumir nos logs de função da Vercel — antes
+    // disso a conta de imposto do mês simplesmente não era gerada, sem
+    // ninguém saber (ver cronHealth.ts / Configurações > Integrações).
+    const totalNotas = await totalNotasFiscaisAsaas(ymd(inicioCompetencia), ymd(fimCompetencia));
+    const valorImposto = Math.round(totalNotas * 0.07 * 100) / 100;
+    if (valorImposto <= 0) {
+      await registrarExecucaoCron("imposto-mensal", { ok: true, detalhe: "sem notas fiscais no período" });
+      return NextResponse.json({ ok: true, semNotas: true });
+    }
 
-  const { error } = await supabase.from("contas_pagar_avulsas").insert({
-    nome: `Imposto (7% s/ notas fiscais de ${MES_NOME[inicioCompetencia.getMonth()]}/${inicioCompetencia.getFullYear()})`,
-    valor: valorImposto,
-    categoria: "Imposto",
-    origem: "imposto_mensal",
-    referencia,
-    data: ymd(vencimento),
-  });
+    const { error } = await supabase.from("contas_pagar_avulsas").insert({
+      nome: `Imposto (7% s/ notas fiscais de ${MES_NOME[inicioCompetencia.getMonth()]}/${inicioCompetencia.getFullYear()})`,
+      valor: valorImposto,
+      categoria: "Imposto",
+      origem: "imposto_mensal",
+      referencia,
+      data: ymd(vencimento),
+    });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true, valor: valorImposto, totalNotas });
+    if (error) {
+      await registrarExecucaoCron("imposto-mensal", { ok: false, erro: error.message });
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    await registrarExecucaoCron("imposto-mensal", { ok: true, detalhe: `gerado, valor R$ ${valorImposto}` });
+    return NextResponse.json({ ok: true, valor: valorImposto, totalNotas });
+  } catch (e) {
+    const mensagem = e instanceof Error ? e.message : String(e);
+    await registrarExecucaoCron("imposto-mensal", { ok: false, erro: mensagem });
+    return NextResponse.json({ error: mensagem }, { status: 500 });
+  }
 }

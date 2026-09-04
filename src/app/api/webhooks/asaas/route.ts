@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { buscarClienteAsaas } from "@/lib/asaas";
+import { brl } from "@/lib/format";
 
 // Eventos que significam "dinheiro realmente caiu" — mesmo conjunto usado
 // no script de alertas (asaas-alertas/check_payments.py).
 const EVENTOS_RECEBIDOS = new Set(["PAYMENT_RECEIVED", "PAYMENT_CONFIRMED", "PAYMENT_RECEIVED_IN_CASH"]);
-
-function brl(v: number) {
-  return "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 // O Asaas manda esse header com o token configurado no cadastro do
 // webhook (asaas-access-token) em toda chamada — é o que garante que

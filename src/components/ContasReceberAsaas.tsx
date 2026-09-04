@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { brl } from "@/lib/format";
 import type { ContaReceberAsaas } from "@/lib/asaas";
 
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -9,9 +10,6 @@ const MES_NOME = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-function brl(v: number) {
-  return "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 function fmtData(d: string) {
   return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
 }

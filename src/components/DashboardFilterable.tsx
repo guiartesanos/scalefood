@@ -4,14 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { StatusSelect } from "./StatusSelect";
 import { ValorOcultavel } from "./ValoresVisibilidade";
+import { brl, brlInt } from "@/lib/format";
 import type { Cliente, ClienteStatus } from "@/lib/types";
-
-function brl(v: number | null | undefined) {
-  return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-function brlInt(v: number | null | undefined) {
-  return "R$ " + Math.round(Number(v || 0)).toLocaleString("pt-BR");
-}
 
 const STATUS_ORDER: ClienteStatus[] = [
   "Rodando - com resultado",

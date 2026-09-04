@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { StatusSelect } from "@/components/StatusSelect";
+import { brl } from "@/lib/format";
 import type { Cliente } from "@/lib/types";
 
 const COLS = [
@@ -19,9 +20,6 @@ const STRIPE: Record<string, string> = {
   cancelando: "var(--critical)",
 };
 
-function brl(v: number | null | undefined) {
-  return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 function tenureLabel(fechamento: string | null): { text: string; days: number } {
   if (!fechamento) return { text: "—", days: 99999 };
   const d = new Date(fechamento + "T00:00:00");

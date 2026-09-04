@@ -6,6 +6,7 @@ import { StatusSelect } from "@/components/StatusSelect";
 import { ClienteValoresForm } from "@/components/ClienteValoresForm";
 import { ClientesKanban } from "@/components/ClientesKanban";
 import { ClientesTabs } from "@/components/ClientesTabs";
+import { ComercialSubNav } from "@/components/ComercialSubNav";
 import { MotivoCancelamentoSelect } from "@/components/MotivoCancelamentoSelect";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { canEditClienteValores } from "@/lib/permissions";
@@ -145,7 +146,12 @@ export default async function ClientesPage() {
     </section>
   );
 
-  return <ClientesTabs geral={geral} cancelados={canceladosView} totalCancelados={cancelados.length} />;
+  return (
+    <>
+      <ComercialSubNav />
+      <ClientesTabs geral={geral} cancelados={canceladosView} totalCancelados={cancelados.length} />
+    </>
+  );
 }
 
 function Kpi({ label, value, sub, color }: { label: string; value: string; sub: string; color?: string }) {

@@ -1,12 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { criarClienteAsaas, criarAssinaturaAsaas } from "@/lib/asaas";
+import { brl } from "@/lib/format";
 
 function calcTraf(rec: number): number {
   return rec >= 2500 ? Math.round(rec * 0.34 * 100) / 100 : 850;
-}
-
-function brl(v: number | null | undefined) {
-  return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export interface DadosClienteRecorrencia {

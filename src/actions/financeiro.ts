@@ -5,10 +5,7 @@ import { requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { logExclusao } from "@/lib/auditoria";
 import { hojeISOBR } from "@/lib/tz";
-
-function brl(v: number | null | undefined) {
-  return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+import { brl } from "@/lib/format";
 
 function requireFinanceiro(role: string) {
   return role === "master" || role === "financeiro" || role === "onboarding";

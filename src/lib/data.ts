@@ -11,13 +11,11 @@ export const getClientes = cache(async function getClientes(): Promise<Cliente[]
   return (data as Cliente[]) || [];
 });
 
-export function brl(v: number | null | undefined) {
-  return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-export function brlInt(v: number | null | undefined) {
-  return "R$ " + Math.round(v || 0).toLocaleString("pt-BR");
-}
+// brl/brlInt moraram aqui antes — reexportados de @/lib/format (que não
+// importa nada do Supabase) pra quem já importava daqui não quebrar, e
+// pra código client-side poder importar a mesma formatação sem puxar
+// junto o createClient de servidor deste arquivo.
+export { brl, brlInt } from "./format";
 
 export function tenureLabel(fechamento: string | null): { text: string; days: number } {
   if (!fechamento) return { text: "—", days: 99999 };

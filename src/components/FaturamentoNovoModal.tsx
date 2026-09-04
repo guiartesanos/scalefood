@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { brl } from "@/lib/format";
 import type { ReceitaEvento } from "@/lib/types";
 import { ValorOcultavel } from "./ValoresVisibilidade";
 
-function brl(v: number) {
-  return "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 function fmtData(d: string) {
   return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
 }

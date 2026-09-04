@@ -6,16 +6,24 @@ import { canAccessTab } from "@/lib/permissions";
 import { NavBadge } from "@/components/NavBadge";
 import type { UserRole } from "@/lib/types";
 
-type TabItem = { key: string; href: string; label: string; icon: () => React.JSX.Element };
+type TabItem = {
+  key: string;
+  href: string;
+  label: string;
+  icon: () => React.JSX.Element;
+  // pra "Comercial", que agrupa 3 rotas num ícone só — ver TabNav.tsx pro
+  // mesmo agrupamento no desktop e ComercialSubNav.tsx pro sub-nav dentro
+  // de cada uma das 3 páginas.
+  ativoEm?: string[];
+};
 
 const TABS: TabItem[] = [
   { key: "dashboard", href: "/dashboard", label: "Início", icon: IconHome },
-  { key: "clientes", href: "/clientes", label: "Clientes", icon: IconUsers },
-  { key: "consultoria", href: "/consultoria", label: "Consultoria", icon: IconClipboard },
-  { key: "propostas", href: "/propostas", label: "Propostas", icon: IconSend },
+  { key: "clientes", href: "/clientes", label: "Comercial", icon: IconUsers, ativoEm: ["/clientes", "/consultoria", "/propostas"] },
   { key: "tarefas", href: "/tarefas", label: "Tarefas", icon: IconCheck },
   { key: "financeiro", href: "/financeiro", label: "Financeiro", icon: IconChart },
   { key: "icp", href: "/icp", label: "ICP", icon: IconTarget },
+  { key: "marketing", href: "/marketing", label: "Marketing", icon: IconMarketing },
 ];
 
 export function MobileTabNav({
@@ -46,7 +54,9 @@ export function MobileTabNav({
       style={{ bottom: "calc(10px + env(safe-area-inset-bottom))" }}
     >
       {tabs.map((t) => {
-        const active = pathname.startsWith(t.href.split("/").slice(0, 2).join("/"));
+        const active = t.ativoEm
+          ? t.ativoEm.some((p) => pathname.startsWith(p))
+          : pathname.startsWith(t.href.split("/").slice(0, 2).join("/"));
         const Icon = t.icon;
         return (
           <Link
@@ -103,24 +113,6 @@ function IconUsers() {
     </svg>
   );
 }
-function IconClipboard() {
-  return (
-    <svg {...ICON_PROPS}>
-      <rect x="4" y="4" width="16" height="18" rx="2" />
-      <path d="M9 3h6a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
-      <line x1="8" y1="11" x2="16" y2="11" />
-      <line x1="8" y1="15" x2="13" y2="15" />
-    </svg>
-  );
-}
-function IconSend() {
-  return (
-    <svg {...ICON_PROPS}>
-      <line x1="22" y1="2" x2="11" y2="13" />
-      <polygon points="22 2 15 22 11 13 2 9 22 2" />
-    </svg>
-  );
-}
 function IconCheck() {
   return (
     <svg {...ICON_PROPS}>
@@ -144,6 +136,15 @@ function IconTarget() {
       <circle cx="12" cy="12" r="9" />
       <circle cx="12" cy="12" r="5" />
       <circle cx="12" cy="12" r="1" />
+    </svg>
+  );
+}
+function IconMarketing() {
+  return (
+    <svg {...ICON_PROPS}>
+      <path d="M3 11v2a1 1 0 0 0 1 1h2l4 4V6L6 10H4a1 1 0 0 0-1 1z" />
+      <path d="M15 8a4 4 0 0 1 0 8" />
+      <path d="M18 5a8 8 0 0 1 0 14" />
     </svg>
   );
 }

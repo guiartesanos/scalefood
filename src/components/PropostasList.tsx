@@ -8,6 +8,7 @@ import {
   removerProposta,
 } from "@/actions/propostas";
 import { ConfirmarExclusao } from "./ConfirmarExclusao";
+import { brl as brlValor } from "@/lib/format";
 import {
   PROPOSTA_STATUS_LIST,
   PROPOSTA_STATUS_META,
@@ -17,8 +18,7 @@ import {
 } from "@/lib/types";
 
 function brl(v: number | null) {
-  if (v == null) return "—";
-  return "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return v == null ? "—" : brlValor(v);
 }
 function fmtData(d: string | null) {
   if (!d) return "—";

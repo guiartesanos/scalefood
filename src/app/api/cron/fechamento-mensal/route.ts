@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { registrarExecucaoCron } from "@/lib/cronHealth";
 
 // Vercel Cron chama isso todo dia 1 do mês (ver vercel.json) e manda o
 // header Authorization com o CRON_SECRET automaticamente — barra
@@ -25,6 +26,10 @@ export async function GET(request: NextRequest) {
     coluna: "a-fazer",
   });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    await registrarExecucaoCron("fechamento-mensal", { ok: false, erro: error.message });
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  await registrarExecucaoCron("fechamento-mensal", { ok: true, detalhe: mesLabel });
   return NextResponse.json({ ok: true });
 }

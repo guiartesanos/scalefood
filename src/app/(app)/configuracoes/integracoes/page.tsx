@@ -3,7 +3,13 @@ import { requireMaster } from "@/lib/auth";
 import { driveStatus } from "@/lib/googleDrive";
 import { calendarStatus } from "@/lib/googleCalendar";
 import { canvaStatus } from "@/lib/canva";
+import { listarSaudeCrons } from "@/lib/cronHealth";
 import type { StatusConexao } from "@/lib/googleDrive";
+
+function fmtQuando(iso: string | null) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+}
 
 const INTEGRACOES = [
   {
@@ -32,18 +38,23 @@ export default async function IntegracoesPage() {
   // barra o mesmo acesso direto pelo banco.
   await requireMaster();
 
-  const [drive, calendar, canva] = await Promise.all([driveStatus(), calendarStatus(), canvaStatus()]);
+  const [drive, calendar, canva, crons] = await Promise.all([
+    driveStatus(),
+    calendarStatus(),
+    canvaStatus(),
+    listarSaudeCrons(),
+  ]);
   const status: Record<string, StatusConexao> = { drive, calendar, canva };
 
   return (
-    <section className="flex flex-col gap-3.5">
+    <section className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="font-display font-bold text-[21px]">Configurações &gt; Integrações</h2>
           <p className="text-[13px] text-muted">
-            Cada uma dessas é uma conexão única, compartilhada por todo mundo que usa o sistema — se o token for
-            revogado do lado do Google/Canva (troca de senha, desconexão manual, 6 meses sem uso), quebra pra todo
-            mundo de uma vez. Esta tela existe pra isso não passar em silêncio.
+            Conexões e rotinas automáticas que costumavam quebrar em silêncio — se o Google/Canva revoga o token, ou
+            se um cron falha (token do Asaas expirado, por exemplo), o único jeito de saber era abrir os logs de
+            função da Vercel. Esta tela existe pra isso aparecer aqui em vez de lá.
           </p>
         </div>
         <Link href="/configuracoes/usuarios" className="btn-ghost underline underline-offset-2 whitespace-nowrap">
@@ -52,6 +63,7 @@ export default async function IntegracoesPage() {
       </div>
 
       <div className="flex flex-col gap-3">
+        <h3 className="font-display font-bold text-[15px]">Conexões</h3>
         {INTEGRACOES.map((i) => {
           const s = status[i.chave];
           const quebrada = s.conectado && !!s.erro;
@@ -66,8 +78,7 @@ export default async function IntegracoesPage() {
                 <span className="text-[12px] text-ink-2">{i.descricao}</span>
                 {quebrada && (
                   <span className="text-[12px] text-critical mt-1">
-                    ⚠ falhou ao renovar {s.erroEm ? `em ${new Date(s.erroEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}` : ""}:{" "}
-                    {s.erro}
+                    ⚠ falhou ao renovar {s.erroEm ? `em ${fmtQuando(s.erroEm)}` : ""}: {s.erro}
                   </span>
                 )}
               </div>
@@ -79,6 +90,42 @@ export default async function IntegracoesPage() {
                     {quebrada ? "reconectar" : "conectar"}
                   </a>
                 )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h3 className="font-display font-bold text-[15px]">Saúde dos crons</h3>
+        {crons.map((c) => {
+          const quebrado = !c.nuncaRodou && !c.ultimoSucesso;
+          return (
+            <div
+              key={c.chave}
+              className="border rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap bg-paper"
+              style={{ borderColor: quebrado ? "var(--critical)" : "var(--line)" }}
+            >
+              <div className="flex flex-col gap-0.5">
+                <span className="font-display font-bold text-[15px]">{c.label}</span>
+                {c.nuncaRodou && <span className="text-[12px] text-muted">ainda não rodou nenhuma vez.</span>}
+                {!c.nuncaRodou && (
+                  <span className="text-[12px] text-ink-2">
+                    última execução: {fmtQuando(c.ultimaExecucaoEm)}
+                    {c.ultimoSucesso && c.ultimoDetalhe ? ` — ${c.ultimoDetalhe}` : ""}
+                  </span>
+                )}
+                {quebrado && (
+                  <span className="text-[12px] text-critical mt-1">
+                    ⚠ falhou: {c.ultimoErro}
+                    {c.ultimoOkEm ? ` (última vez que funcionou: ${fmtQuando(c.ultimoOkEm)})` : " (nunca funcionou)"}
+                  </span>
+                )}
+              </div>
+              <div className="shrink-0">
+                {c.nuncaRodou && <span className="text-xs text-muted">sem dado</span>}
+                {!c.nuncaRodou && !quebrado && <span className="text-xs text-good font-semibold">✓ ok</span>}
+                {quebrado && <span className="text-xs text-critical font-semibold">⚠ com erro</span>}
               </div>
             </div>
           );

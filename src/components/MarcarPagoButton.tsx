@@ -2,10 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { marcarCustoFixoPago, desmarcarCustoFixoPago } from "@/actions/financeiro";
-
-function brl(v: number) {
-  return "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+import { brl } from "@/lib/format";
 
 // Preço da ocorrência é moldável na hora de confirmar — mesma ideia das
 // contas avulsas (tráfego/comissão/imposto), útil pra contas "fixas" que
