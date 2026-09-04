@@ -245,6 +245,38 @@ export const CONSULTORIA_TAREFAS_PADRAO = [
   "Mapeamento de fornecedores",
 ] as const;
 
+export type PropostaTipo = "consultoria" | "recorrencia" | "consultoria_recorrencia";
+export type PropostaStatus = "enviada" | "em_negociacao" | "aceita" | "recusada" | "sem_retorno";
+
+export interface Proposta {
+  id: string;
+  nome_prospect: string;
+  tipo: PropostaTipo;
+  valor: number | null;
+  data_envio: string;
+  status: PropostaStatus;
+  proximo_followup: string | null;
+  observacao: string | null;
+  criado_por: string | null;
+  created_at: string;
+}
+
+export const PROPOSTA_TIPO_LABEL: Record<PropostaTipo, string> = {
+  consultoria: "Consultoria",
+  recorrencia: "Recorrência",
+  consultoria_recorrencia: "Consultoria + Recorrência",
+};
+
+export const PROPOSTA_STATUS_LIST: PropostaStatus[] = ["enviada", "em_negociacao", "aceita", "recusada", "sem_retorno"];
+
+export const PROPOSTA_STATUS_META: Record<PropostaStatus, { cls: string; label: string }> = {
+  enviada: { cls: "warning", label: "Enviada" },
+  em_negociacao: { cls: "accent", label: "Em negociação" },
+  aceita: { cls: "good", label: "Aceita" },
+  recusada: { cls: "critical", label: "Recusada" },
+  sem_retorno: { cls: "serious", label: "Sem retorno" },
+};
+
 export interface ClienteCancelado {
   id: string;
   nome: string;

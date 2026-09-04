@@ -12,6 +12,7 @@ const TABS: TabItem[] = [
   { key: "dashboard", href: "/dashboard", label: "Início", icon: IconHome },
   { key: "clientes", href: "/clientes", label: "Clientes", icon: IconUsers },
   { key: "consultoria", href: "/consultoria", label: "Consultoria", icon: IconClipboard },
+  { key: "propostas", href: "/propostas", label: "Propostas", icon: IconSend },
   { key: "tarefas", href: "/tarefas", label: "Tarefas", icon: IconCheck },
   { key: "financeiro", href: "/financeiro", label: "Financeiro", icon: IconChart },
   { key: "icp", href: "/icp", label: "ICP", icon: IconTarget },
@@ -103,6 +104,14 @@ function IconClipboard() {
       <path d="M9 3h6a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
       <line x1="8" y1="11" x2="16" y2="11" />
       <line x1="8" y1="15" x2="13" y2="15" />
+    </svg>
+  );
+}
+function IconSend() {
+  return (
+    <svg {...ICON_PROPS}>
+      <line x1="22" y1="2" x2="11" y2="13" />
+      <polygon points="22 2 15 22 11 13 2 9 22 2" />
     </svg>
   );
 }
