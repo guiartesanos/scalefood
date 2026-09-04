@@ -34,6 +34,35 @@ export async function convidarUsuario(formData: FormData) {
   return { success: true };
 }
 
+// Caminho alternativo ao convite por email: cria a conta já ativa, com
+// senha definida na hora — útil quando precisa liberar acesso rápido
+// (ex: comercial começando hoje) sem esperar o convidado abrir o email.
+// O gatilho handle_new_user (0001_init.sql) cria a linha em profiles a
+// partir do user_metadata, igual faz pro fluxo de convite.
+export async function criarUsuarioComSenha(formData: FormData) {
+  await requireMaster();
+
+  const email = String(formData.get("email") || "").trim();
+  const nome = String(formData.get("nome") || "").trim();
+  const senha = String(formData.get("senha") || "");
+  const role = String(formData.get("role") || "comercial") as UserRole;
+
+  if (!email || !senha) return { error: "Informe email e senha." };
+  if (senha.length < 8) return { error: "A senha precisa ter pelo menos 8 caracteres." };
+
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.createUser({
+    email,
+    password: senha,
+    email_confirm: true,
+    user_metadata: { nome, role },
+  });
+  if (error) return { error: "Não deu pra criar: " + error.message };
+
+  revalidatePath("/configuracoes/usuarios");
+  return { success: true };
+}
+
 export async function alterarPapelUsuario(userId: string, role: UserRole) {
   await requireMaster();
   const admin = createAdminClient();
