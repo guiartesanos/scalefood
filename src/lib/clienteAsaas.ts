@@ -51,12 +51,13 @@ export async function criarClienteComRecorrencia(
   const liq = d.valorRecorrencia - traf - taxa;
   const marg = d.valorRecorrencia ? (liq / d.valorRecorrencia) * 100 : 0;
 
-  const { count } = await supabase.from("clientes").select("*", { count: "exact", head: true });
-
+  // "n" vem do default da coluna (sequence clientes_n_seq, ver migration
+  // 0022) — nunca reaproveita número e não corre risco de colisão, ao
+  // contrário do antigo count(*)+1 (que colidia quando um cliente era
+  // cancelado ou em inserções próximas).
   const { data: novoCliente, error: clienteError } = await supabase
     .from("clientes")
     .insert({
-      n: (count || 0) + 1,
       nome: d.nome,
       dono: d.dono || "",
       nicho: d.nicho,

@@ -11,6 +11,14 @@ import type { Cliente, Pagamento, Tarefa } from "@/lib/types";
 
 const URG_CLS: Record<string, string> = { alta: "critical", media: "warning", baixa: "muted" };
 const COLUNA_LABEL: Record<string, string> = { "a-fazer": "A fazer", "em-andamento": "Em andamento", feito: "Feito" };
+// mesmo texto usado em clientes/page.tsx pro badge de crescimento — aqui
+// era exibido o valor bruto do enum (ex: "sem_dado") direto na tela.
+const GROWTH_NOTE_LABEL: Record<string, string> = {
+  zero_base: "cliente começou do zero",
+  nao_iniciado: "onboarding não iniciado",
+  estagnado: "estagnado",
+  sem_dado: "sem dado ainda",
+};
 
 export default async function ClienteDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -82,7 +90,7 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
         <Kpi
           label="Evolução (entrada → hoje)"
           value={c.entrada != null && c.hoje != null ? `${brlInt(c.entrada)} → ${brlInt(c.hoje)}` : "sem dado"}
-          sub={p !== null ? `${p >= 0 ? "+" : ""}${p.toFixed(1).replace(".", ",")}%` : c.growth_note || ""}
+          sub={p !== null ? `${p >= 0 ? "+" : ""}${p.toFixed(1).replace(".", ",")}%` : GROWTH_NOTE_LABEL[c.growth_note || ""] || ""}
           ocultavel
         />
       </div>
