@@ -65,13 +65,16 @@ export async function removerCustoFixo(id: string) {
   revalidatePath("/dre");
 }
 
-export async function marcarCustoFixoPago(custoFixoId: string, data: string) {
+// valor é opcional — só passa quando o usuário ajustou o preço antes de
+// confirmar (ver ValorMoldavelCustoFixo). Sem isso, fica null e a tela
+// cai de volta pro valor do modelo em custos_fixos.
+export async function marcarCustoFixoPago(custoFixoId: string, data: string, valor?: number) {
   const profile = await requireProfile();
   if (!requireFinanceiro(profile.role)) return { error: "Sem permissão." };
   const supabase = await createClient();
   const { error } = await supabase
     .from("custos_fixos_pagamentos")
-    .insert({ custo_fixo_id: custoFixoId, data, pago_por: profile.id });
+    .insert({ custo_fixo_id: custoFixoId, data, pago_por: profile.id, valor: valor ?? null });
   if (error) return { error: error.message };
   revalidatePath("/financeiro");
   revalidatePath("/dre");

@@ -37,10 +37,7 @@ export function ContasPendentesList({ pendentes, pagas }: { pendentes: ContaPend
                 {c.amanha && <b style={{ color: "var(--warning)" }}> — vence amanhã</b>}
               </span>
             </div>
-            <div className="flex items-center gap-2.5 shrink-0">
-              <span className="num font-semibold text-[13px]">{brl(c.valor)}</span>
-              <MarcarPagoButton custoFixoId={c.custoFixoId} data={c.data} />
-            </div>
+            <MarcarPagoButton custoFixoId={c.custoFixoId} data={c.data} valor={c.valor} />
           </div>
         ))}
         {!pendentes.length && (

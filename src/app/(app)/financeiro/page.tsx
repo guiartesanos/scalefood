@@ -72,14 +72,18 @@ export default async function FinanceiroPage({
   const inicioMesStr = `${anoAtual}-${String(mesAtual).padStart(2, "0")}-01`;
   const { data: pagosRaw } = await supabase
     .from("custos_fixos_pagamentos")
-    .select("custo_fixo_id, data")
+    .select("custo_fixo_id, data, valor")
     .gte("data", inicioMesStr)
     .order("data", { ascending: false });
   const custosFixosPorId = new Map((custosFixosRaw as CustoFixo[] | null || []).map((c) => [c.id, c]));
   const contasPagas: ContaPaga[] = (pagosRaw || [])
     .map((p) => {
       const c = custosFixosPorId.get(p.custo_fixo_id);
-      return c ? { custoFixoId: p.custo_fixo_id, nome: c.nome, valor: Number(c.valor), data: p.data } : null;
+      if (!c) return null;
+      // valor ajustado na hora de confirmar tem prioridade sobre o valor
+      // do modelo (ver ValorMoldavelCustoFixo).
+      const valor = p.valor != null ? Number(p.valor) : Number(c.valor);
+      return { custoFixoId: p.custo_fixo_id, nome: c.nome, valor, data: p.data };
     })
     .filter((x): x is ContaPaga => x !== null);
 
