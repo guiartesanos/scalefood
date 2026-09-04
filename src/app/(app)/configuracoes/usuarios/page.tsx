@@ -21,9 +21,14 @@ export default async function UsuariosPage() {
             Só quem tem papel &quot;master&quot; acessa essa tela — checado no servidor e no banco (RLS), não só escondido no menu.
           </p>
         </div>
-        <Link href="/configuracoes/auditoria" className="btn-ghost underline underline-offset-2 whitespace-nowrap">
-          histórico de exclusões →
-        </Link>
+        <div className="flex items-center gap-3 shrink-0">
+          <Link href="/configuracoes/integracoes" className="btn-ghost underline underline-offset-2 whitespace-nowrap">
+            integrações →
+          </Link>
+          <Link href="/configuracoes/auditoria" className="btn-ghost underline underline-offset-2 whitespace-nowrap">
+            histórico de exclusões →
+          </Link>
+        </div>
       </div>
 
       <ConvidarUsuarioForm />

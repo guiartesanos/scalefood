@@ -21,10 +21,12 @@ export function TabNav({
   role,
   pendenciasFinanceiro = 0,
   pendenciasTarefas = 0,
+  integracoesComErro = 0,
 }: {
   role: UserRole;
   pendenciasFinanceiro?: number;
   pendenciasTarefas?: number;
+  integracoesComErro?: number;
 }) {
   const pathname = usePathname();
   const BADGES: Record<string, number> = { financeiro: pendenciasFinanceiro, tarefas: pendenciasTarefas };
@@ -58,6 +60,7 @@ export function TabNav({
           }}
         >
           Configurações
+          <NavBadge count={integracoesComErro} />
         </Link>
       )}
     </nav>

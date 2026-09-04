@@ -22,13 +22,19 @@ export function MobileTabNav({
   role,
   pendenciasFinanceiro = 0,
   pendenciasTarefas = 0,
+  integracoesComErro = 0,
 }: {
   role: UserRole;
   pendenciasFinanceiro?: number;
   pendenciasTarefas?: number;
+  integracoesComErro?: number;
 }) {
   const pathname = usePathname();
-  const BADGES: Record<string, number> = { financeiro: pendenciasFinanceiro, tarefas: pendenciasTarefas };
+  const BADGES: Record<string, number> = {
+    financeiro: pendenciasFinanceiro,
+    tarefas: pendenciasTarefas,
+    configuracoes: integracoesComErro,
+  };
   const tabs: TabItem[] = TABS.filter((t) => canAccessTab(role, t.key));
   if (role === "master") {
     tabs.push({ key: "configuracoes", href: "/configuracoes/usuarios", label: "Config", icon: IconSettings });

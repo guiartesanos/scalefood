@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { hojeBR } from "@/lib/tz";
 import type { FaturamentoMesAtual, ReceitaEvento, UserRole } from "@/lib/types";
 import { DefinirMetaButton } from "./DefinirMetaButton";
 import { NovaVendaButton } from "./NovaVendaButton";
@@ -10,14 +11,12 @@ function brl(v: number | null | undefined) {
   return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// Mesmo recorte de mês que a view faturamento_mes_atual usa em SQL
-// (date_trunc('month', current_date)), só que em JS pra filtrar a
+// Mesmo recorte de mês que a view faturamento_mes_atual usa em SQL (hoje
+// no fuso de São Paulo, ver migration 0023), só que em JS pra filtrar a
 // query de receita_eventos que alimenta a listinha clicável.
 function limitesMesAtual(): { inicio: string; fim: string } {
-  const hoje = new Date();
-  const ano = hoje.getUTCFullYear();
-  const mes = hoje.getUTCMonth() + 1;
-  const ultimoDia = new Date(Date.UTC(ano, mes, 0)).getUTCDate();
+  const { ano, mes } = hojeBR();
+  const ultimoDia = new Date(ano, mes, 0).getDate();
   const mesStr = String(mes).padStart(2, "0");
   return { inicio: `${ano}-${mesStr}-01`, fim: `${ano}-${mesStr}-${String(ultimoDia).padStart(2, "0")}` };
 }

@@ -1,6 +1,9 @@
 import { requireProfile } from "@/lib/auth";
 import { getClientes } from "@/lib/data";
 import { getContasPendentes, getRepassesAvulsosPendentes, getTarefasPendentes } from "@/lib/pendencias";
+import { driveStatus } from "@/lib/googleDrive";
+import { calendarStatus } from "@/lib/googleCalendar";
+import { canvaStatus } from "@/lib/canva";
 import { MetaBar } from "@/components/MetaBar";
 import { TabNav } from "@/components/TabNav";
 import { MobileTabNav } from "@/components/MobileTabNav";
@@ -20,12 +23,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const clientes = await getClientes();
 
   const podeVerFinanceiro = canAccessTab(profile.role, "financeiro");
-  const [contasPendentes, avulsasPendentes, tarefasPendentes] = await Promise.all([
+  const [contasPendentes, avulsasPendentes, tarefasPendentes, statusIntegracoes] = await Promise.all([
     podeVerFinanceiro ? getContasPendentes() : Promise.resolve([]),
     podeVerFinanceiro ? getRepassesAvulsosPendentes() : Promise.resolve([]),
     getTarefasPendentes(profile),
+    // Só master vê a aba Configurações, então só master precisa pagar o
+    // custo dessas 3 leituras (conexões OAuth compartilhadas — ver
+    // /configuracoes/integracoes).
+    profile.role === "master"
+      ? Promise.all([driveStatus(), calendarStatus(), canvaStatus()])
+      : Promise.resolve([]),
   ]);
   const pendenciasFinanceiro = contasPendentes.length + avulsasPendentes.length;
+  const integracoesComErro = statusIntegracoes.filter((s) => s.conectado && s.erro).length;
 
   return (
     <VisibilidadeProvider>
@@ -45,14 +55,24 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <TabNav role={profile.role} pendenciasFinanceiro={pendenciasFinanceiro} pendenciasTarefas={tarefasPendentes.length} />
+        <TabNav
+          role={profile.role}
+          pendenciasFinanceiro={pendenciasFinanceiro}
+          pendenciasTarefas={tarefasPendentes.length}
+          integracoesComErro={integracoesComErro}
+        />
         <MetaBar role={profile.role} />
 
         <main className="max-w-[1220px] mx-auto w-full px-6 py-7 max-[767px]:pb-20 flex flex-col gap-7 flex-1">
           {children}
         </main>
 
-        <MobileTabNav role={profile.role} pendenciasFinanceiro={pendenciasFinanceiro} pendenciasTarefas={tarefasPendentes.length} />
+        <MobileTabNav
+          role={profile.role}
+          pendenciasFinanceiro={pendenciasFinanceiro}
+          pendenciasTarefas={tarefasPendentes.length}
+          integracoesComErro={integracoesComErro}
+        />
         <IdleLogout />
         <PendenciasModal contas={contasPendentes} avulsas={avulsasPendentes} tarefas={tarefasPendentes} />
       </div>

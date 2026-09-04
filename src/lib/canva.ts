@@ -73,6 +73,8 @@ export async function trocarCodigoPorTokenCanva(code: string, verifier: string):
     access_token: data.access_token,
     refresh_token: data.refresh_token,
     expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
+    ultimo_erro: null,
+    ultimo_erro_em: null,
   });
 }
 
@@ -90,6 +92,10 @@ async function renovarTokenCanva(refreshToken: string): Promise<{ access_token: 
   return data;
 }
 
+// Se a renovação falhar (token revogado, por exemplo), grava o erro na
+// conexão em vez de só estourar — sem isso "conectado" continuava true
+// pra sempre mesmo com tudo quebrado (ver canvaStatus, usado em
+// /configuracoes/integracoes).
 async function getValidCanvaToken(): Promise<string | null> {
   const supabase = createAdminClient();
   const { data: conexao } = await supabase.from("canva_conexao").select("*").eq("id", 1).maybeSingle();
@@ -99,22 +105,50 @@ async function getValidCanvaToken(): Promise<string | null> {
     return conexao.access_token;
   }
 
-  const renovado = await renovarTokenCanva(conexao.refresh_token);
-  await supabase
-    .from("canva_conexao")
-    .update({
-      access_token: renovado.access_token,
-      refresh_token: renovado.refresh_token,
-      expires_at: new Date(Date.now() + renovado.expires_in * 1000).toISOString(),
-    })
-    .eq("id", 1);
-  return renovado.access_token;
+  try {
+    const renovado = await renovarTokenCanva(conexao.refresh_token);
+    await supabase
+      .from("canva_conexao")
+      .update({
+        access_token: renovado.access_token,
+        refresh_token: renovado.refresh_token,
+        expires_at: new Date(Date.now() + renovado.expires_in * 1000).toISOString(),
+        ultimo_erro: null,
+        ultimo_erro_em: null,
+      })
+      .eq("id", 1);
+    return renovado.access_token;
+  } catch (e) {
+    const mensagem = e instanceof Error ? e.message : String(e);
+    await supabase
+      .from("canva_conexao")
+      .update({ ultimo_erro: mensagem, ultimo_erro_em: new Date().toISOString() })
+      .eq("id", 1);
+    throw e;
+  }
 }
 
 export async function canvaConectado(): Promise<boolean> {
   const supabase = createAdminClient();
   const { data } = await supabase.from("canva_conexao").select("id").eq("id", 1).maybeSingle();
   return !!data;
+}
+
+export interface StatusConexao {
+  conectado: boolean;
+  erro: string | null;
+  erroEm: string | null;
+}
+
+export async function canvaStatus(): Promise<StatusConexao> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from("canva_conexao")
+    .select("ultimo_erro, ultimo_erro_em")
+    .eq("id", 1)
+    .maybeSingle();
+  if (!data) return { conectado: false, erro: null, erroEm: null };
+  return { conectado: true, erro: data.ultimo_erro, erroEm: data.ultimo_erro_em };
 }
 
 async function canvaRequest<T>(method: "GET" | "POST", path: string, body?: unknown): Promise<T> {
