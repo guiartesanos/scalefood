@@ -55,11 +55,13 @@ const STATUS_LABEL: Record<GeracaoConteudo["status"], string> = {
 
 export function GeracaoCard({
   geracao,
+  noticiaLink,
   templates,
   driveConectado,
   canvaConectado,
 }: {
   geracao: GeracaoConteudo;
+  noticiaLink?: string | null;
   templates: CanvaTemplate[];
   driveConectado: boolean;
   canvaConectado: boolean;
@@ -96,7 +98,18 @@ export function GeracaoCard({
   return (
     <div className="flex flex-col gap-3.5 rounded-xl border border-line bg-paper p-4">
       <div className="flex items-start justify-between gap-3">
-        <span className="font-semibold text-[14px] leading-snug">{geracao.tema}</span>
+        {noticiaLink ? (
+          <a
+            href={noticiaLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-[14px] leading-snug hover:underline"
+          >
+            {geracao.tema}
+          </a>
+        ) : (
+          <span className="font-semibold text-[14px] leading-snug">{geracao.tema}</span>
+        )}
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-[10px] uppercase tracking-wide text-muted border border-line rounded px-1.5 py-0.5 whitespace-nowrap">
             {STATUS_LABEL[geracao.status]}

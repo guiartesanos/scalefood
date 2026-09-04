@@ -34,14 +34,20 @@ export default async function MarketingPage({
   const [{ data: noticiasRaw }, { data: templatesRaw }, { data: geracoesRaw }, drive, canva] = await Promise.all([
     supabase.from("radar_noticias").select("*").eq("status", "novo").order("publicado_em", { ascending: false }),
     supabase.from("canva_templates").select("*").eq("ativo", true).order("nome"),
-    supabase.from("geracoes_conteudo").select("*").order("created_at", { ascending: false }),
+    supabase.from("geracoes_conteudo").select("*, radar_noticias(link)").order("created_at", { ascending: false }),
     checarDriveConectado(),
     checarCanvaConectado(),
   ]);
 
   const noticias = (noticiasRaw || []) as RadarNoticia[];
   const templates = (templatesRaw || []) as CanvaTemplate[];
-  const geracoes = (geracoesRaw || []) as GeracaoConteudo[];
+  // link vem via embed da notícia original (null pra geração avulsa, que
+  // não nasceu de uma notícia do radar) — é o que deixa o tema clicável
+  // de novo depois que a notícia "sai" da lista pro gerador.
+  const geracoes = (geracoesRaw || []).map((g) => {
+    const { radar_noticias, ...resto } = g as GeracaoConteudo & { radar_noticias: { link: string } | null };
+    return { ...resto, link: radar_noticias?.link || null };
+  });
   const emAndamento = geracoes.filter((g) => g.status !== "pronto");
   const prontos = geracoes.filter((g) => g.status === "pronto");
 
@@ -117,7 +123,7 @@ export default async function MarketingPage({
         </form>
         <div className="flex flex-col gap-3">
           {emAndamento.map((g) => (
-            <GeracaoCard key={g.id} geracao={g} templates={templates} driveConectado={drive} canvaConectado={canva} />
+            <GeracaoCard key={g.id} geracao={g} noticiaLink={g.link} templates={templates} driveConectado={drive} canvaConectado={canva} />
           ))}
           {!emAndamento.length && <p className="text-sm text-muted py-2">Nada em produção agora.</p>}
         </div>
@@ -128,7 +134,7 @@ export default async function MarketingPage({
           <h2 className="font-display font-bold text-[21px]">Prontos</h2>
           <div className="flex flex-col gap-3">
             {prontos.map((g) => (
-              <GeracaoCard key={g.id} geracao={g} templates={templates} driveConectado={drive} canvaConectado={canva} />
+              <GeracaoCard key={g.id} geracao={g} noticiaLink={g.link} templates={templates} driveConectado={drive} canvaConectado={canva} />
             ))}
           </div>
         </section>
