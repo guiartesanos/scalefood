@@ -80,12 +80,14 @@ export function ConsultoriaBoard({
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 max-[900px]:grid-cols-1">
+      <div className="grid grid-cols-3 gap-3.5 max-[1100px]:grid-cols-2 max-[640px]:grid-cols-1">
         {ativos.map((c) => (
           <ConsultoriaCard key={c.id} cliente={c} tarefas={tarefasPorCliente(c.id)} />
         ))}
         {!ativos.length && (
-          <p className="text-sm text-muted col-span-2">Nenhuma consultoria ativa no momento.</p>
+          <p className="text-sm text-muted col-span-3 max-[1100px]:col-span-2 max-[640px]:col-span-1">
+            Nenhuma consultoria ativa no momento.
+          </p>
         )}
       </div>
 
@@ -123,7 +125,7 @@ export function ConsultoriaBoard({
         )}
 
         {mostrarConcluidos && (
-          <div className="grid grid-cols-2 gap-4 max-[900px]:grid-cols-1">
+          <div className="grid grid-cols-3 gap-3.5 max-[1100px]:grid-cols-2 max-[640px]:grid-cols-1">
             {concluidos.map((c) => (
               <ConsultoriaCard key={c.id} cliente={c} tarefas={tarefasPorCliente(c.id)} readonly />
             ))}
@@ -158,20 +160,32 @@ function ConsultoriaCard({
   }
 
   return (
-    <div className="bg-paper border border-line rounded-xl overflow-hidden">
-      <button
-        type="button"
+    <div
+      className="bg-paper border border-line/70 rounded-2xl overflow-hidden transition-all duration-200 hover:-translate-y-[3px]"
+      style={{ boxShadow: aberto ? "var(--shadow)" : "0 1px 3px -1px rgba(30, 27, 20, 0.12)" }}
+    >
+      {/* div, não button — o botão "concluído" fica aninhado aqui dentro,
+          e <button> dentro de <button> é HTML inválido (quebra a hidratação) */}
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setAberto((v) => !v)}
-        className="w-full flex items-center justify-between gap-3 p-4 text-left [font:inherit] [color:inherit] bg-transparent border-0 cursor-pointer"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setAberto((v) => !v);
+          }
+        }}
+        className="w-full flex items-center justify-between gap-2.5 p-3 text-left cursor-pointer"
       >
         <div className="flex flex-col gap-1 min-w-0">
-          <span className="font-display font-bold text-[15px] truncate">{cliente.nome}</span>
-          <span className="text-[11px] text-muted">
+          <span className="font-display font-bold text-[14px] truncate">{cliente.nome}</span>
+          <span className="text-[10.5px] text-muted">
             fechou em {fmtData(cliente.data_fechamento)} · {feitas}/{tarefas.length} concluídas
           </span>
-          <div className="h-[5px] w-32 rounded-full bg-paper-2 border border-line/50 overflow-hidden">
+          <div className="h-[4px] w-24 rounded-full bg-paper-2 border border-line/50 overflow-hidden">
             <div
-              className="h-full rounded-full"
+              className="h-full rounded-full transition-[width] duration-300"
               style={{ width: `${tarefas.length ? (feitas / tarefas.length) * 100 : 0}%`, background: "var(--good)" }}
             />
           </div>
@@ -197,16 +211,16 @@ function ConsultoriaCard({
                 </button>
               </div>
             ) : (
-              <button type="button" onClick={() => setConfirmando(true)} className="btn text-xs whitespace-nowrap">
-                totalmente concluído
+              <button type="button" onClick={() => setConfirmando(true)} className="btn text-[11px] whitespace-nowrap">
+                concluído ✓
               </button>
             )}
           </div>
         )}
-      </button>
+      </div>
 
       {aberto && (
-        <div className="border-t border-line p-4 flex flex-col gap-4">
+        <div className="border-t border-line/70 p-3.5 flex flex-col gap-3.5">
           {primeira && (
             <PrimeiraReuniaoRow tarefa={primeira} dataFechamento={cliente.data_fechamento} readonly={readonly} onToggle={toggleTarefa} />
           )}
