@@ -42,7 +42,7 @@ export function MarcarPagoButton({ custoFixoId, data, valor }: { custoFixoId: st
           disabled={pending}
           className="input w-[100px] text-right py-0.5 px-1.5 text-[13px]"
         />
-        <button type="submit" disabled={pending} className="btn-primary text-[11.5px] py-1 px-2.5 shrink-0">
+        <button type="submit" disabled={pending} className="btn-primary text-[11px] py-1 px-2.5 shrink-0">
           {pending ? "..." : "confirmar"}
         </button>
         <button type="button" onClick={() => setEditando(false)} className="btn-ghost text-[11px]">
@@ -69,7 +69,7 @@ export function MarcarPagoButton({ custoFixoId, data, valor }: { custoFixoId: st
         type="button"
         disabled={pending}
         onClick={() => confirmar(valor)}
-        className="btn-primary text-[11.5px] py-1 px-2.5 shrink-0"
+        className="btn-primary text-[11px] py-1 px-2.5 shrink-0"
       >
         {pending ? "..." : "marcar como pago"}
       </button>

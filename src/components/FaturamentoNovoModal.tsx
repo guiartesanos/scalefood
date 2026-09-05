@@ -1,13 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { brl } from "@/lib/format";
+import { brl, fmtData } from "@/lib/format";
 import type { ReceitaEvento } from "@/lib/types";
 import { ValorOcultavel } from "./ValoresVisibilidade";
-
-function fmtData(d: string) {
-  return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
-}
 
 const TIPO_LABEL: Record<ReceitaEvento["tipo"], string> = {
   novo_cliente: "Recorrência",
@@ -66,7 +62,7 @@ export function FaturamentoNovoModal({
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-paper border border-line rounded-xl p-6 max-w-md w-full flex flex-col gap-4 shadow-[var(--shadow)] max-h-[85vh] overflow-y-auto"
+            className="bg-paper border border-line rounded-lg p-6 max-w-md w-full flex flex-col gap-4 shadow-[var(--shadow)] max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col gap-1">

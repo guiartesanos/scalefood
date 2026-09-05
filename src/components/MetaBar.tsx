@@ -95,7 +95,7 @@ export async function MetaBar({ role }: { role: UserRole }) {
       <div className="max-[767px]:hidden max-w-[1220px] mx-auto px-6 py-2.5 flex flex-wrap items-center gap-x-6 gap-y-2">
         <FaturamentoNovoModal eventos={eventos}>
           <div className="flex flex-col leading-tight">
-            <span className="text-[10px] uppercase tracking-wide text-muted font-semibold">
+            <span className="text-[10.5px] uppercase tracking-wide text-muted font-semibold">
               Faturamento novo do mês
             </span>
             <span className="font-display font-bold text-lg num underline decoration-dotted underline-offset-4">
@@ -112,11 +112,11 @@ export async function MetaBar({ role }: { role: UserRole }) {
         ) : (
           <>
             <div className="flex flex-col leading-tight">
-              <span className="text-[10px] uppercase tracking-wide text-muted font-semibold">Meta do mês</span>
+              <span className="text-[10.5px] uppercase tracking-wide text-muted font-semibold">Meta do mês</span>
               <span className="font-display font-bold text-lg num">{brl(fat?.valor_meta)}</span>
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-[10px] uppercase tracking-wide text-muted font-semibold">% da meta</span>
+              <span className="text-[10.5px] uppercase tracking-wide text-muted font-semibold">% da meta</span>
               <span
                 className="font-display font-bold text-lg num"
                 style={{ color: (fat?.pct_meta || 0) >= 100 ? "var(--good)" : "var(--accent-ink)" }}
@@ -125,7 +125,7 @@ export async function MetaBar({ role }: { role: UserRole }) {
               </span>
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-[10px] uppercase tracking-wide text-muted font-semibold">
+              <span className="text-[10.5px] uppercase tracking-wide text-muted font-semibold">
                 Projeção (dia {fat?.dia_atual}/{fat?.dias_no_mes})
               </span>
               <span className="text-sm num text-ink-2">
@@ -133,7 +133,7 @@ export async function MetaBar({ role }: { role: UserRole }) {
               </span>
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-[10px] uppercase tracking-wide text-muted font-semibold">Vendas</span>
+              <span className="text-[10.5px] uppercase tracking-wide text-muted font-semibold">Vendas</span>
               <span className="text-sm num text-ink-2">
                 <FaturamentoNovoModal eventos={eventos}>
                   <span className="underline decoration-dotted underline-offset-2">

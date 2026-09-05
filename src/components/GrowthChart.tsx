@@ -49,7 +49,7 @@ export function GrowthChart({ pontos }: { pontos: PontoMensal[] }) {
   const y = (v: number) => PAD_T + plotH - ((v - minV) / (maxV - minV || 1)) * plotH;
 
   return (
-    <div className="bg-paper border border-line rounded-xl p-4 flex flex-col gap-3">
+    <div className="bg-paper border border-line rounded-lg p-4 flex flex-col gap-3">
       <div className="flex flex-wrap gap-2">
         {SERIES.map((s) => (
           <button
@@ -112,7 +112,7 @@ export function GrowthChart({ pontos }: { pontos: PontoMensal[] }) {
               ))
             )}
           </svg>
-          <div className="text-[12px] flex flex-wrap gap-x-4 gap-y-1 bg-paper-2 rounded-lg p-2.5 min-h-[32px]">
+          <div className="text-[12px] flex flex-wrap gap-x-4 gap-y-1 bg-paper-2 rounded-md p-2.5 min-h-[32px]">
             {hoverIdx !== null ? (
               <>
                 <b>{pontos[hoverIdx].label}</b>

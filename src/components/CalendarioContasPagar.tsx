@@ -26,14 +26,14 @@ export function CalendarioContasPagar({ custos }: { custos: CustoFixo[] }) {
   for (let d = 1; d <= diasNoMes; d++) celulas.push(d);
 
   return (
-    <div className="bg-paper border border-line rounded-xl p-4 flex flex-col gap-3">
+    <div className="bg-paper border border-line rounded-lg p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h3 className="font-display font-bold text-sm capitalize">
           {hoje.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
         </h3>
         <span className="text-[11px] text-muted">contas a pagar</span>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-muted font-semibold uppercase tracking-wide">
+      <div className="grid grid-cols-7 gap-1 text-center text-[10.5px] text-muted font-semibold uppercase tracking-wide">
         {DIAS_SEMANA.map((d) => (
           <span key={d}>{d}</span>
         ))}
@@ -45,7 +45,7 @@ export function CalendarioContasPagar({ custos }: { custos: CustoFixo[] }) {
           return (
             <div
               key={i}
-              className="aspect-square flex flex-col items-center justify-center gap-0.5 rounded-md text-[11.5px]"
+              className="aspect-square flex flex-col items-center justify-center gap-0.5 rounded text-[11px]"
               style={{ background: ehHoje ? "var(--accent-wash)" : undefined }}
               title={info ? `${info.nomes.join(", ")} — ${brl(info.total)}` : undefined}
             >

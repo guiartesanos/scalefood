@@ -14,6 +14,7 @@ import {
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 import { FinanceiroTabs } from "@/components/FinanceiroTabs";
 import { ValorOcultavel } from "@/components/ValoresVisibilidade";
+import { Kpi } from "@/components/Kpi";
 import { CalendarioContasPagar } from "@/components/CalendarioContasPagar";
 import { EditarCustoFixoButton } from "@/components/EditarCustoFixoButton";
 import { NovaVendaButton } from "@/components/NovaVendaButton";
@@ -191,9 +192,9 @@ export default async function FinanceiroPage({
 
   const geral = (
     <>
-      <div className="bg-paper border border-accent rounded-xl p-5 flex flex-col gap-1.5">
+      <div className="bg-paper border border-accent rounded-lg p-5 flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-[11.5px] uppercase tracking-wide text-accent-ink font-semibold">
+          <span className="text-[11px] uppercase tracking-wide text-accent-ink font-semibold">
             Faturamento total
           </span>
           <a href="/financeiro?tab=dre" className="text-[12px] font-semibold underline text-accent-ink">Ver DRE do mês →</a>
@@ -211,7 +212,7 @@ export default async function FinanceiroPage({
         </span>
       </div>
 
-      <div className={`grid ${verLucro ? "grid-cols-3" : "grid-cols-2"} max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-xl overflow-hidden`}>
+      <div className={`grid ${verLucro ? "grid-cols-3" : "grid-cols-2"} max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-lg overflow-hidden`}>
         <Kpi label="Custos fixos" value={brlInt(custosFixosTotal)} sub={`${custosFixos?.length || 0} lançamento(s)`} color="var(--critical)" />
         <Kpi label="Custos variáveis" value={brlInt(custosVariaveis)} sub="tráfego + comissão + imposto + taxa + extras" color="var(--critical)" />
         {verLucro && <Kpi label="Lucro estimado" value={brl(lucro)} sub="faturamento − custos fixos − variáveis" color="var(--good)" ocultavel />}
@@ -254,7 +255,7 @@ export default async function FinanceiroPage({
           <div className="flex items-center justify-between">
             <h2 className="font-display font-bold text-[21px]">Custos fixos (gerenciar)</h2>
           </div>
-          <form action={handleCriarCustoFixo} className="bg-paper-2 border border-dashed border-line rounded-xl p-4 flex flex-wrap gap-3 items-end">
+          <form action={handleCriarCustoFixo} className="bg-paper-2 border border-dashed border-line rounded-lg p-4 flex flex-wrap gap-3 items-end">
             <FieldSmall label="Nome"><input name="nome" required className="input" placeholder="Ex: aluguel, ferramenta" /></FieldSmall>
             <FieldSmall label="Valor mensal (R$)"><input name="valor" type="number" step="0.01" min="0" required className="input" /></FieldSmall>
             <FieldSmall label="Categoria">
@@ -272,7 +273,7 @@ export default async function FinanceiroPage({
             </FieldSmall>
             <button type="submit" className="btn-primary">+ adicionar</button>
           </form>
-          <div className="border border-line rounded-xl overflow-auto bg-paper">
+          <div className="border border-line rounded-lg overflow-auto bg-paper">
             <table className="w-full text-[13px] border-collapse">
               <thead><tr className="bg-paper-2"><Th>Nome</Th><Th>Categoria</Th><Th>Vencimento</Th><Th right>Valor</Th><Th></Th></tr></thead>
               <tbody>
@@ -313,7 +314,7 @@ export default async function FinanceiroPage({
 
       <section className="flex flex-col gap-3.5">
         <h2 className="font-display font-bold text-[21px]">Custos variáveis</h2>
-        <form action={handleCriarCustoVariavel} className="bg-paper-2 border border-dashed border-line rounded-xl p-4 flex flex-wrap gap-3 items-end">
+        <form action={handleCriarCustoVariavel} className="bg-paper-2 border border-dashed border-line rounded-lg p-4 flex flex-wrap gap-3 items-end">
           <FieldSmall label="Nome"><input name="nome" required className="input" placeholder="Ex: comissão avulsa" /></FieldSmall>
           <FieldSmall label="Valor (R$)"><input name="valor" type="number" step="0.01" min="0" required className="input" /></FieldSmall>
           <FieldSmall label="Categoria">
@@ -328,7 +329,7 @@ export default async function FinanceiroPage({
           <button type="submit" className="btn-primary">+ adicionar</button>
         </form>
         <div className="grid grid-cols-2 gap-4 max-[900px]:grid-cols-1">
-          <div className="bg-paper border border-line rounded-xl p-4 flex flex-col gap-2">
+          <div className="bg-paper border border-line rounded-lg p-4 flex flex-col gap-2">
             <h3 className="text-xs uppercase tracking-wide text-muted font-semibold">Automáticos (da carteira)</h3>
             <Row label="Tráfego pago (repasse Jota)" value={brl(trafegoJota)} />
             <Row label="Tráfego pago (repasse Lorenzo)" value={brl(trafegoLorenzo)} />
@@ -336,7 +337,7 @@ export default async function FinanceiroPage({
             <Row label="Imposto" value={brl(impostoTotal)} />
             <Row label="Taxa de plataforma (Asaas)" value={brl(taxaTotal)} />
           </div>
-          <div className="bg-paper border border-line rounded-xl p-4 flex flex-col gap-2">
+          <div className="bg-paper border border-line rounded-lg p-4 flex flex-col gap-2">
             <h3 className="text-xs uppercase tracking-wide text-muted font-semibold">Lançados manualmente</h3>
             {(custosVar || []).map((c) => (
               <div key={c.id} className="flex justify-between items-center text-[13px] border-b border-dashed border-line/50 pb-1">
@@ -383,7 +384,7 @@ export default async function FinanceiroPage({
           Toda venda nova (recorrência e/ou consultoria) entra por aqui, com o canal — Asaas ou PIX C6 —
           escolhido em cada etapa da cobrança.
         </p>
-        <div className="border border-line rounded-xl overflow-auto bg-paper">
+        <div className="border border-line rounded-lg overflow-auto bg-paper">
           <table className="w-full text-[13px] border-collapse">
             <thead><tr className="bg-paper-2"><Th>Data</Th><Th>Cliente</Th><Th>Canal</Th><Th>Tipo</Th><Th right>Valor</Th><Th></Th></tr></thead>
             <tbody>
@@ -451,7 +452,7 @@ export default async function FinanceiroPage({
       </div>
 
       <GrowthChart pontos={pontosMensal} />
-      <div className="border border-line rounded-xl overflow-auto bg-paper">
+      <div className="border border-line rounded-lg overflow-auto bg-paper">
         <table className="w-full text-[13px] border-collapse">
           <thead>
             <tr className="bg-paper-2">
@@ -514,18 +515,6 @@ export default async function FinanceiroPage({
       dre={dreView}
       tabInicial={params.tab === "dre" ? "dre" : undefined}
     />
-  );
-}
-
-function Kpi({ label, value, sub, color, ocultavel }: { label: string; value: string; sub: string; color?: string; ocultavel?: boolean }) {
-  return (
-    <div className="bg-paper px-5 py-4 flex flex-col gap-1.5">
-      <span className="text-[11.5px] uppercase tracking-wide text-muted font-semibold">{label}</span>
-      <span className="font-display font-bold text-[22px] min-[400px]:text-[26px] num break-words" style={{ color }}>
-        {ocultavel ? <ValorOcultavel>{value}</ValorOcultavel> : value}
-      </span>
-      <span className="text-xs text-ink-2">{sub}</span>
-    </div>
   );
 }
 function Row({ label, value }: { label: string; value: string }) {

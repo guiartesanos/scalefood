@@ -65,13 +65,13 @@ function ComercialDropdown({ itens, ativo, pathname }: { itens: typeof GRUPO_COM
       {open && pos && (
         <div
           style={{ position: "fixed", top: pos.top, left: pos.left }}
-          className="bg-paper border border-line rounded-lg shadow-[var(--shadow)] flex flex-col py-1 min-w-[160px] z-50"
+          className="bg-paper border border-line rounded-md shadow-[var(--shadow)] flex flex-col py-1 min-w-[160px] z-50"
         >
           {itens.map((t) => (
             <Link
               key={t.key}
               href={t.href}
-              className="font-display font-semibold text-[13.5px] px-3.5 py-2 whitespace-nowrap transition-colors hover:bg-paper-2"
+              className="font-display font-semibold text-[13px] px-3.5 py-2 whitespace-nowrap transition-colors hover:bg-paper-2"
               style={{ color: pathname.startsWith(t.href) ? "var(--accent-ink)" : "var(--ink)" }}
             >
               {t.label}

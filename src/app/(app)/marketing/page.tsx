@@ -83,12 +83,12 @@ export default async function MarketingPage({
         )}
       </div>
       {params.drive && (
-        <p className={`text-[12.5px] ${params.drive === "conectado" ? "text-good" : "text-critical"}`}>
+        <p className={`text-[12px] ${params.drive === "conectado" ? "text-good" : "text-critical"}`}>
           {MENSAGEM_DRIVE[params.drive] || ""}
         </p>
       )}
       {params.canva && (
-        <p className={`text-[12.5px] ${params.canva === "conectado" ? "text-good" : "text-critical"}`}>
+        <p className={`text-[12px] ${params.canva === "conectado" ? "text-good" : "text-critical"}`}>
           {MENSAGEM_CANVA[params.canva] || ""}
         </p>
       )}
@@ -114,7 +114,7 @@ export default async function MarketingPage({
             <p className="text-[13px] text-muted">Responda as perguntas, escolha o estilo e gere no Canva quando terminar.</p>
           </div>
         </div>
-        <form action={handleCriarAvulsa} className="bg-paper-2 border border-dashed border-line rounded-xl p-4 flex flex-wrap gap-3 items-end">
+        <form action={handleCriarAvulsa} className="bg-paper-2 border border-dashed border-line rounded-lg p-4 flex flex-wrap gap-3 items-end">
           <div className="flex flex-col gap-1 flex-1 min-w-[220px]">
             <label className="text-[11px] uppercase tracking-wide text-muted font-semibold">Novo conteúdo (sem notícia)</label>
             <input name="tema" required className="input" placeholder="Ex: bastidores de um cliente, dica rápida, promoção..." />

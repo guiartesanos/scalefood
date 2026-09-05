@@ -31,7 +31,7 @@ export default async function AuditoriaPage() {
         </p>
       </div>
 
-      <div className="border border-line rounded-xl overflow-auto bg-paper">
+      <div className="border border-line rounded-lg overflow-auto bg-paper">
         <table className="w-full text-[13px] border-collapse">
           <thead>
             <tr className="bg-paper-2">

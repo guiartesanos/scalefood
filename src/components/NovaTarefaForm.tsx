@@ -19,7 +19,7 @@ export function NovaTarefaForm({ agendas, responsaveis }: { agendas: Agenda[]; r
   return (
     <form
       action={(fd) => startTransition(async () => { await criarTarefa(fd); setOpen(false); })}
-      className="bg-paper-2 border border-dashed border-line rounded-xl p-4 flex flex-wrap gap-3 items-end"
+      className="bg-paper-2 border border-dashed border-line rounded-lg p-4 flex flex-wrap gap-3 items-end"
     >
       <div className="flex flex-col gap-1 min-w-[180px]">
         <label className="text-[11px] uppercase tracking-wide text-muted font-semibold">Título</label>

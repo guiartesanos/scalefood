@@ -7,9 +7,9 @@ import { canEditClienteValores, canSeeFaturamentoTotalAgregado } from "@/lib/per
 import { StatusSelect } from "@/components/StatusSelect";
 import { ClienteValoresForm } from "@/components/ClienteValoresForm";
 import { ValorOcultavel } from "@/components/ValoresVisibilidade";
-import type { Cliente, Pagamento, Tarefa } from "@/lib/types";
+import { Kpi } from "@/components/Kpi";
+import { URG_CLS, type Cliente, type Pagamento, type Tarefa } from "@/lib/types";
 
-const URG_CLS: Record<string, string> = { alta: "critical", media: "warning", baixa: "muted" };
 const COLUNA_LABEL: Record<string, string> = { "a-fazer": "A fazer", "em-andamento": "Em andamento", feito: "Feito" };
 // mesmo texto usado em clientes/page.tsx pro badge de crescimento — aqui
 // era exibido o valor bruto do enum (ex: "sem_dado") direto na tela.
@@ -56,7 +56,7 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
         ← voltar pra Clientes
       </Link>
 
-      <section className="bg-paper border border-accent rounded-xl p-6 flex flex-col gap-3">
+      <section className="bg-paper border border-accent rounded-lg p-6 flex flex-col gap-3">
         <div className="flex justify-between items-start flex-wrap gap-3">
           <div className="flex flex-col gap-1">
             <h1 className="font-display font-extrabold text-3xl">{c.nome}</h1>
@@ -68,7 +68,7 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
         </div>
 
         {c.promo_primeiro_mes_gratis && (
-          <div className="bg-accent-wash border border-accent/30 rounded-lg px-3 py-2 text-[13px]">
+          <div className="bg-accent-wash border border-accent/30 rounded-md px-3 py-2 text-[13px]">
             🎁 1º mês de Aceleração grátis — recorrência de {brl(c.rec)}/mês começa a contar em{" "}
             <b>
               {c.inicio_cobranca_recorrente
@@ -84,7 +84,7 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
         )}
       </section>
 
-      <div className={`grid ${verLucro ? "grid-cols-3" : "grid-cols-2"} max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-xl overflow-hidden`}>
+      <div className={`grid ${verLucro ? "grid-cols-3" : "grid-cols-2"} max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-lg overflow-hidden`}>
         <Kpi label="Recorrência" value={brl(c.rec)} sub={`taxa ${c.taxa_fonte === "real" ? "real" : "estimada"}`} ocultavel />
         {verLucro && <Kpi label="Líquido" value={c.liq != null ? brl(c.liq) : "—"} sub={c.marg != null ? `${c.marg.toFixed(1).replace(".", ",")}% de margem` : ""} color="var(--good)" ocultavel />}
         <Kpi
@@ -103,7 +103,7 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
 
       <section className="flex flex-col gap-3.5">
         <h2 className="font-display font-bold text-[21px]">Pagamentos avulsos e consultorias</h2>
-        <div className="border border-line rounded-xl overflow-auto bg-paper">
+        <div className="border border-line rounded-lg overflow-auto bg-paper">
           <table className="w-full text-[13px] border-collapse">
             <thead>
               <tr className="bg-paper-2">
@@ -146,7 +146,7 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
         <h2 className="font-display font-bold text-[21px]">Tarefas relacionadas</h2>
         <div className="flex flex-col gap-2">
           {(tarefas || []).map((t: Tarefa) => (
-            <div key={t.id} className="bg-paper border border-line rounded-lg p-3 flex flex-col gap-1">
+            <div key={t.id} className="bg-paper border border-line rounded-md p-3 flex flex-col gap-1">
               <div className="flex justify-between items-start gap-2">
                 <span className="font-semibold text-[13px]">{t.titulo}</span>
                 <span
@@ -164,18 +164,6 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
         </div>
       </section>
     </>
-  );
-}
-
-function Kpi({ label, value, sub, color, ocultavel }: { label: string; value: string; sub?: string; color?: string; ocultavel?: boolean }) {
-  return (
-    <div className="bg-paper px-5 py-4 flex flex-col gap-1.5">
-      <span className="text-[11.5px] uppercase tracking-wide text-muted font-semibold">{label}</span>
-      <span className="font-display font-bold text-[20px] min-[400px]:text-[24px] num break-words" style={color ? { color } : undefined}>
-        {ocultavel ? <ValorOcultavel>{value}</ValorOcultavel> : value}
-      </span>
-      {sub && <span className="text-xs text-ink-2">{sub}</span>}
-    </div>
   );
 }
 

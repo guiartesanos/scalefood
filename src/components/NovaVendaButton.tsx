@@ -20,14 +20,14 @@ export function NovaVendaButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="bg-accent hover:bg-accent-ink text-white text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap transition-colors"
+        className="bg-accent hover:bg-accent-ink text-white text-xs font-semibold px-3 py-1.5 rounded whitespace-nowrap transition-colors"
       >
         + nova venda
       </button>
 
       {open && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[500] flex items-start justify-center p-6 overflow-y-auto">
-          <div className="bg-paper border border-line rounded-xl p-6 max-w-2xl w-full flex flex-col gap-4 shadow-[var(--shadow)]">
+          <div className="bg-paper border border-line rounded-lg p-6 max-w-2xl w-full flex flex-col gap-4 shadow-[var(--shadow)]">
             <div className="flex justify-between items-start">
               <h3 className="font-display font-bold text-xl">Nova venda</h3>
               <button onClick={fechar} className="text-muted hover:text-critical text-xl leading-none">
@@ -41,14 +41,14 @@ export function NovaVendaButton() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => setModo("recorrencia")}
-                    className="bg-paper-2 hover:bg-accent-wash border border-line rounded-xl p-4 flex flex-col gap-1 text-left transition-colors"
+                    className="bg-paper-2 hover:bg-accent-wash border border-line rounded-lg p-4 flex flex-col gap-1 text-left transition-colors"
                   >
                     <span className="font-display font-bold text-lg">Recorrência</span>
                     <span className="text-xs text-ink-2">Cliente novo de Aceleração — mensalidade recorrente.</span>
                   </button>
                   <button
                     onClick={() => setModo("consultoria")}
-                    className="bg-paper-2 hover:bg-accent-wash border border-line rounded-xl p-4 flex flex-col gap-1 text-left transition-colors"
+                    className="bg-paper-2 hover:bg-accent-wash border border-line rounded-lg p-4 flex flex-col gap-1 text-left transition-colors"
                   >
                     <span className="font-display font-bold text-lg">Consultoria</span>
                     <span className="text-xs text-ink-2">Mentoria pontual, com ou sem recorrência junto.</span>
@@ -228,7 +228,7 @@ function FormRecorrencia({ onVoltar, onSucesso }: { onVoltar: () => void; onSuce
         Já recebi um 1º pagamento à vista (ex: PIX na hora do fechamento, antes da recorrência começar)
       </label>
       {jaRecebeuAVista && (
-        <div className="grid grid-cols-3 gap-3 bg-paper-2 border border-dashed border-line rounded-lg p-4">
+        <div className="grid grid-cols-3 gap-3 bg-paper-2 border border-dashed border-line rounded-md p-4">
           <Field label="Valor recebido (R$)">
             <input name="valorAVista" type="number" step="0.01" min="0" required className="input" />
           </Field>
@@ -254,7 +254,7 @@ function FormRecorrencia({ onVoltar, onSucesso }: { onVoltar: () => void; onSuce
       </div>
 
       {integrarAsaas && (
-        <div className="flex flex-col gap-3 bg-paper-2 border border-dashed border-line rounded-lg p-4">
+        <div className="flex flex-col gap-3 bg-paper-2 border border-dashed border-line rounded-md p-4">
           <CamposAsaasSemNicho />
           {!primeiroMesGratis && (
             <Field label="Data do 1º pagamento (vencimento no Asaas)">
@@ -341,7 +341,7 @@ function FormConsultoria({ onVoltar, onSucesso }: { onVoltar: () => void; onSuce
         </Field>
       </div>
 
-      <div className="flex flex-col gap-1.5 bg-paper-2 border border-dashed border-line rounded-lg p-3">
+      <div className="flex flex-col gap-1.5 bg-paper-2 border border-dashed border-line rounded-md p-3">
         <span className="text-xs uppercase tracking-wide text-muted font-semibold">
           Onboarding — cria essas 8 etapas automaticamente
         </span>
@@ -366,7 +366,7 @@ function FormConsultoria({ onVoltar, onSucesso }: { onVoltar: () => void; onSuce
       </label>
 
       {vendeuRecorrencia && (
-        <div className="flex flex-col gap-3 bg-paper-2 border border-dashed border-line rounded-lg p-4">
+        <div className="flex flex-col gap-3 bg-paper-2 border border-dashed border-line rounded-md p-4">
           <Field label="Canal de cobrança da recorrência">
             <select
               name="canalRecorrencia"

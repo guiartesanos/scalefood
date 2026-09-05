@@ -15,7 +15,7 @@ export const getClientes = cache(async function getClientes(): Promise<Cliente[]
 // importa nada do Supabase) pra quem já importava daqui não quebrar, e
 // pra código client-side poder importar a mesma formatação sem puxar
 // junto o createClient de servidor deste arquivo.
-export { brl, brlInt } from "./format";
+export { brl, brlInt, fmtData } from "./format";
 
 export function tenureLabel(fechamento: string | null): { text: string; days: number } {
   if (!fechamento) return { text: "—", days: 99999 };

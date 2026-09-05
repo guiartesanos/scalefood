@@ -9,14 +9,11 @@ import {
   cadastrarConsultoriaManual,
 } from "@/actions/consultoria";
 import { prazoSugeridoPrimeiraReuniao } from "@/lib/reunioes";
+import { fmtData } from "@/lib/format";
 import type { ConsultoriaCliente, ConsultoriaTarefa } from "@/lib/types";
 
 const DIA_LABEL: Record<number, string> = { 1: "segunda", 2: "terça", 3: "quarta" };
 
-function fmtData(d: string | null) {
-  if (!d) return null;
-  return new Date(d + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-}
 function fmtHora(h: string | null) {
   return h ? h.slice(0, 5) : "";
 }
@@ -59,8 +56,8 @@ export function ConsultoriaBoard({
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display font-bold text-2xl">Consultoria</h1>
-          <p className="text-sm text-ink-2">
+          <h2 className="font-display font-bold text-[21px]">Consultoria</h2>
+          <p className="text-[13px] text-muted">
             Um quadro por cliente — clique pra abrir o checklist de onboarding e as reuniões.
           </p>
         </div>
@@ -104,7 +101,7 @@ export function ConsultoriaBoard({
         </div>
 
         {mostrarCadastro && (
-          <form action={handleCadastro} className="bg-paper-2 border border-dashed border-line rounded-lg p-4 flex flex-wrap gap-3 items-end">
+          <form action={handleCadastro} className="bg-paper-2 border border-dashed border-line rounded-md p-4 flex flex-wrap gap-3 items-end">
             <div className="flex flex-col gap-1">
               <label className="text-[11px] uppercase tracking-wide text-muted font-semibold">Nome</label>
               <input name="nome" required className="input" />
@@ -161,7 +158,7 @@ function ConsultoriaCard({
 
   return (
     <div
-      className="bg-paper border border-line/70 rounded-2xl overflow-hidden transition-all duration-200 hover:-translate-y-[3px]"
+      className="bg-paper border border-line/70 rounded-lg overflow-hidden transition-all duration-200 hover:-translate-y-[3px]"
       style={{ boxShadow: aberto ? "var(--shadow)" : "0 1px 3px -1px rgba(30, 27, 20, 0.12)" }}
     >
       {/* div, não button — o botão "concluído" fica aninhado aqui dentro,
@@ -277,7 +274,7 @@ function PrimeiraReuniaoRow({
   }
 
   return (
-    <div className="bg-accent-wash border border-accent/30 rounded-lg p-3 flex flex-col gap-2">
+    <div className="bg-accent-wash border border-accent/30 rounded-md p-3 flex flex-col gap-2">
       <span className="font-semibold text-[13px]">{tarefa.titulo} — agendamento manual</span>
       <span className="text-[11px] text-ink-2">
         sugestão: até {fmtData(prazoSugeridoPrimeiraReuniao(dataFechamento))} (alinhe direto com o cliente)
@@ -309,7 +306,7 @@ function CadenciaForm({ cliente }: { cliente: ConsultoriaCliente }) {
   const [salvo, setSalvo] = useState(false);
 
   return (
-    <div className="flex flex-wrap items-end gap-2 text-[13px] bg-paper-2 border border-dashed border-line rounded-lg p-3">
+    <div className="flex flex-wrap items-end gap-2 text-[13px] bg-paper-2 border border-dashed border-line rounded-md p-3">
       <span className="text-[11px] uppercase tracking-wide text-muted font-semibold w-full">
         Cadência das próximas reuniões
       </span>

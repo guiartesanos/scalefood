@@ -60,6 +60,29 @@ button:disabled {
   }
 }
 
+/* =====================================================================
+   Escala de fonte — antes disso não existia nenhuma, e cada tela vinha
+   "chutando" um tamanho em px direto na className (19 valores soltos
+   catalogados numa revisão, várias diferenças de meio pixel sem
+   nenhum motivo, tipo text-[11px] e text-[11.5px] convivendo pela
+   mesma função de "texto pequeno"). Essa lista é a referência oficial
+   agora — todo tamanho novo deve vir de um destes valores, não de um
+   número inventado na hora:
+
+   10.5px  — rótulo minúsculo (uppercase tracking-wide, eyebrow de card)
+   11px    — texto pequeno / meta-informação (a maioria dos casos)
+   12px    — texto secundário um degrau acima do "pequeno"
+   13px    — texto padrão de tabela/lista
+   14px    — texto padrão de formulário/corpo
+   15px    — item de navegação, texto com um pouco mais de peso
+   21px    — título de página/seção (sempre <h2>, ver PageHeader)
+   26px    — número grande de KPI (sempre via o componente <Kpi>)
+
+   Fora dessa lista só valores claramente à parte (número gigante de
+   destaque isolado, badge de notificação de 9px) — não usar como
+   referência pra nada novo.
+   ===================================================================== */
+
 @theme inline {
   --color-page: var(--page);
   --color-paper: var(--paper);

@@ -3,14 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { ContaPendente } from "@/lib/pendencias";
-import { brl } from "@/lib/format";
-import type { ContaPagarAvulsa, Tarefa } from "@/lib/types";
-
-const URG_CLS: Record<string, string> = { alta: "critical", media: "warning", baixa: "muted" };
-
-function fmtData(d: string) {
-  return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
-}
+import { brl, fmtData } from "@/lib/format";
+import { URG_CLS, type ContaPagarAvulsa, type Tarefa } from "@/lib/types";
 
 export function PendenciasModal({
   contas,
@@ -44,7 +38,7 @@ export function PendenciasModal({
       onClick={() => setOpen(false)}
     >
       <div
-        className="bg-paper border border-line rounded-xl p-6 max-w-md w-full flex flex-col gap-4 shadow-[var(--shadow)] max-h-[85vh] overflow-y-auto"
+        className="bg-paper border border-line rounded-lg p-6 max-w-md w-full flex flex-col gap-4 shadow-[var(--shadow)] max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col gap-1">

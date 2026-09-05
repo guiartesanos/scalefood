@@ -96,7 +96,7 @@ export function GeracaoCard({
   }
 
   return (
-    <div className="flex flex-col gap-3.5 rounded-xl border border-line bg-paper p-4">
+    <div className="flex flex-col gap-3.5 rounded-lg border border-line bg-paper p-4">
       <div className="flex items-start justify-between gap-3">
         {noticiaLink ? (
           <a
@@ -111,7 +111,7 @@ export function GeracaoCard({
           <span className="font-semibold text-[14px] leading-snug">{geracao.tema}</span>
         )}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[10px] uppercase tracking-wide text-muted border border-line rounded px-1.5 py-0.5 whitespace-nowrap">
+          <span className="text-[10.5px] uppercase tracking-wide text-muted border border-line rounded px-1.5 py-0.5 whitespace-nowrap">
             {STATUS_LABEL[geracao.status]}
           </span>
           <button
@@ -127,7 +127,7 @@ export function GeracaoCard({
 
       {!temRespostas && (
         <details open className="flex flex-col gap-3">
-          <summary className="text-[12.5px] font-semibold cursor-pointer select-none">
+          <summary className="text-[12px] font-semibold cursor-pointer select-none">
             10 perguntas provocativas
           </summary>
           <p className="text-[11px] text-muted -mt-1">
@@ -153,7 +153,7 @@ export function GeracaoCard({
                       <div key={i} className="flex flex-col gap-1">
                         <label className="text-[12px] text-ink-2">{p}</label>
                         <textarea
-                          className="input min-h-[44px] text-[12.5px]"
+                          className="input min-h-[44px] text-[12px]"
                           value={respostas[String(i)] || ""}
                           onChange={(e) => setRespostas((r) => ({ ...r, [String(i)]: e.target.value }))}
                         />
@@ -238,13 +238,13 @@ export function GeracaoCard({
                         await salvarImagemDrive(geracao.id, img.webViewLink || "", img.nome);
                         setImagens(null);
                       })}
-                      className="aspect-square rounded-lg overflow-hidden border border-line hover:border-accent transition-colors bg-paper-2"
+                      className="aspect-square rounded-md overflow-hidden border border-line hover:border-accent transition-colors bg-paper-2"
                     >
                       {img.thumbnailLink ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={img.thumbnailLink} alt={img.nome} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-[10px] text-muted p-1">{img.nome}</span>
+                        <span className="text-[10.5px] text-muted p-1">{img.nome}</span>
                       )}
                     </button>
                   ))}
@@ -300,7 +300,7 @@ export function GeracaoCard({
           href={geracao.canva_design_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[12.5px] font-semibold text-accent-ink underline underline-offset-2 self-start"
+          className="text-[12px] font-semibold text-accent-ink underline underline-offset-2 self-start"
         >
           abrir no Canva →
         </a>

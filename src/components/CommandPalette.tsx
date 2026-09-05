@@ -81,7 +81,7 @@ export function CommandPalette({ role, clientes }: { role: UserRole; clientes: {
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
-        buscar <span className="hidden min-[600px]:inline text-[10px] opacity-70">⌘K</span>
+        buscar <span className="hidden min-[600px]:inline text-[10.5px] opacity-70">⌘K</span>
       </button>
 
       {open && (
@@ -90,7 +90,7 @@ export function CommandPalette({ role, clientes }: { role: UserRole; clientes: {
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-paper border border-line rounded-xl w-full max-w-md shadow-[var(--shadow)] flex flex-col overflow-hidden"
+            className="bg-paper border border-line rounded-lg w-full max-w-md shadow-[var(--shadow)] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <input
@@ -121,7 +121,7 @@ export function CommandPalette({ role, clientes }: { role: UserRole; clientes: {
                 if (!itens.length) return null;
                 return (
                   <div key={grupo} className="flex flex-col">
-                    <span className="text-[10px] uppercase tracking-wide text-muted font-semibold px-4 pt-1.5 pb-1">{grupo}</span>
+                    <span className="text-[10.5px] uppercase tracking-wide text-muted font-semibold px-4 pt-1.5 pb-1">{grupo}</span>
                     {itens.map((r) => {
                       const idx = resultados.indexOf(r);
                       return (
@@ -129,7 +129,7 @@ export function CommandPalette({ role, clientes }: { role: UserRole; clientes: {
                           key={r.href + r.label}
                           onClick={() => ir(r)}
                           onMouseEnter={() => setAtivo(idx)}
-                          className="text-left px-4 py-2 text-[13.5px] flex items-center justify-between"
+                          className="text-left px-4 py-2 text-[13px] flex items-center justify-between"
                           style={{ background: ativo === idx ? "var(--accent-wash)" : "transparent" }}
                         >
                           <span>{r.label}</span>

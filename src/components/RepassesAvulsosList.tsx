@@ -2,12 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { marcarAvulsaPaga, desmarcarAvulsaPaga, editarValorAvulsa } from "@/actions/financeiro";
-import { brl } from "@/lib/format";
+import { brl, fmtData } from "@/lib/format";
 import type { ContaPagarAvulsa } from "@/lib/types";
-
-function fmtData(d: string) {
-  return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
-}
 
 function ValorEditavel({ id, valor, disabled }: { id: string; valor: number; disabled: boolean }) {
   const [editando, setEditando] = useState(false);
@@ -69,10 +65,10 @@ export function RepassesAvulsosList({ pendentes, pagas }: { pendentes: ContaPaga
       </p>
       <div className="flex flex-col gap-2">
         {pendentes.map((c) => (
-          <div key={c.id} className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 border border-line bg-paper">
+          <div key={c.id} className="flex items-center justify-between gap-3 rounded-md px-3 py-2.5 border border-line bg-paper">
             <div className="flex flex-col gap-0.5 min-w-0">
               <span className="font-semibold text-[13px] truncate">{c.nome}</span>
-              <span className="text-[11.5px] text-muted">
+              <span className="text-[11px] text-muted">
                 {c.categoria === "Imposto" ? "vence" : "gerado"} em {fmtData(c.data)}
                 {c.gestor && <> · pro <b>{c.gestor}</b></>}
               </span>
@@ -83,7 +79,7 @@ export function RepassesAvulsosList({ pendentes, pagas }: { pendentes: ContaPaga
                 type="button"
                 disabled={pending}
                 onClick={() => startTransition(() => { marcarAvulsaPaga(c.id); })}
-                className="btn-primary text-[11.5px] py-1 px-2.5 shrink-0"
+                className="btn-primary text-[11px] py-1 px-2.5 shrink-0"
               >
                 marcar como pago
               </button>
@@ -94,13 +90,13 @@ export function RepassesAvulsosList({ pendentes, pagas }: { pendentes: ContaPaga
       </div>
 
       {!!pagas.length && (
-        <details className="text-[12.5px]">
+        <details className="text-[12px]">
           <summary className="cursor-pointer text-muted font-semibold select-none">
             pagas recentemente ({pagas.length})
           </summary>
           <div className="flex flex-col gap-1.5 pt-2">
             {pagas.map((c) => (
-              <div key={c.id} className="flex items-center justify-between gap-3 px-3 py-1.5 rounded-md bg-paper-2">
+              <div key={c.id} className="flex items-center justify-between gap-3 px-3 py-1.5 rounded bg-paper-2">
                 <span className="text-ink-2">
                   {c.nome} {c.gestor && <>· <b>{c.gestor}</b></>}{" "}
                   <span className="text-muted">· pago em {c.pago_em ? fmtData(c.pago_em.slice(0, 10)) : "—"}</span>

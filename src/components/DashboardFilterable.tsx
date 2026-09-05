@@ -78,7 +78,7 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
                 key={s}
                 type="button"
                 onClick={() => irParaTabela(s)}
-                className="bg-paper border border-line rounded-xl p-4 flex flex-col gap-2 text-left transition-shadow"
+                className="bg-paper border border-line rounded-lg p-4 flex flex-col gap-2 text-left transition-shadow"
                 style={{
                   borderLeft: `4px solid var(--${STATUS_CLS[s]})`,
                   boxShadow: active ? "0 0 0 2px var(--accent)" : undefined,
@@ -88,20 +88,20 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
                   <span className="font-display font-extrabold text-[28px] num" style={{ color: `var(--${STATUS_CLS[s]})` }}>
                     {list.length}
                   </span>
-                  <span className="text-[11.5px] text-muted num">{pct}% da carteira</span>
+                  <span className="text-[11px] text-muted num">{pct}% da carteira</span>
                 </div>
                 <div className="h-[6px] rounded-full overflow-hidden" style={{ background: `var(--${STATUS_CLS[s]}-wash)` }}>
                   <div className="h-full rounded-full" style={{ width: `${pct}%`, background: `var(--${STATUS_CLS[s]})` }} />
                 </div>
-                <span className="font-semibold text-[13.5px]">{s}</span>
+                <span className="font-semibold text-[13px]">{s}</span>
                 {verLucro && (
-                  <span className="text-[11.5px] text-muted num">
+                  <span className="text-[11px] text-muted num">
                     <ValorOcultavel>{brlInt(rec)}</ValorOcultavel> recorrência ·{" "}
                     <ValorOcultavel>{brlInt(liq)}</ValorOcultavel> líquido
                   </span>
                 )}
                 <span className="text-xs text-ink-2 leading-snug">{STATUS_DESC[s]}</span>
-                <span className="text-[11.5px] font-semibold mt-1" style={{ color: `var(--${STATUS_CLS[s]})` }}>
+                <span className="text-[11px] font-semibold mt-1" style={{ color: `var(--${STATUS_CLS[s]})` }}>
                   ver {list.length} cliente{list.length > 1 ? "s" : ""} ›
                 </span>
               </button>
@@ -134,7 +134,7 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
             </div>
           )}
         </div>
-        <div className="border border-line rounded-xl overflow-auto bg-paper">
+        <div className="border border-line rounded-lg overflow-auto bg-paper">
           <table className="w-full min-w-[720px] text-[13px] border-collapse">
             <thead>
               <tr className="bg-paper-2">
@@ -187,7 +187,7 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
 
       <section className="flex flex-col gap-3.5">
         <h2 className="font-display font-bold text-[21px]">Recorrência por nicho</h2>
-        <div className="flex flex-col gap-2.5 bg-paper border border-line rounded-xl p-4">
+        <div className="flex flex-col gap-2.5 bg-paper border border-line rounded-lg p-4">
           {Object.entries(niches)
             .sort((a, b) => b[1].rec - a[1].rec)
             .map(([name, v]) => {
@@ -197,7 +197,7 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
                   key={name}
                   type="button"
                   onClick={() => setFiltroNicho(active ? null : name)}
-                  className="grid grid-cols-[140px_1fr_92px] items-center gap-3 text-left rounded-md -mx-1.5 px-1.5 py-1 transition-colors"
+                  className="grid grid-cols-[140px_1fr_92px] items-center gap-3 text-left rounded -mx-1.5 px-1.5 py-1 transition-colors"
                   style={{ background: active ? "var(--accent-wash)" : undefined }}
                 >
                   <span className="text-[13px] font-medium">

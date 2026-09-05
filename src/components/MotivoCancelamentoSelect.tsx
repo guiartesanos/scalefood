@@ -9,7 +9,7 @@ export function MotivoCancelamentoSelect({ id, motivo }: { id: string; motivo: s
 
   return (
     <select
-      className="input py-1 text-[12.5px]"
+      className="input py-1 text-[12px]"
       value={motivo || ""}
       disabled={pending}
       onChange={(e) => {

@@ -4,9 +4,7 @@ import { useState, useTransition } from "react";
 import { moverTarefa, removerTarefa } from "@/actions/tarefas";
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 import { AtribuirResponsavelChip } from "@/components/AtribuirResponsavelChip";
-import type { Tarefa, Agenda } from "@/lib/types";
-
-const URG_CLS: Record<string, string> = { alta: "critical", media: "warning", baixa: "muted" };
+import { URG_CLS, type Tarefa, type Agenda } from "@/lib/types";
 type Coluna = "a-fazer" | "em-andamento" | "feito";
 
 const COLS = [
@@ -53,7 +51,7 @@ export function TarefasKanban({ tarefas, agendas, responsaveis }: { tarefas: Tar
             <button
               key={col.key}
               onClick={() => setAtivo(col.key)}
-              className="flex-1 rounded-full px-3 py-1.5 text-[12.5px] font-semibold border"
+              className="flex-1 rounded-full px-3 py-1.5 text-[12px] font-semibold border"
               style={{
                 borderColor: selecionado ? "var(--accent)" : "var(--line)",
                 background: selecionado ? "var(--paper)" : "var(--paper-2)",
@@ -102,7 +100,7 @@ export function TarefasKanban({ tarefas, agendas, responsaveis }: { tarefas: Tar
         onDragEnter={() => setDragOver("feito")}
         onDragLeave={() => setDragOver(null)}
         onDrop={() => soltar("feito")}
-        className="border border-line rounded-lg transition-colors"
+        className="border border-line rounded-md transition-colors"
         style={{ background: dragOver === "feito" ? "var(--accent-wash)" : "var(--paper-2)" }}
       >
         <button
@@ -115,7 +113,7 @@ export function TarefasKanban({ tarefas, agendas, responsaveis }: { tarefas: Tar
         {feitoAberto && (
           <div className="flex flex-col gap-1.5 px-3 pb-3">
             {feito.map((t) => (
-              <div key={t.id} className="flex items-center justify-between gap-2 text-[12px] bg-paper border border-line/50 rounded-md px-2.5 py-1.5">
+              <div key={t.id} className="flex items-center justify-between gap-2 text-[12px] bg-paper border border-line/50 rounded px-2.5 py-1.5">
                 <span className="line-through text-muted">{t.titulo}</span>
                 <ConfirmarExclusao
                   itemLabel={`a tarefa "${t.titulo}"`}
@@ -165,7 +163,7 @@ function Coluna({
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      className={`border border-line rounded-xl p-2.5 flex-col gap-2.5 min-h-[140px] transition-colors flex ${visivelNoMobile ? "" : "max-[767px]:hidden"}`}
+      className={`border border-line rounded-lg p-2.5 flex-col gap-2.5 min-h-[140px] transition-colors flex ${visivelNoMobile ? "" : "max-[767px]:hidden"}`}
       style={{ background: dragOver ? "var(--accent-wash)" : "var(--paper-2)" }}
     >
       <div className="flex justify-between items-center px-1 max-[767px]:hidden">
@@ -182,7 +180,7 @@ function Coluna({
               onDragStartCard(t.id);
               e.dataTransfer.effectAllowed = "move";
             }}
-            className="bg-paper border border-line rounded-lg p-2.5 flex flex-col gap-1.5 shadow-sm cursor-grab active:cursor-grabbing"
+            className="bg-paper border border-line rounded-md p-2.5 flex flex-col gap-1.5 shadow-sm cursor-grab active:cursor-grabbing"
             style={{ borderLeft: `3px solid var(--${URG_CLS[t.urgencia]})` }}
           >
             <span className="font-semibold text-[13px]">{t.titulo}</span>

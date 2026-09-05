@@ -119,6 +119,11 @@ export interface Tarefa {
   criado_em: string;
 }
 
+// Cor por urgência (usada como var(--${URG_CLS[urgencia]})) — estava
+// copiado igual em 3 arquivos (clientes/[id], PendenciasModal,
+// TarefasKanban); só não tinha divergido ainda por sorte.
+export const URG_CLS: Record<string, string> = { alta: "critical", media: "warning", baixa: "muted" };
+
 export interface Rotina {
   id: string;
   nome: string;

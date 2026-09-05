@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { brl } from "@/lib/data";
+import { brl, fmtData } from "@/lib/data";
 import { DRE_PRIMEIRO_ANO_MES, type DREResultado, type DRELinha } from "@/lib/dre";
 import { ValorOcultavel } from "@/components/ValoresVisibilidade";
 import { hojeBR } from "@/lib/tz";
@@ -8,11 +8,6 @@ const MES_NOME = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
-
-function fmtData(d?: string) {
-  if (!d) return null;
-  return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
-}
 
 export function DREView({ dre, verLucro, baseHref }: { dre: DREResultado; verLucro: boolean; baseHref: string }) {
   const { ano, mes } = dre;
@@ -32,7 +27,7 @@ export function DREView({ dre, verLucro, baseHref }: { dre: DREResultado; verLuc
         {dre.ehMesAtual && " Em andamento, atualizado até hoje."}
       </p>
 
-      <div className="flex items-center justify-center gap-4 bg-paper border border-line rounded-xl py-3">
+      <div className="flex items-center justify-center gap-4 bg-paper border border-line rounded-lg py-3">
         {podeVoltar ? (
           <Link href={`${baseHref}?tab=dre&ano=${mesAnterior.ano}&mes=${mesAnterior.mes}`} className="btn-ghost px-3">←</Link>
         ) : (
@@ -49,7 +44,7 @@ export function DREView({ dre, verLucro, baseHref }: { dre: DREResultado; verLuc
       </div>
 
       {dre.erroAsaas && (
-        <p className="text-critical text-sm bg-paper border border-critical/30 rounded-xl p-3">
+        <p className="text-critical text-sm bg-paper border border-critical/30 rounded-lg p-3">
           Não consegui buscar os dados do Asaas agora ({dre.erroAsaas}) — os valores abaixo podem estar
           incompletos (falta recorrência/consultoria recebida via Asaas e as tarifas de conta).
         </p>
@@ -60,7 +55,7 @@ export function DREView({ dre, verLucro, baseHref }: { dre: DREResultado; verLuc
       <Secao titulo="Custos fixos" total={dre.custosFixos.total} linhas={dre.custosFixos.linhas} cor="var(--critical)" sinal="−" />
 
       <div
-        className="rounded-xl p-5 flex items-center justify-between border"
+        className="rounded-lg p-5 flex items-center justify-between border"
         style={{ background: "var(--accent-wash)", borderColor: "var(--accent)" }}
       >
         <span className="font-display font-bold text-lg">Resultado do mês</span>
@@ -93,7 +88,7 @@ export function DREView({ dre, verLucro, baseHref }: { dre: DREResultado; verLuc
 function Secao({ titulo, total, linhas, cor, sinal, ocultavel }: { titulo: string; total: number; linhas: DRELinha[]; cor: string; sinal: string; ocultavel?: boolean }) {
   const valor = (children: React.ReactNode) => (ocultavel ? <ValorOcultavel>{children}</ValorOcultavel> : children);
   return (
-    <section className="bg-paper border border-line rounded-xl overflow-hidden">
+    <section className="bg-paper border border-line rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 bg-paper-2 border-b border-line">
         <h2 className="font-display font-bold text-[16px]">{titulo}</h2>
         <span className="font-display font-bold num" style={{ color: cor }}>
@@ -104,20 +99,20 @@ function Secao({ titulo, total, linhas, cor, sinal, ocultavel }: { titulo: strin
       {linhas.map((l) => (
         <details key={l.label} className="border-b border-line/50 last:border-b-0 group">
           <summary className="flex items-center justify-between px-4 py-2.5 cursor-pointer list-none hover:bg-paper-2/60 transition-colors">
-            <span className="text-[13.5px] flex items-center gap-2">
-              <span className="text-muted text-[10px] group-open:rotate-90 transition-transform inline-block">▶</span>
+            <span className="text-[13px] flex items-center gap-2">
+              <span className="text-muted text-[10.5px] group-open:rotate-90 transition-transform inline-block">▶</span>
               {l.label}
               {!l.automatico && (
-                <span className="text-[10px] uppercase tracking-wide text-muted border border-line rounded px-1.5 py-0.5">manual</span>
+                <span className="text-[10.5px] uppercase tracking-wide text-muted border border-line rounded px-1.5 py-0.5">manual</span>
               )}
             </span>
-            <span className="num font-semibold text-[13.5px]" style={{ color: cor }}>
+            <span className="num font-semibold text-[13px]" style={{ color: cor }}>
               {valor(brl(l.valor))}
             </span>
           </summary>
           <div className="px-4 pb-3 flex flex-col gap-1 bg-paper-2/40">
             {l.itens.map((item, i) => (
-              <div key={i} className="flex items-center justify-between text-[12.5px] pl-5 text-ink-2">
+              <div key={i} className="flex items-center justify-between text-[12px] pl-5 text-ink-2">
                 <span>
                   {item.label} {item.data && <span className="text-muted">· {fmtData(item.data)}</span>}
                 </span>

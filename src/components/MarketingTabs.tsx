@@ -40,7 +40,7 @@ export function MarketingTabs({
               {t.label}
               {t.key === "gerador" && !!badgeGerador && (
                 <span
-                  className="text-[10px] font-bold text-white rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"
+                  className="text-[10.5px] font-bold text-white rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"
                   style={{ background: "var(--accent)" }}
                 >
                   {badgeGerador}

@@ -45,7 +45,7 @@ export default async function TarefasPage() {
             attnClientes.map((c) => {
               const jaTem = (tarefas || []).some((t) => t.cliente_nome === c.nome && t.coluna !== "feito");
               return (
-                <div key={c.id} className="flex justify-between items-center gap-3 bg-paper border border-line border-l-[3px] rounded-lg px-3 py-2 text-[12.5px]" style={{ borderLeftColor: "var(--serious)" }}>
+                <div key={c.id} className="flex justify-between items-center gap-3 bg-paper border border-line border-l-[3px] rounded-md px-3 py-2 text-[12px]" style={{ borderLeftColor: "var(--serious)" }}>
                   <span>{c.nome} — {c.status}</span>
                   {jaTem ? <span className="text-muted">já tem tarefa aberta</span> : <SugestaoTarefaButton clienteNome={c.nome} />}
                 </div>
@@ -60,7 +60,7 @@ export default async function TarefasPage() {
       <section className="flex flex-col gap-3.5">
         <h2 className="font-display font-bold text-[21px]">Agendas</h2>
         <NovaAgendaForm />
-        <div className="bg-paper border border-line rounded-xl p-4 flex flex-col gap-2">
+        <div className="bg-paper border border-line rounded-lg p-4 flex flex-col gap-2">
           {(agendas || []).map((a) => (
             <div key={a.id} className="flex justify-between text-[13px] border-b border-dashed border-line/50 pb-1">
               <span>{a.nome}</span><span className="text-ink-2">{a.email || "—"}</span>

@@ -28,7 +28,7 @@ export default async function IcpPage() {
 
   return (
     <>
-      <div className="bg-paper border border-accent rounded-xl p-6 flex flex-col gap-4">
+      <div className="bg-paper border border-accent rounded-lg p-6 flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <span className="text-[11px] font-bold uppercase tracking-wide text-good bg-good/10 w-fit px-2 py-0.5 rounded" style={{ background: "var(--good-wash)" }}>
             ICP prioritário
@@ -39,7 +39,7 @@ export default async function IcpPage() {
             como prioridade de aquisição — esse continua existindo, mas como entrada de funil.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-1 bg-line border border-line rounded-lg overflow-hidden">
+        <div className="grid grid-cols-3 gap-1 bg-line border border-line rounded-md overflow-hidden">
           <Stat v="R$ 15.000" l="Implementação · 4 reuniões" />
           <Stat v="R$ 3.000/mês" l="Recorrente · gestão de tráfego" />
           <Stat v="< 1 semana" l="Ciclo de venda · 1 call" />
@@ -55,10 +55,10 @@ export default async function IcpPage() {
             const hitRate = Math.round((s.hits / s.n) * 100);
             const avgPct = s.pctSum / s.n;
             return (
-              <div key={band} className="bg-paper border border-line rounded-xl p-4 flex flex-col gap-2" style={{ borderLeft: `4px solid var(--${meta.cls})` }}>
+              <div key={band} className="bg-paper border border-line rounded-lg p-4 flex flex-col gap-2" style={{ borderLeft: `4px solid var(--${meta.cls})` }}>
                 <span className="font-display font-extrabold text-2xl num" style={{ color: `var(--${meta.cls})` }}>{hitRate}%</span>
-                <span className="text-[11.5px] text-muted">dos clientes cresceram · média {avgPct >= 0 ? "+" : ""}{avgPct.toFixed(1).replace(".", ",")}%</span>
-                <span className="font-semibold text-[13.5px]">{meta.title}</span>
+                <span className="text-[11px] text-muted">dos clientes cresceram · média {avgPct >= 0 ? "+" : ""}{avgPct.toFixed(1).replace(".", ",")}%</span>
+                <span className="font-semibold text-[13px]">{meta.title}</span>
                 <span className="text-xs text-ink-2">{s.names.join(" · ")}</span>
               </div>
             );
@@ -73,7 +73,7 @@ export default async function IcpPage() {
             <div key={l.id} className="relative pb-4">
               <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-accent border-2 border-paper" />
               <div className="text-[11px] text-muted num">{new Date(l.data + "T00:00:00").toLocaleDateString("pt-BR")}</div>
-              <div className="font-semibold text-[13.5px]">{l.titulo}</div>
+              <div className="font-semibold text-[13px]">{l.titulo}</div>
               <div className="text-xs text-ink-2 leading-relaxed">{l.detalhe}</div>
             </div>
           ))}

@@ -34,7 +34,7 @@ export function ClienteValoresForm({ cliente }: { cliente: Cliente }) {
       onClick={() => setOpen(false)}
     >
       <div
-        className="bg-paper border border-line rounded-xl p-6 max-w-sm w-full flex flex-col gap-3 shadow-[var(--shadow)]"
+        className="bg-paper border border-line rounded-lg p-6 max-w-sm w-full flex flex-col gap-3 shadow-[var(--shadow)]"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="font-display font-bold text-lg">{cliente.nome} — editar valores</h3>

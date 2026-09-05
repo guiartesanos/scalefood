@@ -28,7 +28,7 @@ export function WhatsAppButton({
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
       className={`inline-flex items-center gap-1.5 rounded-full font-semibold transition-colors ${
-        compact ? "px-2.5 py-1 text-[11.5px]" : "px-3 py-1.5 text-[12.5px]"
+        compact ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-[12px]"
       }`}
       style={{ background: "#25D36622", color: "#128C4A" }}
     >

@@ -7,6 +7,7 @@ import { ClienteValoresForm } from "@/components/ClienteValoresForm";
 import { ClientesKanban } from "@/components/ClientesKanban";
 import { ClientesTabs } from "@/components/ClientesTabs";
 import { ComercialSubNav } from "@/components/ComercialSubNav";
+import { Kpi } from "@/components/Kpi";
 import { MotivoCancelamentoSelect } from "@/components/MotivoCancelamentoSelect";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { canEditClienteValores } from "@/lib/permissions";
@@ -41,7 +42,7 @@ export default async function ClientesPage() {
 
       <section className="flex flex-col gap-3.5">
         <h2 className="font-display font-bold text-[21px]">Faturamento do cliente: entrada vs. hoje</h2>
-        <div className="border border-line rounded-xl overflow-auto bg-paper">
+        <div className="border border-line rounded-lg overflow-auto bg-paper">
           <table className="w-full min-w-[760px] text-[13px] border-collapse">
             <thead>
               <tr className="bg-paper-2">
@@ -102,12 +103,12 @@ export default async function ClientesPage() {
           cancelamentos de antes do Asaas (ex: pagamentos recebidos direto por PIX/transferência).
         </p>
       </div>
-      <div className="grid grid-cols-3 max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-xl overflow-hidden">
+      <div className="grid grid-cols-3 max-[640px]:grid-cols-1 gap-1 bg-line border border-line rounded-lg overflow-hidden">
         <Kpi label="Clientes cancelados" value={String(cancelados.length)} sub="com pagamento confirmado no Asaas" />
         <Kpi label="Total recebido (histórico)" value={brl(totalRecebidoCancelados)} sub="soma de tudo que pagaram antes de cancelar" />
         <Kpi label="Sem motivo definido" value={String(semMotivo)} sub="ainda precisa classificar" color={semMotivo ? "var(--critical)" : undefined} />
       </div>
-      <div className="border border-line rounded-xl overflow-auto bg-paper">
+      <div className="border border-line rounded-lg overflow-auto bg-paper">
         <table className="w-full min-w-[900px] text-[13px] border-collapse">
           <thead>
             <tr className="bg-paper-2">
@@ -151,16 +152,6 @@ export default async function ClientesPage() {
       <ComercialSubNav />
       <ClientesTabs geral={geral} cancelados={canceladosView} totalCancelados={cancelados.length} />
     </>
-  );
-}
-
-function Kpi({ label, value, sub, color }: { label: string; value: string; sub: string; color?: string }) {
-  return (
-    <div className="bg-paper px-5 py-4 flex flex-col gap-1.5">
-      <span className="text-[11.5px] uppercase tracking-wide text-muted font-semibold">{label}</span>
-      <span className="font-display font-bold text-[22px] min-[400px]:text-[26px] num break-words" style={{ color }}>{value}</span>
-      <span className="text-xs text-ink-2">{sub}</span>
-    </div>
   );
 }
 function Th({ children, right }: { children?: React.ReactNode; right?: boolean }) {

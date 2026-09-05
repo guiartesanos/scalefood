@@ -24,7 +24,7 @@ export function ConvidarUsuarioForm() {
   }
 
   return (
-    <div className="bg-paper-2 border border-dashed border-line rounded-xl p-4 flex flex-col gap-3">
+    <div className="bg-paper-2 border border-dashed border-line rounded-lg p-4 flex flex-col gap-3">
       <div className="flex gap-1.5">
         <button
           type="button"

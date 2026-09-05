@@ -8,7 +8,7 @@ import {
   removerProposta,
 } from "@/actions/propostas";
 import { ConfirmarExclusao } from "./ConfirmarExclusao";
-import { brl as brlValor } from "@/lib/format";
+import { brl as brlValor, fmtData as fmtDataBase } from "@/lib/format";
 import {
   PROPOSTA_STATUS_LIST,
   PROPOSTA_STATUS_META,
@@ -21,8 +21,7 @@ function brl(v: number | null) {
   return v == null ? "—" : brlValor(v);
 }
 function fmtData(d: string | null) {
-  if (!d) return "—";
-  return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
+  return fmtDataBase(d) ?? "—";
 }
 function hoje() {
   return new Date().toISOString().slice(0, 10);
@@ -61,8 +60,8 @@ export function PropostasList({ propostas }: { propostas: Proposta[] }) {
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display font-bold text-2xl">Propostas</h1>
-          <p className="text-sm text-ink-2">
+          <h2 className="font-display font-bold text-[21px]">Propostas</h2>
+          <p className="text-[13px] text-muted">
             Propostas enviadas, não só vendas fechadas — ordenadas pelo próximo follow-up.
           </p>
         </div>
@@ -72,7 +71,7 @@ export function PropostasList({ propostas }: { propostas: Proposta[] }) {
       </div>
 
       {mostrarForm && (
-        <form action={handleCriar} className="bg-paper-2 border border-dashed border-line rounded-lg p-4 flex flex-wrap gap-3 items-end">
+        <form action={handleCriar} className="bg-paper-2 border border-dashed border-line rounded-md p-4 flex flex-wrap gap-3 items-end">
           <Field label="Nome do prospect">
             <input name="nomeProspect" required className="input" />
           </Field>
@@ -104,7 +103,7 @@ export function PropostasList({ propostas }: { propostas: Proposta[] }) {
         </form>
       )}
 
-      <div className="border border-line rounded-xl overflow-auto bg-paper">
+      <div className="border border-line rounded-lg overflow-auto bg-paper">
         <table className="w-full min-w-[820px] text-[13px] border-collapse">
           <thead>
             <tr className="bg-paper-2">
@@ -139,7 +138,7 @@ export function PropostasList({ propostas }: { propostas: Proposta[] }) {
             {mostrarEncerradas ? "ocultar encerradas" : `ver encerradas (${encerradas.length})`}
           </button>
           {mostrarEncerradas && (
-            <div className="border border-line rounded-xl overflow-auto bg-paper opacity-80">
+            <div className="border border-line rounded-lg overflow-auto bg-paper opacity-80">
               <table className="w-full min-w-[820px] text-[13px] border-collapse">
                 <tbody>
                   {encerradas.map((p) => (

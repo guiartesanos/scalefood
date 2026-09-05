@@ -22,7 +22,7 @@ export function ClienteCanceladoEditForm({ cliente }: { cliente: ClienteCancelad
   }
 
   return (
-    <form action={handleSubmit} className="bg-paper border border-line rounded-xl p-5 flex flex-col gap-3">
+    <form action={handleSubmit} className="bg-paper border border-line rounded-lg p-5 flex flex-col gap-3">
       <h3 className="font-display font-bold text-base">Nicho, dono e observações</h3>
       <p className="text-xs text-muted">
         Não vem do Asaas — preenche manualmente (nicho e dono não existem no cadastro Asaas).

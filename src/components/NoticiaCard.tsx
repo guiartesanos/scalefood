@@ -2,26 +2,22 @@
 
 import { useTransition } from "react";
 import { descartarNoticia, moverParaGerador } from "@/actions/marketing";
+import { fmtDataHora } from "@/lib/format";
 import type { RadarNoticia } from "@/lib/types";
-
-function fmtData(d: string | null) {
-  if (!d) return null;
-  return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
-}
 
 export function NoticiaCard({ noticia }: { noticia: RadarNoticia }) {
   const [pending, startTransition] = useTransition();
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-xl border border-line bg-paper p-4">
+    <div className="flex flex-col gap-2.5 rounded-lg border border-line bg-paper p-4">
       <div className="flex items-start justify-between gap-3">
         <a href={noticia.link} target="_blank" rel="noopener noreferrer" className="font-semibold text-[14px] leading-snug hover:underline">
           {noticia.titulo}
         </a>
       </div>
-      <span className="text-[11.5px] text-muted">
+      <span className="text-[11px] text-muted">
         {noticia.fonte || "fonte desconhecida"}
-        {noticia.publicado_em && <> · {fmtData(noticia.publicado_em)}</>}
+        {noticia.publicado_em && <> · {fmtDataHora(noticia.publicado_em)}</>}
       </span>
       <div className="flex items-center gap-2 pt-1">
         <button

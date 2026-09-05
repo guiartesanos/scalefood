@@ -2,15 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { brl, periodoLabel } from "@/lib/data";
+import { brl, periodoLabel, fmtData as fmtDataBase } from "@/lib/data";
 import { listarPagamentosAsaas } from "@/lib/asaas";
 import { MotivoCancelamentoSelect } from "@/components/MotivoCancelamentoSelect";
 import { ClienteCanceladoEditForm } from "@/components/ClienteCanceladoEditForm";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { Kpi } from "@/components/Kpi";
 import type { ClienteCancelado } from "@/lib/types";
 
 function fmtData(d: string | null) {
-  return d ? new Date(d + "T12:00:00").toLocaleDateString("pt-BR") : "—";
+  return fmtDataBase(d) ?? "—";
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -48,7 +49,7 @@ export default async function ClienteCanceladoPage({ params }: { params: Promise
         ← voltar pra Clientes
       </Link>
 
-      <section className="bg-paper border border-critical/40 rounded-xl p-6 flex flex-col gap-3">
+      <section className="bg-paper border border-critical/40 rounded-lg p-6 flex flex-col gap-3">
         <div className="flex justify-between items-start flex-wrap gap-3">
           <div className="flex flex-col gap-1">
             <h1 className="font-display font-extrabold text-3xl">{c.nome}</h1>
@@ -62,7 +63,7 @@ export default async function ClienteCanceladoPage({ params }: { params: Promise
         {c.asaas_customer_id && <span className="text-xs text-muted">Cliente Asaas: {c.asaas_customer_id}</span>}
       </section>
 
-      <div className="grid grid-cols-4 max-[760px]:grid-cols-2 gap-1 bg-line border border-line rounded-xl overflow-hidden">
+      <div className="grid grid-cols-4 max-[760px]:grid-cols-2 gap-1 bg-line border border-line rounded-lg overflow-hidden">
         <Kpi label="Total recebido" value={brl(c.total_recebido)} />
         <Kpi label="Tempo ativo" value={periodoLabel(c.primeiro_pagamento, c.ultimo_pagamento)} sub="1º até último pagamento" />
         <Kpi label="1º pagamento" value={fmtData(c.primeiro_pagamento)} />
@@ -81,7 +82,7 @@ export default async function ClienteCanceladoPage({ params }: { params: Promise
       <section className="flex flex-col gap-3.5">
         <h2 className="font-display font-bold text-[21px]">Histórico de pagamentos (Asaas)</h2>
         {erroAsaas && <p className="text-critical text-sm">{erroAsaas}</p>}
-        <div className="border border-line rounded-xl overflow-auto bg-paper">
+        <div className="border border-line rounded-lg overflow-auto bg-paper">
           <table className="w-full text-[13px] border-collapse">
             <thead>
               <tr className="bg-paper-2">
@@ -114,16 +115,6 @@ export default async function ClienteCanceladoPage({ params }: { params: Promise
         </div>
       </section>
     </>
-  );
-}
-
-function Kpi({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="bg-paper px-5 py-4 flex flex-col gap-1.5">
-      <span className="text-[11.5px] uppercase tracking-wide text-muted font-semibold">{label}</span>
-      <span className="font-display font-bold text-[20px] min-[400px]:text-[24px] num break-words">{value}</span>
-      {sub && <span className="text-xs text-ink-2">{sub}</span>}
-    </div>
   );
 }
 

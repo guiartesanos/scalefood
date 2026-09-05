@@ -47,7 +47,7 @@ export function ClientesKanban({ clientes }: { clientes: Cliente[] }) {
             <button
               key={col.key}
               onClick={() => setAtivo(col.key)}
-              className="shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold border"
+              className="shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold border"
               style={{
                 borderColor: selecionado ? STRIPE[col.key] : "var(--line)",
                 background: selecionado ? "var(--paper)" : "var(--paper-2)",
@@ -66,10 +66,10 @@ export function ClientesKanban({ clientes }: { clientes: Cliente[] }) {
           return (
             <div
               key={col.key}
-              className={`bg-paper-2 border border-line rounded-xl p-2.5 flex-col gap-2 flex ${ativo === col.key ? "" : "max-[767px]:hidden"}`}
+              className={`bg-paper-2 border border-line rounded-lg p-2.5 flex-col gap-2 flex ${ativo === col.key ? "" : "max-[767px]:hidden"}`}
             >
               <div className="flex justify-between items-center px-1 pb-1 max-[767px]:hidden" style={{ borderBottom: `2px solid ${STRIPE[col.key]}` }}>
-                <h4 className="font-display font-bold text-[13.5px]" style={{ color: STRIPE[col.key] }}>{col.label}</h4>
+                <h4 className="font-display font-bold text-[13px]" style={{ color: STRIPE[col.key] }}>{col.label}</h4>
                 <span className="text-[11px] text-muted num">{list.length}</span>
               </div>
               {list.map((c) => {
@@ -81,8 +81,8 @@ export function ClientesKanban({ clientes }: { clientes: Cliente[] }) {
                 if (c.status === "Onboarding urgente" && tenure.days > 7) { attn = true; attnNote = `onboarding parado há ${tenure.text}`; }
                 const growthTxt = p !== null ? `${p >= 0 ? "+" : ""}${p.toFixed(0)}%` : c.growth_note === "zero_base" ? "do zero" : "—";
                 return (
-                  <div key={c.id} className="bg-paper border border-line rounded-lg p-2.5 flex flex-col gap-1" style={{ borderLeft: `3px solid ${attn ? "var(--critical)" : STRIPE[col.key]}` }}>
-                    <Link href={`/clientes/${c.id}`} className="font-semibold text-[12.5px] hover:text-accent-ink hover:underline self-start">
+                  <div key={c.id} className="bg-paper border border-line rounded-md p-2.5 flex flex-col gap-1" style={{ borderLeft: `3px solid ${attn ? "var(--critical)" : STRIPE[col.key]}` }}>
+                    <Link href={`/clientes/${c.id}`} className="font-semibold text-[12px] hover:text-accent-ink hover:underline self-start">
                       {c.nome}
                     </Link>
                     <span className="text-[11px] text-muted">{c.dono} · {c.nicho} · cliente há {tenure.text}</span>

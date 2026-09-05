@@ -76,7 +76,7 @@ export function MobileTabNav({
                 </span>
               )}
             </span>
-            <span className="text-[10px] font-semibold">{t.label}</span>
+            <span className="text-[10.5px] font-semibold">{t.label}</span>
           </Link>
         );
       })}

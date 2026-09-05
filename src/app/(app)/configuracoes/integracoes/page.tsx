@@ -70,7 +70,7 @@ export default async function IntegracoesPage() {
           return (
             <div
               key={i.chave}
-              className="border rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap bg-paper"
+              className="border rounded-lg p-4 flex items-center justify-between gap-3 flex-wrap bg-paper"
               style={{ borderColor: quebrada ? "var(--critical)" : "var(--line)" }}
             >
               <div className="flex flex-col gap-0.5">
@@ -103,7 +103,7 @@ export default async function IntegracoesPage() {
           return (
             <div
               key={c.chave}
-              className="border rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap bg-paper"
+              className="border rounded-lg p-4 flex items-center justify-between gap-3 flex-wrap bg-paper"
               style={{ borderColor: quebrado ? "var(--critical)" : "var(--line)" }}
             >
               <div className="flex flex-col gap-0.5">

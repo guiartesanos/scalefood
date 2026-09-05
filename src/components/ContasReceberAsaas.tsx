@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { brl } from "@/lib/format";
+import { brl, fmtData } from "@/lib/format";
 import type { ContaReceberAsaas } from "@/lib/asaas";
 
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -9,10 +9,6 @@ const MES_NOME = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
-
-function fmtData(d: string) {
-  return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
-}
 function diasAtraso(dueDate: string): number {
   const hoje = new Date();
   const h = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
@@ -61,9 +57,9 @@ export function ContasReceberAsaas({ contas }: { contas: ContaReceberAsaas[] }) 
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className="grid grid-cols-2 max-[520px]:grid-cols-1 gap-1 bg-line border border-line rounded-xl overflow-hidden">
+      <div className="grid grid-cols-2 max-[520px]:grid-cols-1 gap-1 bg-line border border-line rounded-lg overflow-hidden">
         <div className="bg-paper px-5 py-4 flex flex-col gap-1.5">
-          <span className="text-[11.5px] uppercase tracking-wide text-muted font-semibold">Total a receber (Asaas)</span>
+          <span className="text-[11px] uppercase tracking-wide text-muted font-semibold">Total a receber (Asaas)</span>
           <span className="font-display font-bold text-[22px] min-[400px]:text-[26px] num">{brl(totalAReceber)}</span>
           <span className="text-xs text-ink-2">{contas.length} cobrança(s) em aberto, todos os clientes</span>
         </div>
@@ -72,7 +68,7 @@ export function ContasReceberAsaas({ contas }: { contas: ContaReceberAsaas[] }) 
           onClick={() => setVerVencidas((v) => !v)}
           className="bg-paper px-5 py-4 flex flex-col gap-1.5 text-left transition-colors hover:bg-paper-2"
         >
-          <span className="text-[11.5px] uppercase tracking-wide text-muted font-semibold">
+          <span className="text-[11px] uppercase tracking-wide text-muted font-semibold">
             Total vencido {vencidas.length > 0 && "· clique pra ver quem"}
           </span>
           <span className="font-display font-bold text-[22px] min-[400px]:text-[26px] num" style={{ color: vencidas.length ? "var(--critical)" : undefined }}>
@@ -83,7 +79,7 @@ export function ContasReceberAsaas({ contas }: { contas: ContaReceberAsaas[] }) 
       </div>
 
       {verVencidas && (
-        <div className="border border-critical/40 rounded-xl overflow-auto bg-paper">
+        <div className="border border-critical/40 rounded-lg overflow-auto bg-paper">
           <table className="w-full text-[13px] border-collapse">
             <thead>
               <tr className="bg-paper-2">
@@ -115,7 +111,7 @@ export function ContasReceberAsaas({ contas }: { contas: ContaReceberAsaas[] }) 
       )}
 
       <div className="grid grid-cols-[1fr_320px] gap-4 max-[900px]:grid-cols-1">
-        <div className="border border-line rounded-xl overflow-auto bg-paper">
+        <div className="border border-line rounded-lg overflow-auto bg-paper">
           <table className="w-full text-[13px] border-collapse">
             <thead>
               <tr className="bg-paper-2">
@@ -155,7 +151,7 @@ export function ContasReceberAsaas({ contas }: { contas: ContaReceberAsaas[] }) 
           </table>
         </div>
 
-        <div className="bg-paper border border-line rounded-xl p-4 flex flex-col gap-3">
+        <div className="bg-paper border border-line rounded-lg p-4 flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <button type="button" onClick={() => setMesOffset((m) => m - 1)} className="btn-ghost px-2 py-1 text-sm">
               ←
@@ -172,7 +168,7 @@ export function ContasReceberAsaas({ contas }: { contas: ContaReceberAsaas[] }) 
               voltar pro mês atual
             </button>
           )}
-          <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-muted font-semibold uppercase tracking-wide">
+          <div className="grid grid-cols-7 gap-1 text-center text-[10.5px] text-muted font-semibold uppercase tracking-wide">
             {DIAS_SEMANA.map((d) => (
               <span key={d}>{d}</span>
             ))}
@@ -184,7 +180,7 @@ export function ContasReceberAsaas({ contas }: { contas: ContaReceberAsaas[] }) 
               return (
                 <div
                   key={i}
-                  className="aspect-square flex flex-col items-center justify-center gap-0.5 rounded-md text-[11.5px]"
+                  className="aspect-square flex flex-col items-center justify-center gap-0.5 rounded text-[11px]"
                   style={{ background: ehHoje ? "var(--accent-wash)" : undefined }}
                   title={info ? `${info.qtd} cobrança(s) — ${brl(info.total)}` : undefined}
                 >
