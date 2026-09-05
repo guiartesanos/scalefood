@@ -1,0 +1,42 @@
+name: CI
+
+# Nada barrava um push com typecheck/build/teste quebrado até agora — essa
+# checagem era manual, feita na mão a cada mudança. Roda em todo push e PR
+# pra main; falha aqui bloqueia o merge (branch protection cuida disso).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Só o suficiente pra "next build" montar as páginas — nenhuma delas
+      # é chamada de verdade nesta fase (todas as rotas que usam Supabase
+      # são dinâmicas, resolvidas em request time, não em build time).
+      # Não são segredos: valores falsos de propósito, não credenciais reais.
+      NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      CRON_SECRET: ci-placeholder
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Testes
+        run: npm test
+
+      - name: Build
+        run: npm run build
