@@ -32,11 +32,14 @@ jobs:
 
       - run: npm ci
 
-      - name: Typecheck
-        run: npx tsc --noEmit
-
       - name: Testes
         run: npm test
 
+      # "next build" já roda o typecheck completo do projeto por dentro
+      # (fase "Running TypeScript" do build) — um "npx tsc --noEmit"
+      # separado ANTES do build falha aqui: alguns tipos (ex: LayoutProps)
+      # só existem depois que o Next gera .next/types/, o que só acontece
+      # durante o próprio build/dev. Por isso não tem um passo de
+      # typecheck isolado — o build já cobre isso com a mesma garantia.
       - name: Build
         run: npm run build
