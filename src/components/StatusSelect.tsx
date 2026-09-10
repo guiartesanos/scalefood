@@ -16,8 +16,13 @@ export function StatusSelect({ clienteId, status }: { clienteId: string; status:
       onClick={(e) => e.stopPropagation()}
       onChange={(e) => {
         const novo = e.target.value as ClienteStatus;
-        startTransition(() => {
-          atualizarStatusCliente(clienteId, novo);
+        startTransition(async () => {
+          // Sem isso, um erro (ex: RLS barrando quem não pode cancelar
+          // cliente) passava batido — o select ficava na mesma opção sem
+          // nenhum aviso, parecendo que "não mudou de lista" por nenhum
+          // motivo aparente.
+          const resultado = await atualizarStatusCliente(clienteId, novo);
+          if (resultado && "error" in resultado) alert(resultado.error);
         });
       }}
       style={{

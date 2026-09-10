@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import type { ClienteStatus } from "@/lib/types";
@@ -9,7 +9,7 @@ import { listarPagamentosAsaas, buscarClienteAsaas } from "@/lib/asaas";
 const PAGAMENTOS_RECEBIDOS = new Set(["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"]);
 
 export async function atualizarStatusCliente(clienteId: string, status: ClienteStatus) {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
 
   // "Cancelado" não é só mais um status: tira o cliente da lista de
@@ -17,7 +17,20 @@ export async function atualizarStatusCliente(clienteId: string, status: ClienteS
   // "Clientes cancelados" usa), puxando histórico de pagamentos e
   // telefone do Asaas quando dá.
   if (status === "Cancelado") {
-    const { data: cliente } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
+    // Mesmos papéis que podem criar cliente (0001_init.sql) — cancelar é
+    // um evento de ciclo de vida do mesmo tipo. Checado aqui porque as
+    // duas operações abaixo (inserir em clientes_cancelados, apagar de
+    // clientes) rodam com o client admin: a RLS dessas tabelas restringe
+    // insert/delete a "master", mas quem decide se um comercial pode
+    // cancelar cliente é essa regra de negócio, não a permissão de banco
+    // — sem esse "if", QUALQUER papel conseguiria cancelar via admin
+    // client, inclusive financeiro (que nem cria cliente).
+    if (!["master", "comercial", "onboarding"].includes(profile.role)) {
+      return { error: "Seu papel não pode cancelar cliente." };
+    }
+
+    const admin = createAdminClient();
+    const { data: cliente } = await admin.from("clientes").select("*").eq("id", clienteId).single();
     if (!cliente) return { error: "Cliente não encontrado." };
 
     let totalRecebido = Number(cliente.rec) || 0;
@@ -45,7 +58,7 @@ export async function atualizarStatusCliente(clienteId: string, status: ClienteS
       }
     }
 
-    const { error: insertError } = await supabase.from("clientes_cancelados").insert({
+    const { error: insertError } = await admin.from("clientes_cancelados").insert({
       nome: cliente.nome,
       asaas_customer_id: cliente.asaas_customer_id,
       total_recebido: totalRecebido,
@@ -57,7 +70,7 @@ export async function atualizarStatusCliente(clienteId: string, status: ClienteS
     });
     if (insertError) return { error: "Erro ao mover pra cancelados: " + insertError.message };
 
-    const { error: deleteError } = await supabase.from("clientes").delete().eq("id", clienteId);
+    const { error: deleteError } = await admin.from("clientes").delete().eq("id", clienteId);
     if (deleteError) return { error: "Cliente duplicado em cancelados, mas não saiu dos ativos: " + deleteError.message };
 
     revalidatePath("/dashboard");
