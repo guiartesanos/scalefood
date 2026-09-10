@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
   const { data: cliente } = await supabase
     .from("clientes")
-    .select("id, nome, traf, com, trafego_gestor")
+    .select("id, nome, traf, trafego_gestor")
     .eq("asaas_customer_id", pagamento.customer)
     .maybeSingle();
 
@@ -87,11 +87,16 @@ export async function POST(request: NextRequest) {
     coluna: "a-fazer",
   });
 
-  // cliente pagou -> gera a conta a pagar do repasse de tráfego e da
-  // comissão de vendas, uma vez por cliente por mês (não por pagamento —
-  // alguns clientes têm 2 assinaturas ativas no Asaas cobrando no mesmo
-  // mês, e tráfego/comissão são valores mensais, não por cobrança).
-  // referencia com o mês embutido garante essa dedupe via unique index.
+  // cliente pagou -> gera a conta a pagar do repasse de tráfego, uma vez
+  // por cliente por mês (não por pagamento — alguns clientes têm 2
+  // assinaturas ativas no Asaas cobrando no mesmo mês, e tráfego é um
+  // valor mensal, não por cobrança). referencia com o mês embutido
+  // garante essa dedupe via unique index.
+  //
+  // A comissão de vendas pro Gui Borrego, que rodava automaticamente
+  // aqui (uma linha por cliente por mês, regra fixa no código), foi
+  // substituída por acordo em 2 pagamentos pontuais fixos (05/10 e
+  // 05/11) — não gera mais linha nenhuma daqui pra frente.
   const dataPagamento: string = pagamento.paymentDate || pagamento.clientPaymentDate || pagamento.dueDate;
   const competencia = dataPagamento.slice(0, 7); // "2026-08"
 
@@ -105,22 +110,6 @@ export async function POST(request: NextRequest) {
       categoria: "Tráfego",
       origem: "trafego_asaas",
       referencia: `trafego:${cliente.id}:${competencia}`,
-      data: dataPagamento,
-    });
-  }
-
-  // toda comissão de vendas vai pro Gui Borrego — regra fixa, não
-  // depende de quem é o "dono" (responsável interno) do cliente.
-  const comissao = Number(cliente.com) || 0;
-  if (comissao > 0) {
-    await supabase.from("contas_pagar_avulsas").insert({
-      nome: `Comissão de vendas — ${cliente.nome}`,
-      valor: comissao,
-      cliente_nome: cliente.nome,
-      gestor: "Gui Borrego",
-      categoria: "Comissão",
-      origem: "comissao_asaas",
-      referencia: `comissao:${cliente.id}:${competencia}`,
       data: dataPagamento,
     });
   }

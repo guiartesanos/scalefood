@@ -59,9 +59,9 @@ export function RepassesAvulsosList({ pendentes, pagas }: { pendentes: ContaPaga
     <div className="flex flex-col gap-3">
       <h3 className="font-display font-bold text-base">Contas avulsas (tráfego, comissão, imposto)</h3>
       <p className="text-[12px] text-muted">
-        Geradas automaticamente — tráfego e comissão a cada pagamento de cliente, imposto todo dia 20 (7%
-        sobre as notas fiscais do mês anterior). O valor é uma previsão: clique nele para ajustar antes de
-        confirmar como pago.
+        Tráfego é gerado automaticamente a cada pagamento de cliente, imposto todo dia 20 (7% sobre as notas
+        fiscais do mês anterior) — comissão hoje é lançada manualmente (acordo pontual). O valor é uma
+        previsão: clique nele para ajustar antes de confirmar como pago.
       </p>
       <div className="flex flex-col gap-2">
         {pendentes.map((c) => (
