@@ -147,9 +147,9 @@ export function DashboardFilterable({ clientes, verLucro }: { clientes: Cliente[
               </tr>
             </thead>
             <tbody>
-              {filtrados.map((c) => (
+              {filtrados.map((c, i) => (
                 <tr key={c.id} className="border-t border-line/50 hover:bg-paper-2">
-                  <td className="px-3 py-2.5 num">{c.n}</td>
+                  <td className="px-3 py-2.5 num">{i + 1}</td>
                   <td className="px-3 py-2.5">
                     <div className="flex flex-col">
                       <Link href={`/clientes/${c.id}`} className="text-[13px] font-bold hover:text-accent-ink hover:underline">
