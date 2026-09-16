@@ -190,7 +190,6 @@ function FormVenda({ onSucesso }: { onSucesso: () => void }) {
   const [vendeuConsultoria, setVendeuConsultoria] = useState(false);
   const [vendeuRecorrencia, setVendeuRecorrencia] = useState(false);
   const [vendeuCurso, setVendeuCurso] = useState(false);
-  const [vendeuTrafegoAvulso, setVendeuTrafegoAvulso] = useState(false);
   const [canalRecorrencia, setCanalRecorrencia] = useState<"Asaas" | "PIX C6">("Asaas");
   const [primeiroMesGratis, setPrimeiroMesGratis] = useState(false);
   const [jaRecebeuAVista, setJaRecebeuAVista] = useState(false);
@@ -335,21 +334,6 @@ function FormVenda({ onSucesso }: { onSucesso: () => void }) {
               </div>
             </>
           )}
-        </div>
-      )}
-
-      {!vendeuRecorrencia && (
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="vendeuTrafegoAvulso" checked={vendeuTrafegoAvulso} onChange={(e) => setVendeuTrafegoAvulso(e.target.checked)} />
-          Vendeu tráfego junto (sem recorrência) — cria repasse mensal de tráfego pro cliente
-        </label>
-      )}
-      {vendeuTrafegoAvulso && !vendeuRecorrencia && (
-        <div className="grid grid-cols-2 gap-3 bg-paper-2 border border-dashed border-line rounded-md p-4">
-          <Field label="Nicho"><input name="nicho" required className="input" /></Field>
-          <Field label="Valor do tráfego / mês (R$)">
-            <input name="valorTrafego" type="number" step="0.01" min="0" required className="input" />
-          </Field>
         </div>
       )}
 

@@ -34,12 +34,14 @@ function montarTitulosReuniao(formData: FormData, temConsultoria: boolean): stri
 
 // Ponto de entrada único de "Nova venda" — Consultoria, Recorrência e
 // Curso podem ser combinados livremente na mesma venda (ver
-// NovaVendaButton.tsx). Recorrência (e tráfego avulso, que reaproveita o
-// mesmo mecanismo com valorRecorrencia=0) cria o cliente "de verdade" em
-// `clientes` (aparece na aba Recorrentes); Consultoria e/ou Curso criam
-// (ou atualizam, se também vendeu recorrência) um cliente pontual em
-// `consultoria_clientes` — é o que alimenta o quadro de Consultoria e a
-// aba Clientes Pontuais.
+// NovaVendaButton.tsx). Tráfego não tem checkbox próprio: é o único dos
+// serviços que sempre acompanha a Recorrência (o repasse já é calculado
+// automaticamente a partir do valor da recorrência, ver calcTraf em
+// clienteAsaas.ts) — não existe "vender tráfego avulso". Recorrência cria
+// o cliente "de verdade" em `clientes` (aparece na aba Recorrentes);
+// Consultoria e/ou Curso criam (ou atualizam, se também vendeu
+// recorrência) um cliente pontual em `consultoria_clientes` — é o que
+// alimenta o quadro de Consultoria e a aba Clientes Pontuais.
 export async function lancarVenda(formData: FormData) {
   const profile = await requireProfile();
   if (!podeLancarVenda(profile.role)) return { error: "Sem permissão." };
@@ -49,9 +51,6 @@ export async function lancarVenda(formData: FormData) {
   const vendeuConsultoria = formData.get("vendeuConsultoria") === "on";
   const vendeuRecorrencia = formData.get("vendeuRecorrencia") === "on";
   const vendeuCurso = formData.get("vendeuCurso") === "on";
-  // Tráfego avulso só faz sentido quando NÃO vendeu recorrência — a
-  // recorrência já traz o repasse de tráfego embutido (calcTraf).
-  const vendeuTrafegoAvulso = formData.get("vendeuTrafegoAvulso") === "on" && !vendeuRecorrencia;
 
   if (!vendeuConsultoria && !vendeuRecorrencia && !vendeuCurso) {
     return { error: "Selecione ao menos um produto: Consultoria, Recorrência ou Curso." };
@@ -68,12 +67,9 @@ export async function lancarVenda(formData: FormData) {
   let asaasCustomerId: string | null = null;
   let asaasSubscriptionId: string | null = null;
 
-  if (vendeuRecorrencia || vendeuTrafegoAvulso) {
-    const valorRecorrencia = vendeuRecorrencia ? parseFloat(String(formData.get("valorRecorrencia") || "0")) || 0 : 0;
-    if (vendeuRecorrencia && !valorRecorrencia) return { error: "Informe o valor da recorrência." };
-
-    const trafManual = vendeuTrafegoAvulso ? parseFloat(String(formData.get("valorTrafego") || "0")) || 0 : null;
-    if (vendeuTrafegoAvulso && !trafManual) return { error: "Informe o valor do tráfego." };
+  if (vendeuRecorrencia) {
+    const valorRecorrencia = parseFloat(String(formData.get("valorRecorrencia") || "0")) || 0;
+    if (!valorRecorrencia) return { error: "Informe o valor da recorrência." };
 
     const canalRecorrencia = String(formData.get("canalRecorrencia") || "");
     const resultado = await criarClienteComRecorrencia(supabase, profile.id, {
@@ -81,10 +77,9 @@ export async function lancarVenda(formData: FormData) {
       nicho: String(formData.get("nicho") || "").trim(),
       fechamento: dataFechamento,
       valorRecorrencia,
-      trafManual,
       primeiroMesGratis: formData.get("primeiroMesGratis") === "on",
       dataPrimeiroPagamento: String(formData.get("dataPrimeiroPagamento") || "") || null,
-      integrarAsaas: vendeuRecorrencia && canalRecorrencia === "Asaas",
+      integrarAsaas: canalRecorrencia === "Asaas",
       cpfCnpj: String(formData.get("cpfCnpj") || "").trim(),
       email: emailCliente,
       telefone: String(formData.get("telefone") || "").trim(),
@@ -104,7 +99,7 @@ export async function lancarVenda(formData: FormData) {
 
     // Já recebeu um 1º pagamento à vista da recorrência (ex: PIX na hora
     // do fechamento, antes da cobrança recorrente começar a valer).
-    const jaRecebeuAVista = vendeuRecorrencia && formData.get("jaRecebeuAVista") === "on";
+    const jaRecebeuAVista = formData.get("jaRecebeuAVista") === "on";
     const valorAVista = jaRecebeuAVista ? parseFloat(String(formData.get("valorAVista") || "0")) || 0 : 0;
     if (jaRecebeuAVista && valorAVista > 0) {
       await supabase.from("pagamentos").insert({
