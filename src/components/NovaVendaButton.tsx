@@ -228,9 +228,9 @@ function FormVenda({ onSucesso }: { onSucesso: () => void }) {
       <div className="flex flex-col gap-1.5">
         <span className="text-xs uppercase tracking-wide text-muted font-semibold">Produtos (marque um ou mais)</span>
         <div className="grid grid-cols-3 gap-3">
-          <CheckboxProduto label="Consultoria" desc="Mentoria pontual" checked={vendeuConsultoria} onChange={setVendeuConsultoria} />
-          <CheckboxProduto label="Recorrência" desc="Mensalidade Aceleração" checked={vendeuRecorrencia} onChange={setVendeuRecorrencia} />
-          <CheckboxProduto label="Curso" desc="Ticket próprio, pode incluir reuniões" checked={vendeuCurso} onChange={setVendeuCurso} />
+          <CheckboxProduto name="vendeuConsultoria" label="Consultoria" desc="Mentoria pontual" checked={vendeuConsultoria} onChange={setVendeuConsultoria} />
+          <CheckboxProduto name="vendeuRecorrencia" label="Recorrência" desc="Mensalidade Aceleração" checked={vendeuRecorrencia} onChange={setVendeuRecorrencia} />
+          <CheckboxProduto name="vendeuCurso" label="Curso" desc="Ticket próprio, pode incluir reuniões" checked={vendeuCurso} onChange={setVendeuCurso} />
         </div>
       </div>
 
@@ -368,11 +368,13 @@ function FormVenda({ onSucesso }: { onSucesso: () => void }) {
 }
 
 function CheckboxProduto({
+  name,
   label,
   desc,
   checked,
   onChange,
 }: {
+  name: string;
   label: string;
   desc: string;
   checked: boolean;
@@ -384,7 +386,7 @@ function CheckboxProduto({
       style={{ borderColor: checked ? "var(--accent)" : "var(--line)", background: checked ? "var(--accent-wash)" : "var(--paper-2)" }}
     >
       <span className="flex items-center gap-2 font-display font-bold text-[15px]">
-        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+        <input type="checkbox" name={name} checked={checked} onChange={(e) => onChange(e.target.checked)} />
         {label}
       </span>
       <span className="text-[11px] text-ink-2">{desc}</span>
