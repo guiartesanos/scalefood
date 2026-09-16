@@ -5,6 +5,7 @@
     { "path": "/api/cron/tarifas-asaas", "schedule": "0 6 * * *" },
     { "path": "/api/cron/imposto-mensal", "schedule": "0 9 * * *" },
     { "path": "/api/cron/radar-noticias", "schedule": "0 11 * * *" },
-    { "path": "/api/cron/google-calendar-watch-renew", "schedule": "0 5 * * *" }
+    { "path": "/api/cron/google-calendar-watch-renew", "schedule": "0 5 * * *" },
+    { "path": "/api/cron/curso-status-auto", "schedule": "0 7 * * *" }
   ]
 }

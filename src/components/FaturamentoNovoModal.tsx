@@ -10,13 +10,14 @@ const TIPO_LABEL: Record<ReceitaEvento["tipo"], string> = {
   upsell: "Upsell",
   downsell: "Downsell",
   consultoria: "Consultoria",
+  curso: "Curso",
 };
 
 // Categoria mostrada na listinha: "consultoria" cobre tanto venda
 // avulsa quanto pagamento fora do Asaas (financeiro.ts reaproveita esse
 // tipo), então só vira "Consultoria + Recorrência" quando o evento tem
 // cliente_id vinculado — ou seja, quando a mesma venda também criou um
-// cliente recorrente (ver lancarConsultoria em actions/consultoria.ts).
+// cliente recorrente (ver lancarVenda em actions/vendas.ts).
 function categoriaLabel(ev: ReceitaEvento): string {
   if (ev.tipo === "consultoria" && ev.cliente_id) return "Consultoria + Recorrência";
   return TIPO_LABEL[ev.tipo];

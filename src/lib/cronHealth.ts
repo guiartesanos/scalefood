@@ -10,6 +10,7 @@ export const CRONS = [
   { chave: "imposto-mensal", label: "Imposto mensal" },
   { chave: "radar-noticias", label: "Radar de notícias" },
   { chave: "google-calendar-watch-renew", label: "Renovação do canal do Calendar" },
+  { chave: "curso-status-auto", label: "Conclusão automática (curso, 7 dias)" },
 ] as const;
 
 export type CronChave = (typeof CRONS)[number]["chave"];

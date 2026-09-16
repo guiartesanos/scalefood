@@ -4,18 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { gerarDatasCadencia } from "@/lib/reunioes";
-import { criarClienteComRecorrencia } from "@/lib/clienteAsaas";
 import { criarEventoReuniao, atualizarEventoReuniao } from "@/lib/googleCalendar";
-import { CONSULTORIA_TAREFAS_PADRAO } from "@/lib/types";
+import { CONSULTORIA_TAREFAS_PADRAO, type ConsultoriaStatus } from "@/lib/types";
 
 const DURACAO_REUNIAO_MIN = 45;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// Quem vende a consultoria normalmente é o comercial — precisa poder
-// lançar isso ele mesmo, não só financeiro/onboarding.
-function podeLancarConsultoria(role: string) {
-  return role === "master" || role === "comercial" || role === "financeiro" || role === "onboarding";
-}
 
 // Trim + remove vazios/duplicados + valida formato básico — usado tanto
 // no cadastro quanto na edição de e-mails do cliente de consultoria.
@@ -26,136 +19,34 @@ function normalizarEmails(emails: string[]): { emails: string[] } | { error: str
   return { emails: limpos };
 }
 
-export async function lancarConsultoria(formData: FormData) {
-  const profile = await requireProfile();
-  if (!podeLancarConsultoria(profile.role)) return { error: "Sem permissão." };
-
-  const supabase = await createClient();
-
-  const valorConsultoria = parseFloat(String(formData.get("valorConsultoria") || "0")) || 0;
-  const dataFechamento = String(formData.get("dataFechamento") || "");
-  const nomeCliente = String(formData.get("nomeCliente") || "").trim();
-  const emailCliente = String(formData.get("email") || "").trim();
-  const vendeuRecorrencia = formData.get("vendeuRecorrencia") === "on";
-  const canal = String(formData.get("canal") || "PIX C6");
-
-  if (!valorConsultoria || !dataFechamento || !nomeCliente) {
-    return { error: "Preencha valor da consultoria, data de fechamento e nome do cliente." };
-  }
-
-  let clienteId: string | null = null;
-  let asaasCustomerId: string | null = null;
-  let asaasSubscriptionId: string | null = null;
-
-  // Se vendeu recorrência: cadastra o cliente (sempre como novo, por
-  // regra — consultoria pra quem já paga recorrência é raríssimo) e
-  // cria de verdade no Asaas (cliente + assinatura recorrente).
-  if (vendeuRecorrencia) {
-    const resultado = await criarClienteComRecorrencia(supabase, profile.id, {
-      nome: nomeCliente,
-      nicho: String(formData.get("nicho") || "").trim(),
-      fechamento: dataFechamento,
-      valorRecorrencia: parseFloat(String(formData.get("valorRecorrencia") || "0")) || 0,
-      primeiroMesGratis: formData.get("primeiroMesGratis") === "on",
-      dataPrimeiroPagamento: String(formData.get("dataPrimeiroPagamento") || "") || null,
-      integrarAsaas: String(formData.get("canalRecorrencia") || "") === "Asaas",
-      cpfCnpj: String(formData.get("cpfCnpj") || "").trim(),
-      email: emailCliente,
-      telefone: String(formData.get("telefone") || "").trim(),
-      cep: String(formData.get("cep") || "").trim(),
-      endereco: String(formData.get("endereco") || "").trim(),
-      numero: String(formData.get("numero") || "").trim(),
-      complemento: String(formData.get("complemento") || "").trim(),
-      bairro: String(formData.get("bairro") || "").trim(),
-      juros: parseFloat(String(formData.get("juros") || "1")) || 1,
-      multa: parseFloat(String(formData.get("multa") || "2")) || 2,
-    });
-
-    if ("error" in resultado) return resultado;
-    clienteId = resultado.clienteId;
-    asaasCustomerId = resultado.asaasCustomerId;
-    asaasSubscriptionId = resultado.asaasSubscriptionId;
-
-    revalidatePath("/clientes");
-    revalidatePath("/dashboard");
-  }
-
-  // Pagamento da consultoria em si — sempre, com ou sem recorrência.
-  await supabase.from("pagamentos").insert({
-    data: dataFechamento,
-    cliente: nomeCliente,
-    valor: valorConsultoria,
-    canal,
-    tipo: "consultoria",
-    descricao: `Consultoria — onboarding (${CONSULTORIA_TAREFAS_PADRAO.length} etapas)`,
-    pendente: false,
-  });
-
-  await supabase.from("receita_eventos").insert({
-    cliente_id: clienteId,
-    cliente_nome: nomeCliente,
-    tipo: "consultoria",
-    valor: valorConsultoria,
-    data: dataFechamento,
-    descricao: `Consultoria: ${nomeCliente}`,
-    criado_por: profile.id,
-  });
-
-  // Quadro de consultoria: cria o cliente + as 8 tarefas fixas de
-  // onboarding. A 1ª fica pendente de agendamento manual (ver
-  // agendarPrimeiraReuniao); as demais já nascem com data pela cadência
-  // padrão (segunda às 09:00), ajustável depois pelo card
-  // (redefinirCadenciaConsultoria).
-  const DIA_PADRAO = 1;
-  const HORA_PADRAO = "09:00";
-  const { data: consultoriaCliente } = await supabase
-    .from("consultoria_clientes")
-    .insert({
-      nome: nomeCliente,
-      emails: emailCliente ? [emailCliente] : [],
-      cliente_id: clienteId,
-      data_fechamento: dataFechamento,
-      valor: valorConsultoria,
-      dia_semana_recorrente: DIA_PADRAO,
-      hora_recorrente: HORA_PADRAO,
-      criado_por: profile.id,
-    })
-    .select("id")
-    .single();
-
-  if (consultoriaCliente) {
-    const datasSeguintes = gerarDatasCadencia(dataFechamento, DIA_PADRAO, CONSULTORIA_TAREFAS_PADRAO.length - 1);
-    await supabase.from("consultoria_tarefas").insert(
-      CONSULTORIA_TAREFAS_PADRAO.map((titulo, i) => ({
-        consultoria_cliente_id: consultoriaCliente.id,
-        titulo,
-        ordem: i + 1,
-        data_reuniao: i === 0 ? null : datasSeguintes[i - 1],
-        hora_reuniao: i === 0 ? null : HORA_PADRAO,
-      }))
-    );
-  }
-
-  revalidatePath("/financeiro");
-  revalidatePath("/tarefas");
-  revalidatePath("/dashboard");
-  revalidatePath("/consultoria");
-
-  return {
-    success: true,
-    asaasCustomerId,
-    asaasSubscriptionId,
-  };
-}
-
 export async function marcarTarefaConsultoria(tarefaId: string, feito: boolean) {
   await requireProfile();
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data: tarefa, error } = await supabase
     .from("consultoria_tarefas")
     .update({ feito, feito_em: feito ? new Date().toISOString() : null })
-    .eq("id", tarefaId);
+    .eq("id", tarefaId)
+    .select("consultoria_cliente_id")
+    .single();
   if (error) return { error: error.message };
+
+  // Se essa era a última tarefa pendente do cliente, conclui sozinho —
+  // sem isso, "concluído" só acontecia clicando no botão manual do card.
+  if (feito && tarefa) {
+    const { data: pendentes } = await supabase
+      .from("consultoria_tarefas")
+      .select("id")
+      .eq("consultoria_cliente_id", tarefa.consultoria_cliente_id)
+      .eq("feito", false);
+    if (!pendentes?.length) {
+      await supabase
+        .from("consultoria_clientes")
+        .update({ status: "concluido", status_atualizado_em: new Date().toISOString() })
+        .eq("id", tarefa.consultoria_cliente_id)
+        .neq("status", "concluido");
+    }
+  }
+
   revalidatePath("/consultoria");
   return { success: true };
 }
@@ -273,12 +164,17 @@ export async function redefinirCadenciaConsultoria(consultoriaClienteId: string,
   return { success: true };
 }
 
-export async function concluirClienteConsultoria(consultoriaClienteId: string) {
+// Troca manual de status (aguardando_inicio ⇄ entrega, ou concluir na
+// mão) — curso_comprado→concluido também acontece sozinho (7 dias, ver
+// /api/cron/curso-status-auto) e concluido também acontece sozinho quando
+// todas as tarefas são marcadas (ver marcarTarefaConsultoria acima), mas
+// o usuário pode adiantar isso manualmente a qualquer momento.
+export async function atualizarStatusConsultoria(consultoriaClienteId: string, status: ConsultoriaStatus) {
   await requireProfile();
   const supabase = await createClient();
   const { error } = await supabase
     .from("consultoria_clientes")
-    .update({ concluido: true, concluido_em: new Date().toISOString() })
+    .update({ status, status_atualizado_em: new Date().toISOString() })
     .eq("id", consultoriaClienteId);
   if (error) return { error: error.message };
   revalidatePath("/consultoria");
@@ -307,6 +203,7 @@ export async function cadastrarConsultoriaManual(formData: FormData) {
       data_fechamento: dataFechamento,
       dia_semana_recorrente: DIA_PADRAO,
       hora_recorrente: HORA_PADRAO,
+      produtos: ["consultoria"],
       criado_por: profile.id,
     })
     .select("id")

@@ -5,13 +5,13 @@ import {
   marcarTarefaConsultoria,
   agendarPrimeiraReuniao,
   redefinirCadenciaConsultoria,
-  concluirClienteConsultoria,
+  atualizarStatusConsultoria,
   cadastrarConsultoriaManual,
   atualizarEmailsConsultoria,
 } from "@/actions/consultoria";
 import { prazoSugeridoPrimeiraReuniao } from "@/lib/reunioes";
 import { fmtData } from "@/lib/format";
-import type { ConsultoriaCliente, ConsultoriaTarefa } from "@/lib/types";
+import { CONSULTORIA_STATUS_META, type ConsultoriaCliente, type ConsultoriaStatus, type ConsultoriaTarefa } from "@/lib/types";
 
 const DIA_LABEL: Record<number, string> = { 1: "segunda", 2: "terça", 3: "quarta", 4: "quinta", 5: "sexta" };
 
@@ -150,7 +150,6 @@ function ConsultoriaCard({
   readonly?: boolean;
 }) {
   const [aberto, setAberto] = useState(false);
-  const [confirmando, setConfirmando] = useState(false);
   const [editandoEmails, setEditandoEmails] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -211,29 +210,7 @@ function ConsultoriaCard({
         </div>
         {!readonly && (
           <div onClick={(e) => e.stopPropagation()} className="shrink-0">
-            {confirmando ? (
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] text-muted">confirma?</span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    startTransition(() => {
-                      concluirClienteConsultoria(cliente.id);
-                    })
-                  }
-                  className="btn-critical text-xs"
-                >
-                  sim
-                </button>
-                <button type="button" onClick={() => setConfirmando(false)} className="btn text-xs">
-                  não
-                </button>
-              </div>
-            ) : (
-              <button type="button" onClick={() => setConfirmando(true)} className="btn text-[11px] whitespace-nowrap">
-                concluído ✓
-              </button>
-            )}
+            <StatusPontualSelect consultoriaClienteId={cliente.id} status={cliente.status} />
           </div>
         )}
       </div>
@@ -256,6 +233,37 @@ function ConsultoriaCard({
 
       {editandoEmails && <EmailsModal cliente={cliente} onClose={() => setEditandoEmails(false)} />}
     </div>
+  );
+}
+
+// Mesmo padrão visual do StatusSelect.tsx dos clientes recorrentes —
+// troca manual entre os 4 status. "concluido" também acontece sozinho
+// (todas as tarefas feitas, ou 7 dias de curso_comprado), mas dá pra
+// forçar aqui a qualquer momento.
+function StatusPontualSelect({ consultoriaClienteId, status }: { consultoriaClienteId: string; status: ConsultoriaStatus }) {
+  const [pending, startTransition] = useTransition();
+  const meta = CONSULTORIA_STATUS_META[status];
+
+  return (
+    <select
+      className={`status-select pill-${meta.cls}`}
+      value={status}
+      disabled={pending}
+      onClick={(e) => e.stopPropagation()}
+      onChange={(e) => {
+        const novo = e.target.value as ConsultoriaStatus;
+        startTransition(() => {
+          atualizarStatusConsultoria(consultoriaClienteId, novo);
+        });
+      }}
+      style={{ color: `var(--${meta.cls})`, background: `var(--${meta.cls}-wash)` }}
+    >
+      {(Object.keys(CONSULTORIA_STATUS_META) as ConsultoriaStatus[]).map((s) => (
+        <option key={s} value={s}>
+          {CONSULTORIA_STATUS_META[s].label}
+        </option>
+      ))}
+    </select>
   );
 }
 

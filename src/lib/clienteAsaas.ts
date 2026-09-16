@@ -13,6 +13,10 @@ export interface DadosClienteRecorrencia {
   status?: string;
   fechamento: string;
   valorRecorrencia: number;
+  // Tráfego avulso (vendido sem recorrência junto) informa o valor do
+  // repasse direto, em vez de deixar calcTraf() calcular como % da
+  // recorrência (que aqui seria 0).
+  trafManual?: number | null;
   entrada?: number | null;
   primeiroMesGratis: boolean;
   dataPrimeiroPagamento: string | null;
@@ -43,7 +47,7 @@ export async function criarClienteComRecorrencia(
   | { error: string }
   | { clienteId: string; asaasCustomerId: string | null; asaasSubscriptionId: string | null }
 > {
-  const traf = calcTraf(d.valorRecorrencia);
+  const traf = d.trafManual != null ? d.trafManual : calcTraf(d.valorRecorrencia);
   const taxa = 2.98;
   const liq = d.valorRecorrencia - traf - taxa;
   const marg = d.valorRecorrencia ? (liq / d.valorRecorrencia) * 100 : 0;

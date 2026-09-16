@@ -102,7 +102,7 @@ export interface Pagamento {
   cliente: string | null;
   valor: number;
   canal: string;
-  tipo: "recorrencia" | "consultoria" | "avulso";
+  tipo: "recorrencia" | "consultoria" | "curso" | "avulso";
   descricao: string | null;
   pendente: boolean;
   created_at: string;
@@ -149,7 +149,7 @@ export interface ReceitaEvento {
   id: string;
   cliente_id: string | null;
   cliente_nome: string | null;
-  tipo: "novo_cliente" | "upsell" | "downsell" | "consultoria";
+  tipo: "novo_cliente" | "upsell" | "downsell" | "consultoria" | "curso";
   valor: number;
   data: string;
   descricao: string | null;
@@ -207,6 +207,22 @@ export interface GeracaoConteudo {
   updated_at: string;
 }
 
+// aguardando_inicio → entrega → concluido é o caminho normal (manual, pelo
+// seletor no card) — curso_comprado é um estado à parte, só pra quem
+// comprou apenas curso (sem consultoria), e vira concluido sozinho depois
+// de 7 dias corridos se ninguém mudar antes (ver
+// /api/cron/curso-status-auto). Também vira concluido sozinho quando todas
+// as tarefas do cliente forem marcadas como feitas (ver
+// marcarTarefaConsultoria em src/actions/consultoria.ts).
+export type ConsultoriaStatus = "aguardando_inicio" | "entrega" | "curso_comprado" | "concluido";
+
+export const CONSULTORIA_STATUS_META: Record<ConsultoriaStatus, { cls: string; label: string }> = {
+  aguardando_inicio: { cls: "critical", label: "Aguardando início" },
+  entrega: { cls: "warning", label: "Período de entrega" },
+  curso_comprado: { cls: "serious", label: "Curso comprado" },
+  concluido: { cls: "good", label: "Entrega concluída" },
+};
+
 export interface ConsultoriaCliente {
   id: string;
   nome: string;
@@ -216,8 +232,11 @@ export interface ConsultoriaCliente {
   valor: number | null;
   dia_semana_recorrente: number;
   hora_recorrente: string;
-  concluido: boolean;
-  concluido_em: string | null;
+  // produtos vendidos nessa venda pontual: "consultoria" e/ou "curso" (se
+  // tivesse recorrência, não seria um cliente pontual — teria cliente_id).
+  produtos: string[];
+  status: ConsultoriaStatus;
+  status_atualizado_em: string | null;
   criado_por: string | null;
   created_at: string;
 }
@@ -251,6 +270,11 @@ export const CONSULTORIA_TAREFAS_PADRAO = [
   "Processo de compras",
   "Mapeamento de fornecedores",
 ] as const;
+
+// Padrão quando a venda não inclui Consultoria (só Recorrência e/ou só
+// Curso, mas escolheu ter reunião) — uma única reunião de onboarding, em
+// vez das 8 etapas do método completo.
+export const CONSULTORIA_TAREFAS_ONBOARDING = ["Onboarding"] as const;
 
 export type PropostaTipo = "consultoria" | "recorrencia" | "consultoria_recorrencia";
 export type PropostaStatus = "enviada" | "em_negociacao" | "aceita" | "recusada" | "sem_retorno";

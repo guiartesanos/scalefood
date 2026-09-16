@@ -5,6 +5,7 @@ import { useState } from "react";
 const TABS = [
   { key: "geral", label: "Geral" },
   { key: "cancelados", label: "Cancelados" },
+  { key: "pontuais", label: "Clientes Pontuais" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -13,13 +14,15 @@ export function ClientesTabs({
   geral,
   cancelados,
   totalCancelados,
+  pontuais,
 }: {
   geral: React.ReactNode;
   cancelados: React.ReactNode;
   totalCancelados: number;
+  pontuais: React.ReactNode;
 }) {
   const [ativo, setAtivo] = useState<TabKey>("geral");
-  const conteudo: Record<TabKey, React.ReactNode> = { geral, cancelados };
+  const conteudo: Record<TabKey, React.ReactNode> = { geral, cancelados, pontuais };
 
   return (
     <div className="flex flex-col gap-5">

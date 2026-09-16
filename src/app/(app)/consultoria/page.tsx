@@ -28,8 +28,8 @@ export default async function ConsultoriaPage({
   const clientes = (clientesRaw || []) as ConsultoriaCliente[];
   const tarefas = (tarefasRaw || []) as ConsultoriaTarefa[];
 
-  const ativos = clientes.filter((c) => !c.concluido);
-  const concluidos = clientes.filter((c) => c.concluido);
+  const ativos = clientes.filter((c) => c.status !== "concluido");
+  const concluidos = clientes.filter((c) => c.status === "concluido");
   const mensagemCalendar = params.calendar ? MENSAGEM_CALENDAR[params.calendar] : null;
 
   return (

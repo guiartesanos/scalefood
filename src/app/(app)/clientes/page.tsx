@@ -6,11 +6,12 @@ import { StatusSelect } from "@/components/StatusSelect";
 import { ClienteValoresForm } from "@/components/ClienteValoresForm";
 import { ClientesKanban } from "@/components/ClientesKanban";
 import { ClientesTabs } from "@/components/ClientesTabs";
+import { ClientesPontuaisBoard } from "@/components/ClientesPontuaisBoard";
 import { Kpi } from "@/components/Kpi";
 import { MotivoCancelamentoSelect } from "@/components/MotivoCancelamentoSelect";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { canEditClienteValores } from "@/lib/permissions";
-import type { ClienteCancelado } from "@/lib/types";
+import type { ClienteCancelado, ConsultoriaCliente } from "@/lib/types";
 
 export default async function ClientesPage() {
   const profile = await requireProfile();
@@ -23,6 +24,13 @@ export default async function ClientesPage() {
     .select("*")
     .order("ultimo_pagamento", { ascending: false });
   const cancelados = (canceladosRaw || []) as ClienteCancelado[];
+
+  const { data: pontuaisRaw } = await supabase
+    .from("consultoria_clientes")
+    .select("*")
+    .is("cliente_id", null)
+    .order("data_fechamento", { ascending: false });
+  const pontuais = (pontuaisRaw || []) as ConsultoriaCliente[];
 
   const growthSorted = [...clientes].sort((a, b) => {
     const pa = pctOf(a), pb = pctOf(b);
@@ -146,7 +154,14 @@ export default async function ClientesPage() {
     </section>
   );
 
-  return <ClientesTabs geral={geral} cancelados={canceladosView} totalCancelados={cancelados.length} />;
+  return (
+    <ClientesTabs
+      geral={geral}
+      cancelados={canceladosView}
+      totalCancelados={cancelados.length}
+      pontuais={<ClientesPontuaisBoard clientes={pontuais} />}
+    />
+  );
 }
 function Th({ children, right }: { children?: React.ReactNode; right?: boolean }) {
   return <th className={`px-3 py-2 text-[10.5px] uppercase tracking-wide text-muted font-semibold ${right ? "text-right" : "text-left"}`}>{children}</th>;
