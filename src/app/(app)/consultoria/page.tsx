@@ -2,7 +2,6 @@ import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { calendarStatus } from "@/lib/googleCalendar";
 import { ConsultoriaBoard } from "@/components/ConsultoriaBoard";
-import { ComercialSubNav } from "@/components/ComercialSubNav";
 import type { ConsultoriaCliente, ConsultoriaTarefa } from "@/lib/types";
 
 const MENSAGEM_CALENDAR: Record<string, string> = {
@@ -34,18 +33,15 @@ export default async function ConsultoriaPage({
   const mensagemCalendar = params.calendar ? MENSAGEM_CALENDAR[params.calendar] : null;
 
   return (
-    <>
-      <ComercialSubNav />
-      <ConsultoriaBoard
-        ativos={ativos}
-        concluidos={concluidos}
-        tarefas={tarefas}
-        calendarConectado={status.conectado}
-        calendarQuebrado={status.conectado && !!status.erro}
-        mostrarConexaoCalendar={profile.role === "master"}
-        mensagemCalendar={mensagemCalendar}
-        calendarErro={params.calendar === "erro" || params.calendar === "sem-permissao"}
-      />
-    </>
+    <ConsultoriaBoard
+      ativos={ativos}
+      concluidos={concluidos}
+      tarefas={tarefas}
+      calendarConectado={status.conectado}
+      calendarQuebrado={status.conectado && !!status.erro}
+      mostrarConexaoCalendar={profile.role === "master"}
+      mensagemCalendar={mensagemCalendar}
+      calendarErro={params.calendar === "erro" || params.calendar === "sem-permissao"}
+    />
   );
 }

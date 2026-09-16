@@ -6,7 +6,7 @@ import { calendarStatus } from "@/lib/googleCalendar";
 import { canvaStatus } from "@/lib/canva";
 import { listarSaudeCrons } from "@/lib/cronHealth";
 import { MetaBar } from "@/components/MetaBar";
-import { TabNav } from "@/components/TabNav";
+import { Sidebar } from "@/components/Sidebar";
 import { MobileTabNav } from "@/components/MobileTabNav";
 import { CommandPalette } from "@/components/CommandPalette";
 import { IdleLogout } from "@/components/IdleLogout";
@@ -44,32 +44,37 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <VisibilidadeProvider>
       <RouteProgress />
-      <div className="min-h-screen flex flex-col bg-page">
-        <header className="max-w-[1220px] mx-auto w-full px-6 pt-6 pb-2 flex items-center justify-between">
-          <span className="brandmark text-xl">Food Scale</span>
-          <div className="flex items-center gap-3 text-xs text-ink-2">
-            <CommandPalette role={profile.role} clientes={clientes.map((c) => ({ id: c.id, nome: c.nome }))} />
-            <BotaoOcultarValores />
-            <span className="max-[500px]:hidden">
-              {profile.nome || profile.email} · <span className="text-accent-ink font-semibold">{roleLabel(profile.role)}</span>
-            </span>
-            <form action={signOut}>
-              <button type="submit" className="btn-ghost">sair</button>
-            </form>
-          </div>
-        </header>
-
-        <TabNav
+      <div className="min-h-screen flex bg-page">
+        <Sidebar
           role={profile.role}
           pendenciasFinanceiro={pendenciasFinanceiro}
           pendenciasTarefas={tarefasPendentes.length}
           integracoesComErro={integracoesComErro}
         />
-        <MetaBar role={profile.role} />
 
-        <main className="max-w-[1220px] mx-auto w-full px-6 py-7 max-[767px]:pb-20 flex flex-col gap-7 flex-1">
-          {children}
-        </main>
+        <div className="flex-1 min-w-0 flex flex-col">
+          <header className="max-w-[1220px] mx-auto w-full px-6 pt-6 pb-2 flex items-center justify-between">
+            {/* No desktop a marca já mora na Sidebar — aqui só reaparece no
+                mobile, que não tem sidebar. */}
+            <span className="brandmark text-xl hidden max-[767px]:block">Food Scale</span>
+            <div className="flex items-center gap-3 text-xs text-ink-2 ml-auto">
+              <CommandPalette role={profile.role} clientes={clientes.map((c) => ({ id: c.id, nome: c.nome }))} />
+              <BotaoOcultarValores />
+              <span className="max-[500px]:hidden">
+                {profile.nome || profile.email} · <span className="text-accent-ink font-semibold">{roleLabel(profile.role)}</span>
+              </span>
+              <form action={signOut}>
+                <button type="submit" className="btn-ghost">sair</button>
+              </form>
+            </div>
+          </header>
+
+          <MetaBar role={profile.role} />
+
+          <main className="max-w-[1220px] mx-auto w-full px-6 py-7 max-[767px]:pb-20 flex flex-col gap-7 flex-1">
+            {children}
+          </main>
+        </div>
 
         <MobileTabNav
           role={profile.role}

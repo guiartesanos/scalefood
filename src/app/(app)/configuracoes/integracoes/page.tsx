@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { requireMaster } from "@/lib/auth";
 import { driveStatus } from "@/lib/googleDrive";
 import { calendarStatus } from "@/lib/googleCalendar";
@@ -48,18 +47,13 @@ export default async function IntegracoesPage() {
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="font-display font-bold text-[21px]">Configurações &gt; Integrações</h2>
-          <p className="text-[13px] text-muted">
-            Conexões e rotinas automáticas que costumavam quebrar em silêncio — se o Google/Canva revoga o token, ou
-            se um cron falha (token do Asaas expirado, por exemplo), o único jeito de saber era abrir os logs de
-            função da Vercel. Esta tela existe pra isso aparecer aqui em vez de lá.
-          </p>
-        </div>
-        <Link href="/configuracoes/usuarios" className="btn-ghost underline underline-offset-2 whitespace-nowrap">
-          ← usuários
-        </Link>
+      <div>
+        <h2 className="font-display font-bold text-[21px]">Configurações &gt; Integrações</h2>
+        <p className="text-[13px] text-muted">
+          Conexões e rotinas automáticas que costumavam quebrar em silêncio — se o Google/Canva revoga o token, ou
+          se um cron falha (token do Asaas expirado, por exemplo), o único jeito de saber era abrir os logs de
+          função da Vercel. Esta tela existe pra isso aparecer aqui em vez de lá.
+        </p>
       </div>
 
       <div className="flex flex-col gap-3">

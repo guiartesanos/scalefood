@@ -6,7 +6,6 @@ import { StatusSelect } from "@/components/StatusSelect";
 import { ClienteValoresForm } from "@/components/ClienteValoresForm";
 import { ClientesKanban } from "@/components/ClientesKanban";
 import { ClientesTabs } from "@/components/ClientesTabs";
-import { ComercialSubNav } from "@/components/ComercialSubNav";
 import { Kpi } from "@/components/Kpi";
 import { MotivoCancelamentoSelect } from "@/components/MotivoCancelamentoSelect";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -147,12 +146,7 @@ export default async function ClientesPage() {
     </section>
   );
 
-  return (
-    <>
-      <ComercialSubNav />
-      <ClientesTabs geral={geral} cancelados={canceladosView} totalCancelados={cancelados.length} />
-    </>
-  );
+  return <ClientesTabs geral={geral} cancelados={canceladosView} totalCancelados={cancelados.length} />;
 }
 function Th({ children, right }: { children?: React.ReactNode; right?: boolean }) {
   return <th className={`px-3 py-2 text-[10.5px] uppercase tracking-wide text-muted font-semibold ${right ? "text-right" : "text-left"}`}>{children}</th>;

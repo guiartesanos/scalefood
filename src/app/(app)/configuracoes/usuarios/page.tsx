@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { requireMaster } from "@/lib/auth";
 import { listarUsuarios } from "@/actions/usuarios";
 import { ConvidarUsuarioForm } from "@/components/ConvidarUsuarioForm";
@@ -14,21 +13,11 @@ export default async function UsuariosPage() {
 
   return (
     <section className="flex flex-col gap-3.5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="font-display font-bold text-[21px]">Configurações &gt; Usuários</h2>
-          <p className="text-[13px] text-muted">
-            Só quem tem papel &quot;master&quot; acessa essa tela — checado no servidor e no banco (RLS), não só escondido no menu.
-          </p>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <Link href="/configuracoes/integracoes" className="btn-ghost underline underline-offset-2 whitespace-nowrap">
-            integrações →
-          </Link>
-          <Link href="/configuracoes/auditoria" className="btn-ghost underline underline-offset-2 whitespace-nowrap">
-            histórico de exclusões →
-          </Link>
-        </div>
+      <div>
+        <h2 className="font-display font-bold text-[21px]">Configurações &gt; Usuários</h2>
+        <p className="text-[13px] text-muted">
+          Só quem tem papel &quot;master&quot; acessa essa tela — checado no servidor e no banco (RLS), não só escondido no menu.
+        </p>
       </div>
 
       <ConvidarUsuarioForm />
