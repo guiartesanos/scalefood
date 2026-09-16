@@ -36,4 +36,11 @@ describe("gerarDatasCadencia", () => {
     // não pode ser a própria 2026-09-07 — tem que ser a segunda seguinte.
     expect(gerarDatasCadencia("2026-09-07", 1, 1)).toEqual(["2026-09-14"]);
   });
+
+  it("aceita quinta e sexta (cadência não fica mais restrita a seg/ter/qua)", () => {
+    // 2026-09-03 é quinta; quinta(4) seguinte é 09-10, sexta(5) seguinte é
+    // já 09-04 (dia depois do fechamento).
+    expect(gerarDatasCadencia("2026-09-03", 4, 2)).toEqual(["2026-09-10", "2026-09-17"]);
+    expect(gerarDatasCadencia("2026-09-03", 5, 2)).toEqual(["2026-09-04", "2026-09-11"]);
+  });
 });

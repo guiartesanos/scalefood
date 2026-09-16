@@ -195,7 +195,7 @@ export async function agendarPrimeiraReuniao(tarefaId: string, data: string, hor
 // criado no Calendar (ou criando, se ainda não existia).
 export async function redefinirCadenciaConsultoria(consultoriaClienteId: string, diaSemana: number, hora: string) {
   await requireProfile();
-  if (![1, 2, 3].includes(diaSemana)) return { error: "Dia inválido." };
+  if (![1, 2, 3, 4, 5].includes(diaSemana)) return { error: "Dia inválido." };
   const supabase = await createClient();
 
   const { data: cliente } = await supabase

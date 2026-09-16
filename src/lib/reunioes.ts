@@ -8,7 +8,7 @@
 // dias cair em seg/ter/qua, prevalece o prazo de 3 dias mesmo assim.
 //
 // As reuniões 2 em diante seguem uma cadência fixa escolhida pelo usuário
-// ("toda segunda/terça/quarta às X"), guardada em
+// ("toda [segunda a sexta] às X"), guardada em
 // ConsultoriaCliente.dia_semana_recorrente/hora_recorrente — ver
 // gerarDatasCadencia.
 
@@ -34,8 +34,7 @@ export function prazoSugeridoPrimeiraReuniao(fechamento: string): string {
 }
 
 // Datas das reuniões seguintes, a partir de `apartirDe` (não incluso),
-// caindo sempre em `diaSemana` (1=segunda, 2=terça, 3=quarta), uma por
-// semana.
+// caindo sempre em `diaSemana` (1=segunda ... 5=sexta), uma por semana.
 export function gerarDatasCadencia(apartirDe: string, diaSemana: number, quantidade: number): string[] {
   const datas: string[] = [];
   let atual = addDays(apartirDe, 1);

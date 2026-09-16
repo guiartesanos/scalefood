@@ -12,7 +12,7 @@ import { prazoSugeridoPrimeiraReuniao } from "@/lib/reunioes";
 import { fmtData } from "@/lib/format";
 import type { ConsultoriaCliente, ConsultoriaTarefa } from "@/lib/types";
 
-const DIA_LABEL: Record<number, string> = { 1: "segunda", 2: "terça", 3: "quarta" };
+const DIA_LABEL: Record<number, string> = { 1: "segunda", 2: "terça", 3: "quarta", 4: "quinta", 5: "sexta" };
 
 function fmtHora(h: string | null) {
   return h ? h.slice(0, 5) : "";
