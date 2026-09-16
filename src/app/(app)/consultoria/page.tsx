@@ -1,6 +1,6 @@
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { calendarConectado } from "@/lib/googleCalendar";
+import { calendarStatus } from "@/lib/googleCalendar";
 import { ConsultoriaBoard } from "@/components/ConsultoriaBoard";
 import { ComercialSubNav } from "@/components/ComercialSubNav";
 import type { ConsultoriaCliente, ConsultoriaTarefa } from "@/lib/types";
@@ -20,10 +20,10 @@ export default async function ConsultoriaPage({
   const params = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: clientesRaw }, { data: tarefasRaw }, conectado] = await Promise.all([
+  const [{ data: clientesRaw }, { data: tarefasRaw }, status] = await Promise.all([
     supabase.from("consultoria_clientes").select("*").order("data_fechamento", { ascending: false }),
     supabase.from("consultoria_tarefas").select("*").order("ordem"),
-    calendarConectado(),
+    calendarStatus(),
   ]);
 
   const clientes = (clientesRaw || []) as ConsultoriaCliente[];
@@ -40,7 +40,8 @@ export default async function ConsultoriaPage({
         ativos={ativos}
         concluidos={concluidos}
         tarefas={tarefas}
-        calendarConectado={conectado}
+        calendarConectado={status.conectado}
+        calendarQuebrado={status.conectado && !!status.erro}
         mostrarConexaoCalendar={profile.role === "master"}
         mensagemCalendar={mensagemCalendar}
         calendarErro={params.calendar === "erro" || params.calendar === "sem-permissao"}

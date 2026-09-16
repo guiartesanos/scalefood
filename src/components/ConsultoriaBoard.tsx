@@ -23,6 +23,7 @@ export function ConsultoriaBoard({
   concluidos,
   tarefas,
   calendarConectado,
+  calendarQuebrado,
   mostrarConexaoCalendar,
   mensagemCalendar,
   calendarErro,
@@ -31,6 +32,7 @@ export function ConsultoriaBoard({
   concluidos: ConsultoriaCliente[];
   tarefas: ConsultoriaTarefa[];
   calendarConectado: boolean;
+  calendarQuebrado: boolean;
   mostrarConexaoCalendar: boolean;
   mensagemCalendar: string | null;
   calendarErro: boolean;
@@ -63,7 +65,11 @@ export function ConsultoriaBoard({
         </div>
         {mostrarConexaoCalendar && (
           <div className="flex flex-col items-end gap-1">
-            {calendarConectado ? (
+            {calendarQuebrado ? (
+              <a href="/configuracoes/integracoes" className="text-xs text-critical font-semibold underline underline-offset-2">
+                ⚠ Google Calendar com erro — reconectar
+              </a>
+            ) : calendarConectado ? (
               <span className="text-xs text-good font-semibold">✓ Google Calendar conectado</span>
             ) : (
               <a href="/api/google-calendar/authorize" className="btn text-xs">
