@@ -7,6 +7,7 @@ import {
   redefinirCadenciaConsultoria,
   concluirClienteConsultoria,
   cadastrarConsultoriaManual,
+  atualizarEmailsConsultoria,
 } from "@/actions/consultoria";
 import { prazoSugeridoPrimeiraReuniao } from "@/lib/reunioes";
 import { fmtData } from "@/lib/format";
@@ -150,6 +151,7 @@ function ConsultoriaCard({
 }) {
   const [aberto, setAberto] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
+  const [editandoEmails, setEditandoEmails] = useState(false);
   const [, startTransition] = useTransition();
 
   const feitas = tarefas.filter((t) => t.feito).length;
@@ -182,7 +184,21 @@ function ConsultoriaCard({
         className="w-full flex items-center justify-between gap-2.5 p-3 text-left cursor-pointer"
       >
         <div className="flex flex-col gap-1 min-w-0">
-          <span className="font-display font-bold text-[14px] truncate">{cliente.nome}</span>
+          {readonly ? (
+            <span className="font-display font-bold text-[14px] truncate">{cliente.nome}</span>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditandoEmails(true);
+              }}
+              className="font-display font-bold text-[14px] truncate text-left hover:underline underline-offset-2 self-start"
+              title="ver/editar e-mail"
+            >
+              {cliente.nome}
+            </button>
+          )}
           <span className="text-[10.5px] text-muted">
             fechou em {fmtData(cliente.data_fechamento)} · {feitas}/{tarefas.length} concluídas
           </span>
@@ -237,6 +253,68 @@ function ConsultoriaCard({
           </div>
         </div>
       )}
+
+      {editandoEmails && <EmailsModal cliente={cliente} onClose={() => setEditandoEmails(false)} />}
+    </div>
+  );
+}
+
+function EmailsModal({ cliente, onClose }: { cliente: ConsultoriaCliente; onClose: () => void }) {
+  const [emails, setEmails] = useState<string[]>(cliente.emails.length ? cliente.emails : [""]);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function handleSalvar() {
+    setError(null);
+    startTransition(async () => {
+      const result = await atualizarEmailsConsultoria(cliente.id, emails);
+      if ("error" in result) setError(result.error ?? "Erro ao salvar.");
+      else onClose();
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[500] flex items-start justify-center p-6 overflow-y-auto" onClick={onClose}>
+      <div
+        className="bg-paper border border-line rounded-lg p-6 max-w-sm w-full flex flex-col gap-3 shadow-[var(--shadow)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="font-display font-bold text-lg">{cliente.nome} — e-mail(s)</h3>
+        <p className="text-xs text-muted">
+          Usado pra convidar o cliente nas reuniões (e no link do Meet). Pode adicionar mais de um.
+        </p>
+        <div className="flex flex-col gap-2">
+          {emails.map((email, i) => (
+            <div key={i} className="flex gap-1.5">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmails((prev) => prev.map((v, j) => (j === i ? e.target.value : v)))}
+                className="input flex-1"
+                placeholder="cliente@email.com"
+              />
+              <button
+                type="button"
+                onClick={() => setEmails((prev) => prev.filter((_, j) => j !== i))}
+                className="btn text-xs px-2.5"
+                aria-label="remover e-mail"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+        <button type="button" onClick={() => setEmails((prev) => [...prev, ""])} className="text-xs text-accent-ink hover:underline self-start">
+          + adicionar e-mail
+        </button>
+        {error && <p className="text-critical text-sm">{error}</p>}
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="btn">cancelar</button>
+          <button type="button" disabled={pending} onClick={handleSalvar} className="btn-primary">
+            {pending ? "salvando..." : "salvar"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -252,6 +330,11 @@ function TarefaRow({ tarefa, readonly, onToggle }: { tarefa: ConsultoriaTarefa; 
           {tarefa.google_event_url && (
             <a href={tarefa.google_event_url} target="_blank" rel="noopener noreferrer" className="text-accent-ink underline">
               ver no Google Calendar
+            </a>
+          )}
+          {tarefa.google_meet_url && (
+            <a href={tarefa.google_meet_url} target="_blank" rel="noopener noreferrer" className="text-accent-ink underline">
+              Google Meet
             </a>
           )}
         </span>

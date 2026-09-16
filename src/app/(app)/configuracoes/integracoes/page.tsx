@@ -1,6 +1,6 @@
 import { requireMaster } from "@/lib/auth";
 import { driveStatus } from "@/lib/googleDrive";
-import { calendarStatus } from "@/lib/googleCalendar";
+import { calendarStatus, calendarWatchStatus } from "@/lib/googleCalendar";
 import { canvaStatus } from "@/lib/canva";
 import { listarSaudeCrons } from "@/lib/cronHealth";
 import type { StatusConexao } from "@/lib/googleDrive";
@@ -37,13 +37,15 @@ export default async function IntegracoesPage() {
   // barra o mesmo acesso direto pelo banco.
   await requireMaster();
 
-  const [drive, calendar, canva, crons] = await Promise.all([
+  const [drive, calendar, canva, calendarWatch, crons] = await Promise.all([
     driveStatus(),
     calendarStatus(),
     canvaStatus(),
+    calendarWatchStatus(),
     listarSaudeCrons(),
   ]);
   const status: Record<string, StatusConexao> = { drive, calendar, canva };
+  const watchQuebrado = calendarWatch.conectado && !!calendarWatch.erro;
 
   return (
     <section className="flex flex-col gap-6">
@@ -89,6 +91,32 @@ export default async function IntegracoesPage() {
           );
         })}
       </div>
+
+      {calendarWatch.conectado && (
+        <div className="flex flex-col gap-3">
+          <h3 className="font-display font-bold text-[15px]">Sincronização automática (Google Calendar)</h3>
+          <div
+            className="border rounded-lg p-4 flex items-center justify-between gap-3 flex-wrap bg-paper"
+            style={{ borderColor: watchQuebrado ? "var(--critical)" : "var(--line)" }}
+          >
+            <div className="flex flex-col gap-0.5">
+              <span className="font-display font-bold text-[15px]">Reflete de volta reunião editada direto na agenda</span>
+              <span className="text-[12px] text-ink-2">
+                Renovado automaticamente todo dia pelo cron abaixo — sem ação manual necessária.
+              </span>
+              {watchQuebrado && (
+                <span className="text-[12px] text-critical mt-1">
+                  ⚠ {calendarWatch.erroEm ? `em ${fmtQuando(calendarWatch.erroEm)}: ` : ""}{calendarWatch.erro}
+                </span>
+              )}
+            </div>
+            <div className="shrink-0">
+              {!watchQuebrado && <span className="text-xs text-good font-semibold">✓ ativo</span>}
+              {watchQuebrado && <span className="text-xs text-critical font-semibold">⚠ com erro</span>}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col gap-3">
         <h3 className="font-display font-bold text-[15px]">Saúde dos crons</h3>

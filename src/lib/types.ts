@@ -44,6 +44,7 @@ export interface Cliente {
   created_at: string;
   updated_at: string;
   asaas_customer_id: string | null;
+  emails: string[];
 }
 
 export interface CustoFixo {
@@ -209,7 +210,7 @@ export interface GeracaoConteudo {
 export interface ConsultoriaCliente {
   id: string;
   nome: string;
-  email: string | null;
+  emails: string[];
   cliente_id: string | null;
   data_fechamento: string;
   valor: number | null;
@@ -232,6 +233,7 @@ export interface ConsultoriaTarefa {
   hora_reuniao: string | null;
   google_event_id: string | null;
   google_event_url: string | null;
+  google_meet_url: string | null;
   created_at: string;
 }
 

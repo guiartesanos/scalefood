@@ -74,6 +74,7 @@ export async function criarClienteComRecorrencia(
       fechamento: d.fechamento,
       promo_primeiro_mes_gratis: d.primeiroMesGratis,
       inicio_cobranca_recorrente: d.primeiroMesGratis ? d.dataPrimeiroPagamento : null,
+      emails: d.email ? [d.email] : [],
     })
     .select("id")
     .single();

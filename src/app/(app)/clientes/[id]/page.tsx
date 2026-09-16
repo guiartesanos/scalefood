@@ -63,6 +63,10 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
             <span className="text-sm text-ink-2">
               {c.dono} · {c.nicho} · cliente há {tenure.text}
             </span>
+            {/* e-mail é editado a partir da Consultoria (Comercial > Consultoria
+                > clicar no nome do cliente) — aqui é só leitura, pra fechar o
+                loop de "reflete em todas as abas" sem duplicar o lugar de edição. */}
+            {c.emails.length > 0 && <span className="text-xs text-muted">{c.emails.join(" · ")}</span>}
           </div>
           <StatusSelect clienteId={c.id} status={c.status} />
         </div>

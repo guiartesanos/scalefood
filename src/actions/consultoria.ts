@@ -9,11 +9,21 @@ import { criarEventoReuniao, atualizarEventoReuniao } from "@/lib/googleCalendar
 import { CONSULTORIA_TAREFAS_PADRAO } from "@/lib/types";
 
 const DURACAO_REUNIAO_MIN = 45;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Quem vende a consultoria normalmente é o comercial — precisa poder
 // lançar isso ele mesmo, não só financeiro/onboarding.
 function podeLancarConsultoria(role: string) {
   return role === "master" || role === "comercial" || role === "financeiro" || role === "onboarding";
+}
+
+// Trim + remove vazios/duplicados + valida formato básico — usado tanto
+// no cadastro quanto na edição de e-mails do cliente de consultoria.
+function normalizarEmails(emails: string[]): { emails: string[] } | { error: string } {
+  const limpos = [...new Set(emails.map((e) => e.trim()).filter(Boolean))];
+  const invalido = limpos.find((e) => !EMAIL_RE.test(e));
+  if (invalido) return { error: `"${invalido}" não parece um e-mail válido.` };
+  return { emails: limpos };
 }
 
 export async function lancarConsultoria(formData: FormData) {
@@ -102,7 +112,7 @@ export async function lancarConsultoria(formData: FormData) {
     .from("consultoria_clientes")
     .insert({
       nome: nomeCliente,
-      email: emailCliente || null,
+      emails: emailCliente ? [emailCliente] : [],
       cliente_id: clienteId,
       data_fechamento: dataFechamento,
       valor: valorConsultoria,
@@ -158,24 +168,26 @@ export async function agendarPrimeiraReuniao(tarefaId: string, data: string, hor
 
   const { data: tarefa } = await supabase
     .from("consultoria_tarefas")
-    .select("*, consultoria_clientes(nome, email)")
+    .select("*, consultoria_clientes(nome, emails)")
     .eq("id", tarefaId)
     .single();
   if (!tarefa) return { error: "Tarefa não encontrada." };
 
   let googleEventId: string | null = null;
   let googleEventUrl: string | null = null;
+  let googleMeetUrl: string | null = null;
   try {
-    const cliente = tarefa.consultoria_clientes as { nome: string; email: string | null } | null;
+    const cliente = tarefa.consultoria_clientes as { nome: string; emails: string[] } | null;
     const evento = await criarEventoReuniao({
       titulo: `Consultoria — ${cliente?.nome || ""}: ${tarefa.titulo}`,
       data,
       hora,
       duracaoMin: DURACAO_REUNIAO_MIN,
-      emailCliente: cliente?.email,
+      emails: cliente?.emails,
     });
     googleEventId = evento?.id || null;
     googleEventUrl = evento?.htmlLink || null;
+    googleMeetUrl = evento?.meetUrl || null;
   } catch {
     // Calendar indisponível ou deu erro — a reunião fica agendada no
     // sistema mesmo assim, só sem evento no Google.
@@ -183,7 +195,7 @@ export async function agendarPrimeiraReuniao(tarefaId: string, data: string, hor
 
   const { error } = await supabase
     .from("consultoria_tarefas")
-    .update({ data_reuniao: data, hora_reuniao: hora, google_event_id: googleEventId, google_event_url: googleEventUrl })
+    .update({ data_reuniao: data, hora_reuniao: hora, google_event_id: googleEventId, google_event_url: googleEventUrl, google_meet_url: googleMeetUrl })
     .eq("id", tarefaId);
   if (error) return { error: error.message };
   revalidatePath("/consultoria");
@@ -229,20 +241,22 @@ export async function redefinirCadenciaConsultoria(consultoriaClienteId: string,
     const novaData = novasDatas[i];
     let googleEventId = tarefa.google_event_id as string | null;
     let googleEventUrl = tarefa.google_event_url as string | null;
+    let googleMeetUrl = tarefa.google_meet_url as string | null;
 
     try {
       if (googleEventId) {
-        await atualizarEventoReuniao(googleEventId, novaData, hora, DURACAO_REUNIAO_MIN);
+        await atualizarEventoReuniao(googleEventId, { data: novaData, hora, duracaoMin: DURACAO_REUNIAO_MIN, emails: cliente.emails });
       } else {
         const evento = await criarEventoReuniao({
           titulo: `Consultoria — ${cliente.nome}: ${tarefa.titulo}`,
           data: novaData,
           hora,
           duracaoMin: DURACAO_REUNIAO_MIN,
-          emailCliente: cliente.email,
+          emails: cliente.emails,
         });
         googleEventId = evento?.id || null;
         googleEventUrl = evento?.htmlLink || null;
+        googleMeetUrl = evento?.meetUrl || null;
       }
     } catch {
       // segue o baile — o evento fica desatualizado/sem criar no
@@ -251,7 +265,7 @@ export async function redefinirCadenciaConsultoria(consultoriaClienteId: string,
 
     await supabase
       .from("consultoria_tarefas")
-      .update({ data_reuniao: novaData, hora_reuniao: hora, google_event_id: googleEventId, google_event_url: googleEventUrl })
+      .update({ data_reuniao: novaData, hora_reuniao: hora, google_event_id: googleEventId, google_event_url: googleEventUrl, google_meet_url: googleMeetUrl })
       .eq("id", tarefa.id);
   }
 
@@ -280,7 +294,8 @@ export async function cadastrarConsultoriaManual(formData: FormData) {
   const nome = String(formData.get("nome") || "").trim();
   const email = String(formData.get("email") || "").trim();
   const dataFechamento = String(formData.get("dataFechamento") || "");
-  if (!nome || !dataFechamento) return { error: "Preencha nome e data de fechamento." };
+  if (!nome || !email || !dataFechamento) return { error: "Preencha nome, e-mail e data de fechamento." };
+  if (!EMAIL_RE.test(email)) return { error: "E-mail inválido." };
 
   const DIA_PADRAO = 1;
   const HORA_PADRAO = "09:00";
@@ -288,7 +303,7 @@ export async function cadastrarConsultoriaManual(formData: FormData) {
     .from("consultoria_clientes")
     .insert({
       nome,
-      email: email || null,
+      emails: [email],
       data_fechamento: dataFechamento,
       dia_semana_recorrente: DIA_PADRAO,
       hora_recorrente: HORA_PADRAO,
@@ -310,5 +325,57 @@ export async function cadastrarConsultoriaManual(formData: FormData) {
   );
 
   revalidatePath("/consultoria");
+  return { success: true };
+}
+
+// Edita o(s) e-mail(s) do cliente de consultoria — se ele estiver linkado
+// a um cliente de verdade (cliente_id), grava o mesmo array em
+// clientes.emails também, pra não deixar duas cópias divergentes (a maioria
+// das consultorias sem recorrência associada não tem esse link, e fica só
+// com a cópia local mesmo). Também atualiza os convidados nas reuniões já
+// criadas no Calendar, pra quem acabou de ganhar e-mail não ficar de fora
+// de reunião que já estava marcada.
+export async function atualizarEmailsConsultoria(consultoriaClienteId: string, emailsBrutos: string[]) {
+  await requireProfile();
+  const normalizado = normalizarEmails(emailsBrutos);
+  if ("error" in normalizado) return normalizado;
+  const { emails } = normalizado;
+
+  const supabase = await createClient();
+  const { data: cliente } = await supabase
+    .from("consultoria_clientes")
+    .select("cliente_id")
+    .eq("id", consultoriaClienteId)
+    .single();
+  if (!cliente) return { error: "Cliente não encontrado." };
+
+  const { error } = await supabase.from("consultoria_clientes").update({ emails }).eq("id", consultoriaClienteId);
+  if (error) return { error: error.message };
+
+  if (cliente.cliente_id) {
+    await supabase.from("clientes").update({ emails }).eq("id", cliente.cliente_id);
+  }
+
+  const { data: tarefas } = await supabase
+    .from("consultoria_tarefas")
+    .select("id, google_event_id")
+    .eq("consultoria_cliente_id", consultoriaClienteId)
+    .eq("feito", false)
+    .not("google_event_id", "is", null);
+
+  for (const tarefa of tarefas || []) {
+    try {
+      await atualizarEventoReuniao(tarefa.google_event_id as string, { emails });
+    } catch {
+      // fail-soft — o e-mail já está salvo no sistema mesmo que essa
+      // reunião específica não consiga ser atualizada agora.
+    }
+  }
+
+  revalidatePath("/consultoria");
+  if (cliente.cliente_id) {
+    revalidatePath("/clientes");
+    revalidatePath(`/clientes/${cliente.cliente_id}`);
+  }
   return { success: true };
 }
