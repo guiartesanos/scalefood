@@ -100,7 +100,7 @@ function CamposEndereco() {
             title="Buscar endereço pelo CEP"
             className="btn px-2.5 shrink-0"
           >
-            {buscando ? "..." : "🔍"}
+            {buscando ? "..." : "buscar"}
           </button>
         </div>
         {erroCep && <span className="text-[11px] text-critical">{erroCep}</span>}
