@@ -96,6 +96,7 @@ export async function listarPagamentosAsaas(customerId: string): Promise<Pagamen
 export interface ClienteAsaasDetalhe {
   id: string;
   name: string;
+  email?: string | null;
   phone: string | null;
   mobilePhone: string | null;
 }
@@ -109,6 +110,22 @@ export async function buscarClienteAsaas(customerId: string): Promise<ClienteAsa
     return await asaasRequest<ClienteAsaasDetalhe>("GET", `/customers/${customerId}`);
   } catch {
     return null;
+  }
+}
+
+// Busca por nome (igual à barra de busca do painel do Asaas) — usado pra
+// pré-preencher o e-mail em "Nova venda" quando o cliente já existe lá
+// (ex: virou cliente de tráfego/recorrência antes de comprar Consultoria
+// ou Curso), evitando digitar de novo um e-mail que a gente já tem.
+export async function buscarClientesAsaasPorNome(nome: string): Promise<ClienteAsaasDetalhe[]> {
+  try {
+    const data = await asaasRequest<{ data: ClienteAsaasDetalhe[] }>(
+      "GET",
+      `/customers?name=${encodeURIComponent(nome)}&limit=5`
+    );
+    return data.data || [];
+  } catch {
+    return [];
   }
 }
 

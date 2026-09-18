@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { lancarVenda } from "@/actions/vendas";
+import { lancarVenda, buscarEmailAsaasPorNome } from "@/actions/vendas";
 import { STATUS_LIST, CONSULTORIA_TAREFAS_PADRAO, CONSULTORIA_TAREFAS_ONBOARDING } from "@/lib/types";
 
 export function NovaVendaButton() {
@@ -196,9 +196,30 @@ function FormVenda({ onSucesso }: { onSucesso: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [email, setEmail] = useState("");
+  const [emailAuto, setEmailAuto] = useState(false);
+  const [buscandoEmail, setBuscandoEmail] = useState(false);
 
   const temAlgumProduto = vendeuConsultoria || vendeuRecorrencia || vendeuCurso;
   const integrarAsaas = vendeuRecorrencia && canalRecorrencia === "Asaas";
+
+  // Ao sair do campo "Nome do cliente", tenta puxar o e-mail de um
+  // cadastro já existente no Asaas — só preenche sozinho se o campo
+  // ainda estiver vazio (nunca sobrescreve o que a pessoa já digitou) e
+  // se a busca por nome achar exatamente 1 cliente lá.
+  async function tentarPuxarEmailAsaas(nome: string) {
+    if (email.trim()) return;
+    setBuscandoEmail(true);
+    try {
+      const { email: encontrado } = await buscarEmailAsaasPorNome(nome);
+      if (encontrado && !email.trim()) {
+        setEmail(encontrado);
+        setEmailAuto(true);
+      }
+    } finally {
+      setBuscandoEmail(false);
+    }
+  }
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -219,8 +240,28 @@ function FormVenda({ onSucesso }: { onSucesso: () => void }) {
   return (
     <form action={handleSubmit} className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Nome do cliente"><input name="nomeCliente" required className="input" /></Field>
-        <Field label="Email do cliente"><input name="email" type="email" className="input" /></Field>
+        <Field label="Nome do cliente">
+          <input
+            name="nomeCliente"
+            required
+            className="input"
+            onBlur={(e) => tentarPuxarEmailAsaas(e.target.value)}
+          />
+        </Field>
+        <Field label="Email do cliente">
+          <input
+            name="email"
+            type="email"
+            className="input"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setEmailAuto(false);
+            }}
+            placeholder={buscandoEmail ? "buscando no Asaas..." : undefined}
+          />
+          {emailAuto && <span className="text-[10.5px] text-accent-ink">preenchido a partir do cadastro no Asaas</span>}
+        </Field>
         <Field label="Data de fechamento"><input name="dataFechamento" type="date" required className="input" /></Field>
       </div>
 

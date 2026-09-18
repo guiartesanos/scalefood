@@ -5,6 +5,7 @@ import { requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { gerarDatasCadencia } from "@/lib/reunioes";
 import { criarClienteComRecorrencia } from "@/lib/clienteAsaas";
+import { buscarClientesAsaasPorNome } from "@/lib/asaas";
 import { CONSULTORIA_TAREFAS_PADRAO, CONSULTORIA_TAREFAS_ONBOARDING } from "@/lib/types";
 
 const DIA_PADRAO = 1;
@@ -14,6 +15,21 @@ const HORA_PADRAO = "09:00";
 // não só financeiro/onboarding.
 function podeLancarVenda(role: string) {
   return role === "master" || role === "comercial" || role === "financeiro" || role === "onboarding";
+}
+
+// Pré-preenche o e-mail em "Nova venda" a partir do cadastro do Asaas —
+// dispara ao sair do campo "Nome do cliente" (ver NovaVendaButton.tsx).
+// Só devolve e-mail quando a busca por nome bate em exatamente 1 cliente
+// com e-mail cadastrado; nome ambíguo (0 ou 2+ resultados) não preenche
+// nada sozinho, pra não arriscar puxar o e-mail de outro cliente.
+export async function buscarEmailAsaasPorNome(nome: string): Promise<{ email: string | null }> {
+  await requireProfile();
+  const termo = nome.trim();
+  if (termo.length < 3) return { email: null };
+
+  const candidatos = await buscarClientesAsaasPorNome(termo);
+  if (candidatos.length !== 1) return { email: null };
+  return { email: candidatos[0].email || null };
 }
 
 // Monta a lista de títulos de reunião a partir da escolha do formulário —
