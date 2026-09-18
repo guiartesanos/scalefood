@@ -93,6 +93,56 @@ export async function agendarPrimeiraReuniao(tarefaId: string, data: string, hor
   return { success: true };
 }
 
+// Reagenda uma reunião específica (qualquer uma, não só a 1ª) pra
+// qualquer data/hora fora da cadência — pedido explícito de manter cada
+// reunião individualmente alterável. Move o evento já criado no Calendar
+// (ou cria um, se essa tarefa ainda não tinha) e é fail-soft com o
+// Calendar igual às outras rotas que tocam ele por aqui.
+export async function atualizarDataReuniao(tarefaId: string, data: string, hora: string) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { data: tarefa } = await supabase
+    .from("consultoria_tarefas")
+    .select("*, consultoria_clientes(nome, emails)")
+    .eq("id", tarefaId)
+    .single();
+  if (!tarefa) return { error: "Tarefa não encontrada." };
+
+  const cliente = tarefa.consultoria_clientes as { nome: string; emails: string[] } | null;
+  let googleEventId = tarefa.google_event_id as string | null;
+  let googleEventUrl = tarefa.google_event_url as string | null;
+  let googleMeetUrl = tarefa.google_meet_url as string | null;
+
+  try {
+    if (googleEventId) {
+      await atualizarEventoReuniao(googleEventId, { data, hora, duracaoMin: DURACAO_REUNIAO_MIN, emails: cliente?.emails });
+    } else {
+      const evento = await criarEventoReuniao({
+        titulo: `Consultoria — ${cliente?.nome || ""}: ${tarefa.titulo}`,
+        data,
+        hora,
+        duracaoMin: DURACAO_REUNIAO_MIN,
+        emails: cliente?.emails,
+      });
+      googleEventId = evento?.id || null;
+      googleEventUrl = evento?.htmlLink || null;
+      googleMeetUrl = evento?.meetUrl || null;
+    }
+  } catch {
+    // segue o baile — a data certa já está salva no sistema mesmo que o
+    // Calendar não consiga ser atualizado agora.
+  }
+
+  const { error } = await supabase
+    .from("consultoria_tarefas")
+    .update({ data_reuniao: data, hora_reuniao: hora, google_event_id: googleEventId, google_event_url: googleEventUrl, google_meet_url: googleMeetUrl })
+    .eq("id", tarefaId);
+  if (error) return { error: error.message };
+  revalidatePath("/consultoria");
+  return { success: true };
+}
+
 // Redefine "toda [dia] às [hora]" pras reuniões 2-8 desse cliente —
 // realinha de uma vez as que ainda não aconteceram, movendo o evento já
 // criado no Calendar (ou criando, se ainda não existia).

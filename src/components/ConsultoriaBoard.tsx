@@ -8,6 +8,7 @@ import {
   atualizarStatusConsultoria,
   cadastrarConsultoriaManual,
   atualizarEmailsConsultoria,
+  atualizarDataReuniao,
 } from "@/actions/consultoria";
 import { prazoSugeridoPrimeiraReuniao } from "@/lib/reunioes";
 import { fmtData } from "@/lib/format";
@@ -328,13 +329,58 @@ function EmailsModal({ cliente, onClose }: { cliente: ConsultoriaCliente; onClos
 }
 
 function TarefaRow({ tarefa, readonly, onToggle }: { tarefa: ConsultoriaTarefa; readonly: boolean; onToggle: (t: ConsultoriaTarefa) => void }) {
+  const [editando, setEditando] = useState(false);
+  const [data, setData] = useState(tarefa.data_reuniao || "");
+  const [hora, setHora] = useState(fmtHora(tarefa.hora_reuniao) || "09:00");
+  const [pending, startTransition] = useTransition();
+
+  if (editando) {
+    return (
+      <div className="bg-paper-2 border border-dashed border-line rounded-md p-2.5 flex flex-col gap-2">
+        <span className="text-[13px] font-semibold">{tarefa.titulo}</span>
+        <div className="flex flex-wrap items-end gap-2">
+          <input type="date" value={data} onChange={(e) => setData(e.target.value)} className="input" />
+          <input type="time" min="08:00" max="10:45" step={900} value={hora} onChange={(e) => setHora(e.target.value)} className="input" />
+          <button
+            type="button"
+            disabled={!data || pending}
+            onClick={() =>
+              startTransition(async () => {
+                await atualizarDataReuniao(tarefa.id, data, hora);
+                setEditando(false);
+              })
+            }
+            className="btn-primary text-xs"
+          >
+            {pending ? "salvando..." : "salvar"}
+          </button>
+          <button type="button" disabled={pending} onClick={() => setEditando(false)} className="btn text-xs">
+            cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <label className="flex items-start gap-2.5 text-[13px]">
       <input type="checkbox" checked={tarefa.feito} disabled={readonly} onChange={() => onToggle(tarefa)} className="mt-0.5" />
       <div className="flex flex-col min-w-0">
         <span className={tarefa.feito ? "line-through text-muted" : ""}>{tarefa.titulo}</span>
-        <span className="text-[11px] text-muted flex items-center gap-2">
+        <span className="text-[11px] text-muted flex items-center gap-2 flex-wrap">
           {tarefa.data_reuniao ? `${fmtData(tarefa.data_reuniao)} · ${fmtHora(tarefa.hora_reuniao)}` : "sem data"}
+          {!readonly && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                setEditando(true);
+              }}
+              className="text-accent-ink underline"
+            >
+              alterar data
+            </button>
+          )}
           {tarefa.google_event_url && (
             <a href={tarefa.google_event_url} target="_blank" rel="noopener noreferrer" className="text-accent-ink underline">
               ver no Google Calendar

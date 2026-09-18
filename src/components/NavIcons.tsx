@@ -1,6 +1,4 @@
-// Ícones de navegação compartilhados entre a Sidebar (desktop) e o
-// MobileTabNav (barra inferior) — extraídos daqui pra não duplicar o
-// mesmo conjunto de <svg> em dois componentes.
+// Ícones de navegação usados pela Sidebar (única, desktop + mobile).
 
 const ICON_PROPS = {
   width: 20,
@@ -63,6 +61,15 @@ export function IconMarketing() {
       <path d="M3 11v2a1 1 0 0 0 1 1h2l4 4V6L6 10H4a1 1 0 0 0-1 1z" />
       <path d="M15 8a4 4 0 0 1 0 8" />
       <path d="M18 5a8 8 0 0 1 0 14" />
+    </svg>
+  );
+}
+export function IconMenu() {
+  return (
+    <svg {...ICON_PROPS}>
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
     </svg>
   );
 }
